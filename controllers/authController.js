@@ -21,7 +21,7 @@ const register = async (req, res) => {
 };
 
 const signIn = async (req, res) => {
-  const { identifier, password } = req.body; // identifier can be email or username
+  const { identifier, password } = req.body;
 
   try {
     const user = await User.findOne({
@@ -41,6 +41,13 @@ const signIn = async (req, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
+        maxAge: 86400000, // 1 day
+      })
+      .cookie("logged_in", "true", {
+        httpOnly: false, // readable from JavaScript
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 86400000,
       })
       .json({ message: "Logged in", user });
   } catch (err) {
@@ -53,6 +60,11 @@ const signOut = (req, res) => {
   res
     .clearCookie("token", {
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    })
+    .clearCookie("logged_in", {
+      httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
     })

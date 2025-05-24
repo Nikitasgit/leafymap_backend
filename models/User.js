@@ -21,6 +21,8 @@ const userSchema = new Schema(
     lastname: { type: String },
     username: { type: String, required: true, unique: true },
     email: { type: String, required: true },
+    website: { type: String },
+    phone: { type: String },
     password: { type: String, required: true },
     userType: {
       type: String,
@@ -36,6 +38,7 @@ const userSchema = new Schema(
     followers: [{ type: Types.ObjectId, ref: "User" }],
     creatorProfile: creatorProfileSchema,
     interests: [{ type: Types.ObjectId, ref: "SubCategory" }],
+    places: [{ type: Types.ObjectId, ref: "Place" }],
   },
   { timestamps: true }
 );

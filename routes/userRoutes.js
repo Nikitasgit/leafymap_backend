@@ -1,6 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const { createProfile, getUser } = require("../controllers/userController");
+const {
+  createProfile,
+  getUser,
+  updateCreator,
+  addCreator,
+  addOrganizer,
+} = require("../controllers/userController");
 const multer = require("multer");
 const path = require("path");
 const auth = require("../middlewares/auth");
@@ -19,10 +25,22 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.post(
-  "/create-profile",
+  "/create-creator",
   auth,
   upload.single("profilePicture"),
-  createProfile
+  addCreator
+);
+router.post(
+  "/create-organizer",
+  auth,
+  upload.single("profilePicture"),
+  addOrganizer
+);
+router.put(
+  "/update-creator",
+  auth,
+  upload.single("profilePicture"),
+  updateCreator
 );
 router.get("/profile", auth, getUser);
 
