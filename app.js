@@ -6,6 +6,7 @@ const errorHandler = require("./utils/errorHandler");
 const userRoutes = require("./routes/userRoutes");
 const categorieRoutes = require("./routes/categorieRoutes");
 const authRoutes = require("./routes/authRoutes");
+const placeRoutes = require("./routes/placeRoutes");
 const cookieParser = require("cookie-parser");
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use(cookieParser());
 app.use("/api/users", userRoutes);
 app.use("/api/categories", categorieRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/places", placeRoutes);
 
 app.use(errorHandler);
 

@@ -67,7 +67,7 @@ const collaboratorSchema = new Schema(
 
 const createdCollaboratorSchema = new Schema({
   name: { type: String },
-  category: { type: Schema.Types.ObjectId, ref: "Category" },
+  category: { type: Schema.Types.ObjectId, ref: "SubCategory" },
 });
 
 const locationSchema = new Schema(

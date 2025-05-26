@@ -1,115 +1,7 @@
 const User = require("../models/User");
 const Place = require("../models/Place");
-const {
-  upsertOrganizerPlace,
-  upsertCreatorPlace,
-  updateCreatorProfile,
-  parseJson,
-  parseAddress,
-} = require("../helpers/userHelpers");
-
-const createOrUpdateUserAndPlace = async (req, res) => {
-  try {
-    const {
-      userType,
-      name,
-      description,
-      category,
-      placeCategory,
-      address,
-      defaultSchedule,
-      phone,
-      email,
-      website,
-      collaborators,
-      createdCollaborators,
-      placeId,
-    } = req.body;
-
-    const userId = req.user.id;
-    const profilePicture = req.file ? `/uploads/${req.file.filename}` : null;
-
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    const parsedSchedule = parseJson(defaultSchedule, {});
-    const parsedCollaborators = parseJson(collaborators, []);
-    const parsedCreatedCollaborators = parseJson(createdCollaborators, []);
-    const formattedAddress = parseAddress(address);
-    if (address && !formattedAddress) {
-      return res.status(400).json({ error: "Invalid address format" });
-    }
-
-    user.userType = userType;
-
-    let place = placeId ? await Place.findById(placeId) : null;
-    if (placeId && !place) {
-      return res.status(404).json({ error: "Place not found with given ID" });
-    }
-
-    if (userType === "creator") {
-      updateCreatorProfile(user, {
-        name,
-        description,
-        phone,
-        email,
-        website,
-        profilePicture,
-        category,
-      });
-
-      if (formattedAddress) {
-        place = await upsertCreatorPlace({
-          place,
-          placeId,
-          user,
-          name,
-          description,
-          category,
-          placeCategory,
-          formattedAddress,
-          parsedSchedule,
-        });
-        user.creatorProfile.creatorPlace = place._id;
-      }
-    }
-
-    if (userType === "organizer") {
-      if (!formattedAddress) {
-        return res
-          .status(400)
-          .json({ error: "Organizer must provide a valid address" });
-      }
-
-      place = await upsertOrganizerPlace({
-        place,
-        placeId,
-        userId,
-        name,
-        description,
-        phone,
-        email,
-        website,
-        placeCategory,
-        formattedAddress,
-        parsedSchedule,
-        parsedCollaborators,
-        parsedCreatedCollaborators,
-        category,
-      });
-    }
-
-    await user.save();
-
-    return res.status(201).json({
-      message: "Profile created successfully",
-      data: { user, place },
-    });
-  } catch (err) {
-    console.error("Error creating profile:", err);
-    return res.status(500).json({ error: "Server error" });
-  }
-};
+const { parseJson, parseAddress } = require("../helpers/userHelpers");
+const { generateSignedUrlFromFullUrl } = require("../utils/s3");
 
 const getUser = async (req, res) => {
   try {
@@ -137,12 +29,23 @@ const getUser = async (req, res) => {
         path: "places",
         model: "Place",
       });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (user?.userImg) {
+      const signedUrl = await generateSignedUrlFromFullUrl(user.userImg);
+      user.userImg = signedUrl;
+    }
+
     res.status(200).json({ user });
   } catch (err) {
     console.error("Error getting user:", err);
     return res.status(500).json({ error: "Server error" });
   }
 };
+
 const addCreator = async (req, res) => {
   try {
     const {
@@ -156,13 +59,13 @@ const addCreator = async (req, res) => {
       email,
       website,
     } = req.body;
-
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ error: "User not found" });
     if (user.userType !== "guest") {
       return res.status(400).json({ error: "User can not be a creator" });
     }
-    const profilePicture = req.file ? `/uploads/${req.file.filename}` : null;
+    const profilePicture = req.file ? req.file.location : null;
+
     const formattedAddress = parseAddress(address);
 
     if (address && !formattedAddress) {
@@ -234,7 +137,8 @@ const addOrganizer = async (req, res) => {
     if (user.userType !== "guest") {
       return res.status(400).json({ error: "User can not be an organizer" });
     }
-    const profilePicture = req.file ? `/uploads/${req.file.filename}` : null;
+    const profilePicture = req.file ? req.file.location : null;
+
     const formattedAddress = parseAddress(address);
 
     if (!address && !formattedAddress) {
@@ -299,7 +203,8 @@ const updateCreator = async (req, res) => {
     if (user.userType !== "creator") {
       return res.status(400).json({ error: "User is not a creator" });
     }
-    const profilePicture = req.file ? `/uploads/${req.file.filename}` : null;
+    const profilePicture = req.file ? req.file.location : null;
+
     const formattedAddress = address ? parseAddress(address) : null;
     if (address && !formattedAddress) {
       return res.status(400).json({ error: "Invalid address format" });

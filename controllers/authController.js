@@ -32,9 +32,16 @@ const signIn = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ id: user._id }, JWT_SECRET, {
-      expiresIn: "1d",
-    });
+    const token = jwt.sign(
+      {
+        id: user._id,
+        userType: user.userType,
+      },
+      JWT_SECRET,
+      {
+        expiresIn: "1d",
+      }
+    );
 
     res
       .cookie("token", token, {
@@ -56,19 +63,12 @@ const signIn = async (req, res) => {
   }
 };
 
-const signOut = (req, res) => {
+const signOut = async (req, res) => {
   res
-    .clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    })
-    .clearCookie("logged_in", {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    })
-    .json({ message: "Signed out" });
+    .clearCookie("token")
+    .clearCookie("logged_in")
+    .clearCookie("userType")
+    .json({ message: "Logged out" });
 };
 
 module.exports = { register, signIn, signOut };
