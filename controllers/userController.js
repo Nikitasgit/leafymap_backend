@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const Place = require("../models/Place");
-const { parseJson, parseAddress } = require("../helpers/userHelpers");
+const { parseJson, parseLocation } = require("../helpers/userHelpers");
 const { generateSignedUrlFromFullUrl } = require("../utils/s3");
 
 const getUser = async (req, res) => {
@@ -13,7 +13,7 @@ const getUser = async (req, res) => {
         model: "SubCategory",
       })
       .populate({
-        path: "creatorProfile.creatorPlace",
+        path: "creatorProfile.place",
         populate: [
           {
             path: "categories",
@@ -53,7 +53,7 @@ const addCreator = async (req, res) => {
       description,
       category,
       placeCategory,
-      address,
+      location,
       defaultSchedule,
       phone,
       email,
@@ -66,10 +66,10 @@ const addCreator = async (req, res) => {
     }
     const profilePicture = req.file ? req.file.location : null;
 
-    const formattedAddress = parseAddress(address);
+    const formattedLocation = parseLocation(location);
 
-    if (address && !formattedAddress) {
-      return res.status(400).json({ error: "Invalid address format" });
+    if (location && !formattedLocation) {
+      return res.status(400).json({ error: "Invalid location format" });
     }
 
     user.userType = "creator";
@@ -79,18 +79,18 @@ const addCreator = async (req, res) => {
     user.website = website || user.website;
     user.userImg = profilePicture || user.userImg;
     user.creatorProfile = {
-      creatorName: name,
+      name,
       categories: [category],
     };
 
     let place = null;
 
-    if (formattedAddress) {
+    if (formattedLocation) {
       place = new Place({
         title: name || user.username,
         description,
         userId: user._id,
-        location: formattedAddress,
+        location: formattedLocation,
         isCreatorPlace: true,
         placeCategory,
         categories: category ? [category] : [],
@@ -98,7 +98,7 @@ const addCreator = async (req, res) => {
       });
 
       await place.save();
-      user.creatorProfile.creatorPlace = place._id;
+      user.creatorProfile.place = place._id;
     }
 
     await user.save();
@@ -123,7 +123,7 @@ const addOrganizer = async (req, res) => {
       description,
       category,
       placeCategory,
-      address,
+      location,
       defaultSchedule,
       phone,
       email,
@@ -139,15 +139,15 @@ const addOrganizer = async (req, res) => {
     }
     const profilePicture = req.file ? req.file.location : null;
 
-    const formattedAddress = parseAddress(address);
+    const formattedLocation = parseLocation(location);
 
-    if (!address && !formattedAddress) {
-      return res.status(400).json({ error: "Invalid address format" });
+    if (!location && !formattedLocation) {
+      return res.status(400).json({ error: "Invalid location format" });
     }
 
     user.userType = "organizer";
     let place = null;
-    if (formattedAddress) {
+    if (formattedLocation) {
       place = new Place({
         title: name,
         description,
@@ -156,7 +156,7 @@ const addOrganizer = async (req, res) => {
         email,
         website,
         placeImg: profilePicture,
-        location: formattedAddress,
+        location: formattedLocation,
         isCreatorPlace: false,
         placeCategory,
         categories: category ? [category] : [],
@@ -190,7 +190,7 @@ const updateCreator = async (req, res) => {
       description,
       category,
       placeCategory,
-      address,
+      location,
       defaultSchedule,
       phone,
       email,
@@ -205,63 +205,47 @@ const updateCreator = async (req, res) => {
     }
     const profilePicture = req.file ? req.file.location : null;
 
-    const formattedAddress = address ? parseAddress(address) : null;
-    if (address && !formattedAddress) {
-      return res.status(400).json({ error: "Invalid address format" });
+    const formattedLocation = location ? parseLocation(location) : null;
+    if (location && !formattedLocation) {
+      return res.status(400).json({ error: "Invalid location format" });
     }
     user.description = description || user.description;
     user.phone = phone || user.phone;
     user.email = email || user.email;
     user.website = website || user.website;
     user.userImg = profilePicture || user.userImg;
-    user.creatorProfile.creatorName = name || user.creatorProfile.creatorName;
+    user.creatorProfile.name = name || user.creatorProfile.name;
     if (category) {
       user.creatorProfile.categories = [category];
     }
-
     let place = null;
-    if (user.creatorProfile.creatorPlace) {
-      place = await Place.findById(user.creatorProfile.creatorPlace);
+    if (user.creatorProfile.place) {
+      place = await Place.findById(user.creatorProfile.place);
       if (!place) {
-        if (formattedAddress) {
-          place = new Place({
-            title: name || user.username,
-            description,
-            userId: user._id,
-            location: formattedAddress,
-            isCreatorPlace: true,
-            placeCategory,
-            categories: category ? [category] : [],
-            defaultSchedule: parseJson(defaultSchedule, {}),
-          });
-          await place.save();
-          user.creatorProfile.creatorPlace = place._id;
-        }
-      } else {
-        place.title = name || place.title;
-        place.description = description || place.description;
-        place.placeCategory = placeCategory || place.placeCategory;
-        place.categories = category ? [category] : place.categories;
-        if (formattedAddress) place.location = formattedAddress;
-        place.defaultSchedule = defaultSchedule
-          ? parseJson(defaultSchedule, place.defaultSchedule)
-          : place.defaultSchedule;
-
-        await place.save();
+        return res.status(404).json({ error: "Place not found" });
       }
-    } else if (formattedAddress) {
+      place.name = name || place.name;
+      place.description = description || place.description;
+      place.placeCategory = placeCategory || place.placeCategory;
+      place.categories = category ? [category] : place.categories;
+      if (formattedLocation) place.location = formattedLocation;
+      place.defaultSchedule = defaultSchedule
+        ? parseJson(defaultSchedule, place.defaultSchedule)
+        : place.defaultSchedule;
+
+      await place.save();
+    } else if (formattedLocation) {
       place = new Place({
-        title: name || user.username,
-        description,
+        name: name || user.creatorProfile.name,
         userId: user._id,
-        location: formattedAddress,
+        location: formattedLocation,
         isCreatorPlace: true,
         placeCategory,
         categories: category ? [category] : [],
         defaultSchedule: parseJson(defaultSchedule, {}),
       });
       await place.save();
-      user.creatorProfile.creatorPlace = place._id;
+      user.creatorProfile.place = place._id;
     }
 
     await user.save();
@@ -276,9 +260,65 @@ const updateCreator = async (req, res) => {
   }
 };
 
+const findUsers = async (req, res) => {
+  try {
+    const { role, category, city, name, limit = 10 } = req.query;
+    const query = {};
+
+    if (role) {
+      query.userType = role;
+    }
+
+    if (name) {
+      query["creatorProfile.name"] = { $regex: name, $options: "i" };
+    }
+
+    if (category) {
+      query["creatorProfile.categories"] = category;
+    }
+
+    if (city) {
+      query["creatorProfile.place.location.city"] = city;
+    }
+    console.log(query);
+    const users = await User.find(query)
+      .select("-password")
+      .limit(parseInt(limit))
+      .populate({
+        path: "creatorProfile.categories",
+        model: "SubCategory",
+      })
+      .populate({
+        path: "creatorProfile.place",
+        populate: [
+          {
+            path: "categories",
+            model: "SubCategory",
+          },
+          {
+            path: "placeCategory",
+            model: "PlaceCategory",
+          },
+        ],
+      });
+
+    for (let user of users) {
+      if (user?.userImg) {
+        user.userImg = await generateSignedUrlFromFullUrl(user.userImg);
+      }
+    }
+
+    res.status(200).json({ users });
+  } catch (err) {
+    console.error("Error finding users:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 module.exports = {
   addCreator,
   updateCreator,
   getUser,
   addOrganizer,
+  findUsers,
 };

@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const { ISO_COUNTRIES_ALPHA2 } = require("../utils/constants/countries");
 const { Schema, model, Types } = mongoose;
 
-const addressSchema = new Schema({
+const locationSchema = new Schema({
   number: { type: String },
   street: { type: String, required: true },
   code: { type: String, required: true },
@@ -11,8 +11,8 @@ const addressSchema = new Schema({
 
 const creatorProfileSchema = new Schema({
   categories: [{ type: Types.ObjectId, ref: "SubCategory" }],
-  creatorPlace: { type: Types.ObjectId, ref: "Place" },
-  creatorName: { type: String, required: true },
+  place: { type: Types.ObjectId, ref: "Place" },
+  name: { type: String, required: true },
 });
 
 const userSchema = new Schema(
@@ -20,7 +20,7 @@ const userSchema = new Schema(
     firstname: { type: String },
     lastname: { type: String },
     username: { type: String, required: true, unique: true },
-    email: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
     website: { type: String },
     phone: { type: String },
     password: { type: String, required: true },
@@ -31,7 +31,7 @@ const userSchema = new Schema(
       default: "guest",
     },
     deleted: { type: Boolean, default: false },
-    address: addressSchema,
+    location: locationSchema,
     description: { type: String },
     country: { type: String, enum: ISO_COUNTRIES_ALPHA2 },
     userImg: { type: String },

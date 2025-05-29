@@ -85,7 +85,7 @@ const locationSchema = new Schema(
 );
 
 const placeSchema = new Schema({
-  title: { type: String, required: true },
+  name: { type: String, required: true },
   description: { type: String },
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   location: locationSchema,

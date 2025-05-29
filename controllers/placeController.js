@@ -9,7 +9,7 @@ const updatePlace = async (req, res) => {
   if (user.userType !== "organizer" && !user.places.includes(placeId)) {
     return res.status(400).json({ error: "You can't update this place" });
   }
-  const { title, description, location, phone, email, website, placeCategory } =
+  const { name, description, location, phone, email, website, placeCategory } =
     req.body;
 
   const placeImg = req.file ? req.file.location : null;
@@ -17,7 +17,7 @@ const updatePlace = async (req, res) => {
   const place = await Place.findByIdAndUpdate(
     placeId,
     {
-      title,
+      name,
       description,
       placeImg,
       location,

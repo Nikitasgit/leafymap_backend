@@ -6,9 +6,9 @@ export const parseJson = (str, fallback) => {
   }
 };
 
-export const parseAddress = (address) => {
+export const parseLocation = (location) => {
   try {
-    const parsed = JSON.parse(address);
+    const parsed = JSON.parse(location);
     if (
       parsed?.coordinates?.latitude == null ||
       parsed?.coordinates?.longitude == null ||
@@ -37,7 +37,7 @@ export const updateCreatorProfile = (
   user.website = website || user.website;
   user.userImg = profilePicture || user.userImg;
   user.creatorProfile = {
-    creatorName: name || user.creatorProfile?.creatorName,
+    name: name || user.creatorProfile?.name,
     categories: category ? [category] : user.creatorProfile?.categories || [],
   };
 };

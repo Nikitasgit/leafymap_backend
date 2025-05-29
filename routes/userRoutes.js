@@ -7,6 +7,7 @@ const {
   updateCreator,
   addCreator,
   addOrganizer,
+  findUsers,
 } = require("../controllers/userController");
 
 router.post(
@@ -29,4 +30,5 @@ router.put(
 );
 router.get("/profile", auth, getUser);
 
+router.get("/find-users", findUsers);
 module.exports = router;
