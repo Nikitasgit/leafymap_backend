@@ -1,45 +1,86 @@
+const { parseJson, parseLocation } = require("../helpers/userHelpers");
 const Place = require("../models/Place");
 const User = require("../models/User");
+const { generateSignedUrlFromFullUrl } = require("../utils/s3");
 
 const updatePlace = async (req, res) => {
-  const user = await User.findById(req.user.id);
-  if (!user) return res.status(404).json({ error: "User not found" });
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
 
-  const { placeId } = req.params;
-  if (user.userType !== "organizer" && !user.places.includes(placeId)) {
-    return res.status(400).json({ error: "You can't update this place" });
-  }
-  const { name, description, location, phone, email, website, placeCategory } =
-    req.body;
+    const { placeId } = req.params;
+    if (!placeId) {
+      return res.status(400).json({ error: "Place ID is required" });
+    }
 
-  const placeImg = req.file ? req.file.location : null;
+    if (user.userType !== "organizer" && !user.places.includes(placeId)) {
+      return res.status(400).json({ error: "You can't update this place" });
+    }
 
-  const place = await Place.findByIdAndUpdate(
-    placeId,
-    {
+    const {
       name,
       description,
-      placeImg,
       location,
       phone,
       email,
       website,
       placeCategory,
-      categories,
       defaultSchedule,
       collaborators,
       createdCollaborators,
-    },
-    { new: true }
-  );
+    } = req.body;
 
-  res.status(200).json(place);
+    const formattedLocation = parseLocation(location);
+
+    if (!formattedLocation && location) {
+      return res.status(400).json({ error: "Invalid location format" });
+    }
+
+    const parsedDefaultSchedule = parseJson(defaultSchedule, {});
+    const parsedCollaborators = parseJson(collaborators, []).map((id) => ({
+      userId: id,
+      status: "pending",
+    }));
+    const parsedCreatedCollaborators = parseJson(createdCollaborators, []);
+
+    const updateData = {
+      name,
+      description,
+      location: formattedLocation,
+      phone,
+      email,
+      website,
+      placeCategory,
+      defaultSchedule: parsedDefaultSchedule,
+      collaborators: parsedCollaborators,
+      createdCollaborators: parsedCreatedCollaborators,
+    };
+
+    if (req.file) {
+      updateData.image = req.file.location;
+    }
+
+    const place = await Place.findByIdAndUpdate(placeId, updateData, {
+      new: true,
+    });
+
+    if (!place) {
+      return res.status(404).json({ error: "Place not found" });
+    }
+
+    res.status(200).json(place);
+  } catch (error) {
+    console.error("Error updating place:", error);
+    res
+      .status(500)
+      .json({ error: "Failed to update place", details: error.message });
+  }
 };
 
 const getPlaceById = async (req, res) => {
   try {
     const { id } = req.params;
-    const place = await Place.findById(id)
+    let place = await Place.findById(id)
       .populate({
         path: "categories",
         model: "SubCategory",
@@ -52,15 +93,24 @@ const getPlaceById = async (req, res) => {
         path: "collaborators.userId",
         model: "User",
         select: "-password",
-      })
-      .populate({
-        path: "createdCollaborators.category",
-        model: "SubCategory",
       });
 
     if (!place) {
       return res.status(404).json({ error: "Place not found" });
     }
+
+    place = place.toObject();
+    if (place.image) {
+      place.image = await generateSignedUrlFromFullUrl(place.image);
+    }
+    place.collaborators = await Promise.all(
+      place.collaborators.map(async (collab) => {
+        const user = await User.findById(collab.userId);
+        user.image = await generateSignedUrlFromFullUrl(user.image);
+        const { userId, ...rest } = collab;
+        return { ...rest, user };
+      })
+    );
 
     res.status(200).json(place);
   } catch (error) {

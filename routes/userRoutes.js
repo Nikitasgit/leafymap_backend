@@ -10,24 +10,9 @@ const {
   findUsers,
 } = require("../controllers/userController");
 
-router.post(
-  "/create-creator",
-  auth,
-  upload.single("profilePicture"),
-  addCreator
-);
-router.post(
-  "/create-organizer",
-  auth,
-  upload.single("profilePicture"),
-  addOrganizer
-);
-router.put(
-  "/update-creator",
-  auth,
-  upload.single("profilePicture"),
-  updateCreator
-);
+router.post("/create-creator", auth, upload.single("image"), addCreator);
+router.post("/create-organizer", auth, upload.single("image"), addOrganizer);
+router.put("/update-creator", auth, upload.single("image"), updateCreator);
 router.get("/profile", auth, getUser);
 
 router.get("/find-users", findUsers);

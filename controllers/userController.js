@@ -33,10 +33,18 @@ const getUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-
-    if (user?.userImg) {
-      const signedUrl = await generateSignedUrlFromFullUrl(user.userImg);
-      user.userImg = signedUrl;
+    if (user?.places && user.places.length > 0) {
+      await Promise.all(
+        user.places.map(async (place) => {
+          if (place.image) {
+            place.image = await generateSignedUrlFromFullUrl(place.image);
+          }
+        })
+      );
+    }
+    if (user?.image) {
+      const signedUrl = await generateSignedUrlFromFullUrl(user.image);
+      user.image = signedUrl;
     }
 
     res.status(200).json({ user });
@@ -77,7 +85,7 @@ const addCreator = async (req, res) => {
     user.phone = phone || user.phone;
     user.email = email || user.email;
     user.website = website || user.website;
-    user.userImg = profilePicture || user.userImg;
+    user.image = profilePicture || user.image;
     user.creatorProfile = {
       name,
       categories: [category],
@@ -87,7 +95,7 @@ const addCreator = async (req, res) => {
 
     if (formattedLocation) {
       place = new Place({
-        title: name || user.username,
+        name: name || user.username,
         description,
         userId: user._id,
         location: formattedLocation,
@@ -149,19 +157,22 @@ const addOrganizer = async (req, res) => {
     let place = null;
     if (formattedLocation) {
       place = new Place({
-        title: name,
+        name: name,
         description,
         userId: user._id,
         phone,
         email,
         website,
-        placeImg: profilePicture,
+        image: profilePicture,
         location: formattedLocation,
         isCreatorPlace: false,
         placeCategory,
         categories: category ? [category] : [],
         defaultSchedule: parseJson(defaultSchedule, {}),
-        collaborators: parseJson(collaborators, []),
+        collaborators: parseJson(collaborators, []).map((id) => ({
+          userId: id,
+          status: "pending",
+        })),
         createdCollaborators: parseJson(createdCollaborators, []),
       });
       await place.save();
@@ -213,7 +224,7 @@ const updateCreator = async (req, res) => {
     user.phone = phone || user.phone;
     user.email = email || user.email;
     user.website = website || user.website;
-    user.userImg = profilePicture || user.userImg;
+    user.image = profilePicture || user.image;
     user.creatorProfile.name = name || user.creatorProfile.name;
     if (category) {
       user.creatorProfile.categories = [category];
@@ -228,11 +239,15 @@ const updateCreator = async (req, res) => {
       place.description = description || place.description;
       place.placeCategory = placeCategory || place.placeCategory;
       place.categories = category ? [category] : place.categories;
-      if (formattedLocation) place.location = formattedLocation;
-      place.defaultSchedule = defaultSchedule
-        ? parseJson(defaultSchedule, place.defaultSchedule)
-        : place.defaultSchedule;
-
+      if (!formattedLocation) {
+        place.active = false;
+      } else {
+        place.location = formattedLocation;
+        place.active = true;
+        place.defaultSchedule = defaultSchedule
+          ? parseJson(defaultSchedule, place.defaultSchedule)
+          : place.defaultSchedule;
+      }
       await place.save();
     } else if (formattedLocation) {
       place = new Place({
@@ -280,7 +295,7 @@ const findUsers = async (req, res) => {
     if (city) {
       query["creatorProfile.place.location.city"] = city;
     }
-    console.log(query);
+
     const users = await User.find(query)
       .select("-password")
       .limit(parseInt(limit))
@@ -303,8 +318,8 @@ const findUsers = async (req, res) => {
       });
 
     for (let user of users) {
-      if (user?.userImg) {
-        user.userImg = await generateSignedUrlFromFullUrl(user.userImg);
+      if (user?.image) {
+        user.image = await generateSignedUrlFromFullUrl(user.image);
       }
     }
 

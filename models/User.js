@@ -34,7 +34,7 @@ const userSchema = new Schema(
     location: locationSchema,
     description: { type: String },
     country: { type: String, enum: ISO_COUNTRIES_ALPHA2 },
-    userImg: { type: String },
+    image: { type: String },
     followers: [{ type: Types.ObjectId, ref: "User" }],
     creatorProfile: creatorProfileSchema,
     interests: [{ type: Types.ObjectId, ref: "SubCategory" }],
