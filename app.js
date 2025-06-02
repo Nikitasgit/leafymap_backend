@@ -20,8 +20,8 @@ app.use(
   })
 );
 app.use(express.json());
-app.use("/uploads", express.static("uploads"));
 app.use(cookieParser());
+
 app.use("/api/users", userRoutes);
 app.use("/api/categories", categorieRoutes);
 app.use("/api/auth", authRoutes);

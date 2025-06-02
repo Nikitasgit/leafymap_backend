@@ -93,7 +93,7 @@ const placeSchema = new Schema({
   email: { type: String },
   website: { type: String },
   image: { type: String },
-  active: { type: Boolean },
+  active: { type: Boolean, default: true },
   deleted: { type: Boolean, default: false },
   isCreatorPlace: { type: Boolean, required: true },
   placeCategory: {

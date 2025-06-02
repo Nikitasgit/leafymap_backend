@@ -119,7 +119,38 @@ const getPlaceById = async (req, res) => {
   }
 };
 
+const getPlacesInView = async (req, res) => {
+  try {
+    const { ne, sw, filters } = req.query;
+    if (!ne || !sw) {
+      return res.status(400).json({ error: "Missing required coordinates" });
+    }
+    let bounds;
+    try {
+      bounds = {
+        ne: JSON.parse(ne),
+        sw: JSON.parse(sw),
+      };
+    } catch (error) {
+      return res.status(400).json({ error: "Invalid coordinate format" });
+    }
+    const places = await Place.find({
+      location: {
+        $geoWithin: {
+          $box: [bounds.sw, bounds.ne],
+        },
+      },
+    }).lean();
+
+    res.status(200).json(places);
+  } catch (error) {
+    console.error("Error fetching places in view:", error);
+    res.status(500).json({ error: "Failed to fetch places in view" });
+  }
+};
+
 module.exports = {
   updatePlace,
   getPlaceById,
+  getPlacesInView,
 };

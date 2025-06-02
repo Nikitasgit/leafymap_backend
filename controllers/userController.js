@@ -33,7 +33,7 @@ const getUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    if (user?.places && user.places.length > 0) {
+    if (user?.places) {
       await Promise.all(
         user.places.map(async (place) => {
           if (place.image) {
@@ -206,8 +206,10 @@ const updateCreator = async (req, res) => {
       phone,
       email,
       website,
+      placeActive,
     } = req.body;
 
+    const placeActiveBoolean = placeActive === "true";
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ error: "User not found" });
 
@@ -235,15 +237,15 @@ const updateCreator = async (req, res) => {
       if (!place) {
         return res.status(404).json({ error: "Place not found" });
       }
-      place.name = name || place.name;
-      place.description = description || place.description;
-      place.placeCategory = placeCategory || place.placeCategory;
-      place.categories = category ? [category] : place.categories;
-      if (!formattedLocation) {
+      if (!placeActiveBoolean) {
         place.active = false;
       } else {
-        place.location = formattedLocation;
+        place.name = name || place.name;
         place.active = true;
+        place.description = description || place.description;
+        place.placeCategory = placeCategory || place.placeCategory;
+        place.categories = category ? [category] : place.categories;
+        place.location = formattedLocation || place.location;
         place.defaultSchedule = defaultSchedule
           ? parseJson(defaultSchedule, place.defaultSchedule)
           : place.defaultSchedule;
