@@ -1,6 +1,6 @@
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -71,4 +71,4 @@ const signOut = async (req, res) => {
     .json({ message: "Logged out" });
 };
 
-module.exports = { register, signIn, signOut };
+export { register, signIn, signOut };

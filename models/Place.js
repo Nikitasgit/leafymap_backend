@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 const timeSlotSchema = new Schema(
@@ -99,6 +99,7 @@ const placeSchema = new Schema({
   placeCategory: {
     type: Schema.Types.ObjectId,
     ref: "PlaceCategory",
+    required: true,
   },
   defaultSchedule: { type: defaultScheduleSchema, required: true },
   customSchedule: [customScheduleSchema],
@@ -112,4 +113,4 @@ const placeSchema = new Schema({
 // Optional: Add 2dsphere index for geo queries
 placeSchema.index({ "location.coordinates": "2dsphere" });
 
-module.exports = mongoose.model("Place", placeSchema);
+export default mongoose.model("Place", placeSchema);

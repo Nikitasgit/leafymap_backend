@@ -1,15 +1,16 @@
-const express = require("express");
-const router = express.Router();
-const auth = require("../middlewares/auth");
-const {
+import express from "express";
+import auth from "../middlewares/auth.js";
+import {
   updatePlace,
   getPlaceById,
   getPlacesInView,
-} = require("../controllers/placeController");
-const upload = require("../middlewares/uploadToS3");
+} from "../controllers/placeController.js";
+import upload from "../middlewares/uploadToS3.js";
+
+const router = express.Router();
 
 router.get("/in-view", getPlacesInView);
 router.get("/:id", getPlaceById);
 router.put("/:id", auth, upload.single("image"), updatePlace);
 
-module.exports = router;
+export default router;

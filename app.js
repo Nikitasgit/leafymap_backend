@@ -1,13 +1,13 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const cors = require("cors");
-const connectDB = require("./config/db");
-const errorHandler = require("./utils/errorHandler");
-const userRoutes = require("./routes/userRoutes");
-const categorieRoutes = require("./routes/categorieRoutes");
-const authRoutes = require("./routes/authRoutes");
-const placeRoutes = require("./routes/placeRoutes");
-const cookieParser = require("cookie-parser");
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import connectDB from "./config/db.js";
+import errorHandler from "./utils/errorHandler.js";
+import userRoutes from "./routes/userRoutes.js";
+import categorieRoutes from "./routes/categorieRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import placeRoutes from "./routes/placeRoutes.js";
+import cookieParser from "cookie-parser";
 dotenv.config();
 
 connectDB();
@@ -38,4 +38,4 @@ app.use((err, req, res, next) => {
   });
 });
 
-module.exports = app;
+export default app;

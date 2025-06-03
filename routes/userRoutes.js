@@ -1,14 +1,15 @@
-const express = require("express");
-const router = express.Router();
-const auth = require("../middlewares/auth");
-const upload = require("../middlewares/uploadToS3");
-const {
+import express from "express";
+import auth from "../middlewares/auth.js";
+import upload from "../middlewares/uploadToS3.js";
+import {
   getUser,
   updateCreator,
   addCreator,
   addOrganizer,
   findUsers,
-} = require("../controllers/userController");
+} from "../controllers/userController.js";
+
+const router = express.Router();
 
 router.post("/create-creator", auth, upload.single("image"), addCreator);
 router.post("/create-organizer", auth, upload.single("image"), addOrganizer);
@@ -16,4 +17,5 @@ router.put("/update-creator", auth, upload.single("image"), updateCreator);
 router.get("/profile", auth, getUser);
 
 router.get("/find-users", findUsers);
-module.exports = router;
+
+export default router;

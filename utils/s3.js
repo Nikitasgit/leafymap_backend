@@ -1,5 +1,5 @@
-const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
@@ -23,4 +23,4 @@ async function generateSignedUrlFromFullUrl(fullUrl) {
   return signedUrl;
 }
 
-module.exports = { generateSignedUrlFromFullUrl };
+export { generateSignedUrlFromFullUrl };

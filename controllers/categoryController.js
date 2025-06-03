@@ -1,6 +1,6 @@
-const Category = require("../models/Category");
-const PlaceCategory = require("../models/PlaceCategory");
-const SubCategory = require("../models/SubCategory");
+import Category from "../models/Category.js";
+import PlaceCategory from "../models/PlaceCategory.js";
+import SubCategory from "../models/SubCategory.js";
 
 const getCategories = async (req, res) => {
   try {
@@ -13,6 +13,5 @@ const getCategories = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-module.exports = {
-  getCategories,
-};
+
+export { getCategories };

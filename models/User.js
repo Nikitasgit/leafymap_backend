@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const { ISO_COUNTRIES_ALPHA2 } = require("../utils/constants/countries");
+import mongoose from "mongoose";
+import { ISO_COUNTRIES_ALPHA2 } from "../utils/constants/countries.js";
 const { Schema, model, Types } = mongoose;
 
 const locationSchema = new Schema({
@@ -43,4 +43,4 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-module.exports = model("User", userSchema);
+export default model("User", userSchema);

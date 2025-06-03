@@ -1,6 +1,6 @@
-const multer = require("multer");
-const multerS3 = require("multer-s3");
-const { S3Client } = require("@aws-sdk/client-s3");
+import multer from "multer";
+import multerS3 from "multer-s3";
+import { S3Client } from "@aws-sdk/client-s3";
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
@@ -9,6 +9,7 @@ const s3 = new S3Client({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
+
 const upload = multer({
   storage: multerS3({
     s3: s3,
@@ -24,4 +25,4 @@ const upload = multer({
   }),
 });
 
-module.exports = upload;
+export default upload;

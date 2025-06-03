@@ -1,7 +1,7 @@
-const { parseJson, parseLocation } = require("../helpers/userHelpers");
-const Place = require("../models/Place");
-const User = require("../models/User");
-const { generateSignedUrlFromFullUrl } = require("../utils/s3");
+import { parseJson, parseLocation } from "../helpers/userHelpers.js";
+import Place from "../models/Place.js";
+import User from "../models/User.js";
+import { generateSignedUrlFromFullUrl } from "../utils/s3.js";
 
 const updatePlace = async (req, res) => {
   try {
@@ -149,8 +149,4 @@ const getPlacesInView = async (req, res) => {
   }
 };
 
-module.exports = {
-  updatePlace,
-  getPlaceById,
-  getPlacesInView,
-};
+export { updatePlace, getPlaceById, getPlacesInView };

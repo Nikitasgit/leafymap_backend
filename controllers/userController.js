@@ -1,7 +1,7 @@
-const User = require("../models/User");
-const Place = require("../models/Place");
-const { parseJson, parseLocation } = require("../helpers/userHelpers");
-const { generateSignedUrlFromFullUrl } = require("../utils/s3");
+import User from "../models/User.js";
+import Place from "../models/Place.js";
+import { parseJson, parseLocation } from "../helpers/userHelpers.js";
+import { generateSignedUrlFromFullUrl } from "../utils/s3.js";
 
 const getUser = async (req, res) => {
   try {
@@ -332,10 +332,4 @@ const findUsers = async (req, res) => {
   }
 };
 
-module.exports = {
-  addCreator,
-  updateCreator,
-  getUser,
-  addOrganizer,
-  findUsers,
-};
+export { getUser, addCreator, addOrganizer, updateCreator, findUsers };

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 const placeCategorySchema = new Schema({
@@ -14,4 +14,4 @@ const placeCategorySchema = new Schema({
 
 const PlaceCategory = mongoose.model("PlaceCategory", placeCategorySchema);
 
-module.exports = PlaceCategory;
+export default PlaceCategory;
