@@ -1,4 +1,4 @@
-export const ISO_COUNTRIES_ALPHA2 = [
+export const ISO_COUNTRIES_ALPHA2: string[] = [
   "AF",
   "AX",
   "AL",

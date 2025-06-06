@@ -1,26 +1,36 @@
+import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import User from "../models/User";
+import { APIResponse } from "../utils/response";
+import logger from "../utils/logger";
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
-const register = async (req, res) => {
+const register = async (req: Request, res: Response): Promise<void> => {
   const { email, password, username } = req.body;
   try {
-    const exists = await User.findOne({ email });
-    if (exists) return res.status(400).json({ message: "User already exists" });
-
+    const emailExists = await User.findOne({ email });
+    if (emailExists) {
+      APIResponse(res, null, "Email already exists", 400);
+      return;
+    }
+    const usernameExists = await User.findOne({ username });
+    if (usernameExists) {
+      APIResponse(res, null, "Username already exists", 400);
+      return;
+    }
     const hashed = await bcrypt.hash(password, 10);
     await User.create({ email, password: hashed, username });
 
-    res.status(201).json({ message: "User registered" });
+    APIResponse(res, null, "User registered", 201);
   } catch (err) {
-    console.error("Error in register:", err);
-    res.status(500).json({ message: "Server error" });
+    APIResponse(res, null, "Server error", 500);
+    logger.error("Error in register:", err);
   }
 };
 
-const signIn = async (req, res) => {
+const signIn = async (req: Request, res: Response): Promise<void> => {
   const { identifier, password } = req.body;
 
   try {
@@ -29,7 +39,8 @@ const signIn = async (req, res) => {
     });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      APIResponse(res, null, "Invalid credentials", 401);
+      return;
     }
 
     const token = jwt.sign(
@@ -58,12 +69,12 @@ const signIn = async (req, res) => {
       })
       .json({ message: "Logged in", user });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    APIResponse(res, null, "Server error", 500);
+    logger.error("Error in signIn:", err);
   }
 };
 
-const signOut = async (req, res) => {
+const signOut = async (_req: Request, res: Response): Promise<void> => {
   res
     .clearCookie("token")
     .clearCookie("logged_in")

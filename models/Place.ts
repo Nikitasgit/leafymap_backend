@@ -1,15 +1,79 @@
-import mongoose from "mongoose";
-const { Schema } = mongoose;
+import mongoose, { Schema, model, Types, Document } from "mongoose";
 
-const timeSlotSchema = new Schema(
-  {
-    startTime: { type: String, required: true },
-    endTime: { type: String, required: true },
-  },
-  { _id: false }
-);
+// Interfaces
+export interface ITimeSlot {
+  startTime: string;
+  endTime: string;
+}
 
-const defaultScheduleSchema = new Schema(
+interface IDaySchedule {
+  open: boolean;
+  timeSlots: ITimeSlot[];
+}
+
+interface IDefaultSchedule {
+  monday: IDaySchedule;
+  tuesday: IDaySchedule;
+  wednesday: IDaySchedule;
+  thursday: IDaySchedule;
+  friday: IDaySchedule;
+  saturday: IDaySchedule;
+  sunday: IDaySchedule;
+}
+
+export interface ICustomSchedule {
+  date: Date;
+  open: boolean;
+  timeSlots: ITimeSlot[];
+}
+
+interface ICollaborator {
+  userId: Types.ObjectId;
+  status: "pending" | "accepted" | "refused";
+}
+
+interface ICreatedCollaborator {
+  name?: string;
+  category?: Types.ObjectId;
+}
+
+interface ILocation {
+  type: "Point";
+  coordinates: [number, number];
+  label: string;
+  id: string;
+}
+
+export interface IPlace extends Document {
+  name: string;
+  description?: string;
+  userId: Types.ObjectId;
+  location: ILocation;
+  phone?: string;
+  email?: string;
+  website?: string;
+  image?: string;
+  active: boolean;
+  deleted: boolean;
+  isCreatorPlace: boolean;
+  rating: number;
+  placeCategory: Types.ObjectId;
+  defaultSchedule: IDefaultSchedule;
+  customSchedule: ICustomSchedule[];
+  collaborators: ICollaborator[];
+  createdCollaborators: ICreatedCollaborator[];
+  categories: Types.ObjectId[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Schemas
+export const timeSlotSchema = new Schema<ITimeSlot>({
+  startTime: { type: String, required: true },
+  endTime: { type: String, required: true },
+});
+
+const defaultScheduleSchema = new Schema<IDefaultSchedule>(
   {
     monday: {
       open: { type: Boolean, required: true },
@@ -43,7 +107,7 @@ const defaultScheduleSchema = new Schema(
   { _id: false }
 );
 
-const customScheduleSchema = new Schema(
+export const customScheduleSchema = new Schema<ICustomSchedule>(
   {
     date: { type: Date, required: true },
     open: { type: Boolean, required: true },
@@ -52,7 +116,7 @@ const customScheduleSchema = new Schema(
   { _id: false }
 );
 
-const collaboratorSchema = new Schema(
+const collaboratorSchema = new Schema<ICollaborator>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     status: {
@@ -65,12 +129,12 @@ const collaboratorSchema = new Schema(
   { _id: false }
 );
 
-const createdCollaboratorSchema = new Schema({
+const createdCollaboratorSchema = new Schema<ICreatedCollaborator>({
   name: { type: String },
   category: { type: Schema.Types.ObjectId, ref: "SubCategory" },
 });
 
-const locationSchema = new Schema(
+const locationSchema = new Schema<ILocation>(
   {
     type: { type: String, enum: ["Point"], required: true },
     coordinates: {
@@ -84,7 +148,7 @@ const locationSchema = new Schema(
   { _id: false }
 );
 
-const placeSchema = new Schema({
+const placeSchema = new Schema<IPlace>({
   name: { type: String, required: true },
   description: { type: String },
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
@@ -96,6 +160,7 @@ const placeSchema = new Schema({
   active: { type: Boolean, default: true },
   deleted: { type: Boolean, default: false },
   isCreatorPlace: { type: Boolean, required: true },
+  rating: { type: Number, default: 0 },
   placeCategory: {
     type: Schema.Types.ObjectId,
     ref: "PlaceCategory",
@@ -110,7 +175,7 @@ const placeSchema = new Schema({
   },
 });
 
-// Optional: Add 2dsphere index for geo queries
+// Add 2dsphere index for geo queries
 placeSchema.index({ "location.coordinates": "2dsphere" });
 
-export default mongoose.model("Place", placeSchema);
+export default model<IPlace>("Place", placeSchema);

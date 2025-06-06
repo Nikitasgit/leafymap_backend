@@ -1,11 +1,19 @@
-import User from "../models/User.js";
-import Place from "../models/Place.js";
-import { parseJson, parseLocation } from "../helpers/userHelpers.js";
-import { generateSignedUrlFromFullUrl } from "../utils/s3.js";
+import { Request, Response } from "express";
+import User, { IUser } from "../models/User";
+import Place, { IPlace } from "../models/Place";
+import { parseJson, parseLocation } from "../helpers/userHelpers";
+import { generateSignedUrlFromFullUrl } from "../types/s3";
 
-const getUser = async (req, res) => {
+interface AuthRequest extends Request {
+  user?: {
+    id: string;
+  };
+  file?: Express.Multer.File & { location?: string };
+}
+
+const getUser = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id;
     const user = await User.findById(userId)
       .select("-password")
       .populate({
@@ -31,11 +39,12 @@ const getUser = async (req, res) => {
       });
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      res.status(404).json({ error: "User not found" });
+      return;
     }
     if (user?.places) {
       await Promise.all(
-        user.places.map(async (place) => {
+        (user.places as unknown as IPlace[]).map(async (place) => {
           if (place.image) {
             place.image = await generateSignedUrlFromFullUrl(place.image);
           }
@@ -50,11 +59,11 @@ const getUser = async (req, res) => {
     res.status(200).json({ user });
   } catch (err) {
     console.error("Error getting user:", err);
-    return res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Server error" });
   }
 };
 
-const addCreator = async (req, res) => {
+const addCreator = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const {
       name,
@@ -67,17 +76,22 @@ const addCreator = async (req, res) => {
       email,
       website,
     } = req.body;
-    const user = await User.findById(req.user.id);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    const user = await User.findById(req.user?.id);
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
     if (user.userType !== "guest") {
-      return res.status(400).json({ error: "User can not be a creator" });
+      res.status(400).json({ error: "User can not be a creator" });
+      return;
     }
     const profilePicture = req.file ? req.file.location : null;
 
     const formattedLocation = parseLocation(location);
 
     if (location && !formattedLocation) {
-      return res.status(400).json({ error: "Invalid location format" });
+      res.status(400).json({ error: "Invalid location format" });
+      return;
     }
 
     user.userType = "creator";
@@ -111,7 +125,7 @@ const addCreator = async (req, res) => {
 
     await user.save();
 
-    return res.status(201).json({
+    res.status(201).json({
       message: "Creator profile added successfully",
       data: {
         user,
@@ -120,11 +134,11 @@ const addCreator = async (req, res) => {
     });
   } catch (err) {
     console.error("Error adding creator:", err);
-    return res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Server error" });
   }
 };
 
-const addOrganizer = async (req, res) => {
+const addOrganizer = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const {
       name,
@@ -140,17 +154,22 @@ const addOrganizer = async (req, res) => {
       createdCollaborators,
     } = req.body;
 
-    const user = await User.findById(req.user.id);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    const user = await User.findById(req.user?.id);
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
     if (user.userType !== "guest") {
-      return res.status(400).json({ error: "User can not be an organizer" });
+      res.status(400).json({ error: "User can not be an organizer" });
+      return;
     }
     const profilePicture = req.file ? req.file.location : null;
 
     const formattedLocation = parseLocation(location);
 
     if (!location && !formattedLocation) {
-      return res.status(400).json({ error: "Invalid location format" });
+      res.status(400).json({ error: "Invalid location format" });
+      return;
     }
 
     user.userType = "organizer";
@@ -169,7 +188,7 @@ const addOrganizer = async (req, res) => {
         placeCategory,
         categories: category ? [category] : [],
         defaultSchedule: parseJson(defaultSchedule, {}),
-        collaborators: parseJson(collaborators, []).map((id) => ({
+        collaborators: parseJson(collaborators, []).map((id: string) => ({
           userId: id,
           status: "pending",
         })),
@@ -181,7 +200,7 @@ const addOrganizer = async (req, res) => {
 
     await user.save();
 
-    return res.status(201).json({
+    res.status(201).json({
       message: "Organizer profile added successfully",
       data: {
         user,
@@ -190,11 +209,14 @@ const addOrganizer = async (req, res) => {
     });
   } catch (err) {
     console.error("Error adding creator:", err);
-    return res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Server error" });
   }
 };
 
-const updateCreator = async (req, res) => {
+const updateCreator = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
   try {
     const {
       name,
@@ -210,23 +232,32 @@ const updateCreator = async (req, res) => {
     } = req.body;
 
     const placeActiveBoolean = placeActive === "true";
-    const user = await User.findById(req.user.id);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    const user = await User.findById(req.user?.id);
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
 
     if (user.userType !== "creator") {
-      return res.status(400).json({ error: "User is not a creator" });
+      res.status(400).json({ error: "User is not a creator" });
+      return;
     }
     const profilePicture = req.file ? req.file.location : null;
 
     const formattedLocation = location ? parseLocation(location) : null;
     if (location && !formattedLocation) {
-      return res.status(400).json({ error: "Invalid location format" });
+      res.status(400).json({ error: "Invalid location format" });
+      return;
     }
     user.description = description || user.description;
     user.phone = phone || user.phone;
     user.email = email || user.email;
     user.website = website || user.website;
     user.image = profilePicture || user.image;
+
+    if (!user.creatorProfile) {
+      user.creatorProfile = { name: "", categories: [] };
+    }
     user.creatorProfile.name = name || user.creatorProfile.name;
     if (category) {
       user.creatorProfile.categories = [category];
@@ -235,7 +266,8 @@ const updateCreator = async (req, res) => {
     if (user.creatorProfile.place) {
       place = await Place.findById(user.creatorProfile.place);
       if (!place) {
-        return res.status(404).json({ error: "Place not found" });
+        res.status(404).json({ error: "Place not found" });
+        return;
       }
       if (!placeActiveBoolean) {
         place.active = false;
@@ -245,7 +277,9 @@ const updateCreator = async (req, res) => {
         place.description = description || place.description;
         place.placeCategory = placeCategory || place.placeCategory;
         place.categories = category ? [category] : place.categories;
-        place.location = formattedLocation || place.location;
+        if (formattedLocation) {
+          place.location = { ...formattedLocation, type: "Point" };
+        }
         place.defaultSchedule = defaultSchedule
           ? parseJson(defaultSchedule, place.defaultSchedule)
           : place.defaultSchedule;
@@ -267,20 +301,20 @@ const updateCreator = async (req, res) => {
 
     await user.save();
 
-    return res.status(200).json({
+    res.status(200).json({
       message: "Creator profile updated successfully",
       data: { user, place },
     });
   } catch (err) {
     console.error("Error updating creator:", err);
-    return res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Server error" });
   }
 };
 
-const findUsers = async (req, res) => {
+const findUsers = async (req: Request, res: Response): Promise<void> => {
   try {
     const { role, category, city, name, limit = 10 } = req.query;
-    const query = {};
+    const query: any = {};
 
     if (role) {
       query.userType = role;
@@ -300,7 +334,7 @@ const findUsers = async (req, res) => {
 
     const users = await User.find(query)
       .select("-password")
-      .limit(parseInt(limit))
+      .limit(parseInt(limit as string))
       .populate({
         path: "creatorProfile.categories",
         model: "SubCategory",

@@ -1,21 +1,57 @@
-import mongoose from "mongoose";
-import { ISO_COUNTRIES_ALPHA2 } from "../utils/constants/countries.js";
-const { Schema, model, Types } = mongoose;
+import mongoose, { Schema, model, Types, Document } from "mongoose";
+import { ISO_COUNTRIES_ALPHA2 } from "../utils/constants/countries";
 
-const locationSchema = new Schema({
+// Interfaces
+interface ILocation {
+  number?: string;
+  street: string;
+  code: string;
+  extra?: string;
+}
+
+interface ICreatorProfile {
+  categories: Types.ObjectId[];
+  place?: Types.ObjectId;
+  name: string;
+}
+
+export interface IUser extends Document {
+  firstname?: string;
+  lastname?: string;
+  username: string;
+  email: string;
+  website?: string;
+  phone?: string;
+  password: string;
+  userType: "creator" | "organizer" | "guest";
+  deleted: boolean;
+  location?: ILocation;
+  description?: string;
+  country?: (typeof ISO_COUNTRIES_ALPHA2)[number];
+  image?: string;
+  followers: Types.ObjectId[];
+  creatorProfile?: ICreatorProfile;
+  interests: Types.ObjectId[];
+  places: Types.ObjectId[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Schemas
+const locationSchema = new Schema<ILocation>({
   number: { type: String },
   street: { type: String, required: true },
   code: { type: String, required: true },
   extra: { type: String },
 });
 
-const creatorProfileSchema = new Schema({
+const creatorProfileSchema = new Schema<ICreatorProfile>({
   categories: [{ type: Types.ObjectId, ref: "SubCategory" }],
   place: { type: Types.ObjectId, ref: "Place" },
   name: { type: String, required: true },
 });
 
-const userSchema = new Schema(
+const userSchema = new Schema<IUser>(
   {
     firstname: { type: String },
     lastname: { type: String },
@@ -43,4 +79,4 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-export default model("User", userSchema);
+export default model<IUser>("User", userSchema);
