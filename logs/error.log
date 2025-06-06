@@ -1,0 +1,2 @@
+[06-06-2025 11:58:00] - [[31merror[39m]: Error updating place: Cast to embedded failed for value "683838fd41efd5253e89b5ef" (type string) at path "collaborators" because of "ObjectParameterError"
+[06-06-2025 11:58:10] - [[31merror[39m]: Error updating place: Cast to embedded failed for value "683838fd41efd5253e89b5ef" (type string) at path "collaborators" because of "ObjectParameterError"

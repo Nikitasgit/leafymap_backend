@@ -14,20 +14,25 @@ interface AuthRequest extends Request {
 
 const updatePlace = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    console.log("Update place request received");
+    console.log("Request headers:", req.headers);
+    console.log("Request file:", req.file);
+    console.log("Request body:", req.body);
+
     const user = await User.findById(req.user?.id);
     if (!user) {
       APIResponse(res, null, "User not found", 404);
       return;
     }
-    const { placeId } = req.params;
-    if (!placeId) {
+    const { id } = req.params;
+    if (!id) {
       APIResponse(res, null, "Place ID is required", 400);
       return;
     }
 
     if (
       user.userType !== "organizer" &&
-      !user.places.includes(new mongoose.Types.ObjectId(placeId))
+      !user.places.includes(new mongoose.Types.ObjectId(id))
     ) {
       APIResponse(res, null, "You can't update this place", 400);
       return;
@@ -47,20 +52,14 @@ const updatePlace = async (req: AuthRequest, res: Response): Promise<void> => {
     } = req.body;
 
     const formattedLocation = parseLocation(location);
-
-    if (!formattedLocation && location) {
-      APIResponse(res, null, "Invalid location format", 400);
-      return;
-    }
-
     const parsedDefaultSchedule = parseJson(defaultSchedule, {
-      monday: { open: false, hours: [], timeSlots: [] },
-      tuesday: { open: false, hours: [], timeSlots: [] },
-      wednesday: { open: false, hours: [], timeSlots: [] },
-      thursday: { open: false, hours: [], timeSlots: [] },
-      friday: { open: false, hours: [], timeSlots: [] },
-      saturday: { open: false, hours: [], timeSlots: [] },
-      sunday: { open: false, hours: [], timeSlots: [] },
+      monday: { open: false, timeSlots: [] },
+      tuesday: { open: false, timeSlots: [] },
+      wednesday: { open: false, timeSlots: [] },
+      thursday: { open: false, timeSlots: [] },
+      friday: { open: false, timeSlots: [] },
+      saturday: { open: false, timeSlots: [] },
+      sunday: { open: false, timeSlots: [] },
     });
     const parsedCollaborators = parseJson(collaborators, []).map(
       (id: string) => ({
@@ -86,10 +85,21 @@ const updatePlace = async (req: AuthRequest, res: Response): Promise<void> => {
     };
 
     if (req.file) {
+      console.log("File received:", {
+        fieldname: req.file.fieldname,
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        location: (req.file as S3File).location,
+      });
       updateData.image = (req.file as S3File).location;
+      console.log("Image location set to:", updateData.image);
+    } else {
+      console.log("No file received in request");
     }
 
-    const place = await Place.findByIdAndUpdate(placeId, updateData, {
+    console.log("Update data:", updateData);
+    const place = await Place.findByIdAndUpdate(id, updateData, {
       new: true,
     });
 
