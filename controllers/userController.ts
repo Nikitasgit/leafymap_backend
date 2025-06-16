@@ -1,17 +1,11 @@
 import { Request, Response } from "express";
-import User, { IUser } from "../models/User";
+import User from "../models/User";
 import Place, { IPlace } from "../models/Place";
 import { parseJson, parseLocation } from "../helpers/userHelpers";
 import { generateSignedUrlFromFullUrl } from "../types/s3";
+import { CustomRequest } from "../types/custom";
 
-interface AuthRequest extends Request {
-  user?: {
-    id: string;
-  };
-  file?: Express.Multer.File & { location?: string };
-}
-
-const getUser = async (req: AuthRequest, res: Response): Promise<void> => {
+const getUser = async (req: CustomRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.id;
     const user = await User.findById(userId)
@@ -63,7 +57,7 @@ const getUser = async (req: AuthRequest, res: Response): Promise<void> => {
   }
 };
 
-const addCreator = async (req: AuthRequest, res: Response): Promise<void> => {
+const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
   try {
     const {
       name,
@@ -138,7 +132,10 @@ const addCreator = async (req: AuthRequest, res: Response): Promise<void> => {
   }
 };
 
-const addOrganizer = async (req: AuthRequest, res: Response): Promise<void> => {
+const addOrganizer = async (
+  req: CustomRequest,
+  res: Response
+): Promise<void> => {
   try {
     const {
       name,
@@ -214,7 +211,7 @@ const addOrganizer = async (req: AuthRequest, res: Response): Promise<void> => {
 };
 
 const updateCreator = async (
-  req: AuthRequest,
+  req: CustomRequest,
   res: Response
 ): Promise<void> => {
   try {

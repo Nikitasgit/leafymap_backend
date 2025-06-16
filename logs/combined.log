@@ -1,2 +1,8 @@
 [06-06-2025 11:58:00] - [[31merror[39m]: Error updating place: Cast to embedded failed for value "683838fd41efd5253e89b5ef" (type string) at path "collaborators" because of "ObjectParameterError"
 [06-06-2025 11:58:10] - [[31merror[39m]: Error updating place: Cast to embedded failed for value "683838fd41efd5253e89b5ef" (type string) at path "collaborators" because of "ObjectParameterError"
+[09-06-2025 20:50:19] - [[31merror[39m]: Error creating event: Event validation failed: name: Please add a title, description: Please add a description
+[09-06-2025 20:53:24] - [[31merror[39m]: Error creating event: Event validation failed: name: Please add a title, description: Please add a description
+[09-06-2025 20:54:21] - [[31merror[39m]: Error creating event: Event validation failed: name: Please add a title, description: Please add a description
+[14-06-2025 10:24:42] - [[31merror[39m]: Error creating event: Event validation failed: name: Please add a title, description: Please add a description
+[14-06-2025 10:27:27] - [[31merror[39m]: Error creating event: Event validation failed: name: Please add a title, description: Please add a description
+[14-06-2025 11:44:57] - [[31merror[39m]: Error creating event: Event validation failed: schedule.0.startDate: Cast to date failed for value "Invalid Date" (type Date) at path "startDate", schedule.0.endDate: Cast to date failed for value "Invalid Date" (type Date) at path "endDate"

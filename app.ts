@@ -7,6 +7,7 @@ import userRoutes from "./routes/userRoutes";
 import categorieRoutes from "./routes/categorieRoutes";
 import authRoutes from "./routes/authRoutes";
 import placeRoutes from "./routes/placeRoutes";
+import eventRoutes from "./routes/eventRoutes";
 import cookieParser from "cookie-parser";
 
 dotenv.config();
@@ -29,6 +30,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/categories", categorieRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/places", placeRoutes);
+app.use("/api/events", eventRoutes);
 
 app.use(errorHandler);
 

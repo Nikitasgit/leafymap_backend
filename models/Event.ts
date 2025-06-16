@@ -1,66 +1,61 @@
-import { Schema, Types } from "mongoose";
-
-const mongoose = require("mongoose");
+import { model, Schema, Types } from "mongoose";
+import { createdCollaboratorSchema, ICreatedCollaborator } from "./Place";
 
 export interface ITimeSlotWithParticipants {
+  title: string;
   startTime: string;
   endTime: string;
   participants: Types.ObjectId[];
 }
 
-export const timeSlotWithParticipantsSchema =
-  new Schema<ITimeSlotWithParticipants>(
-    {
-      startTime: { type: String, required: true },
-      endTime: { type: String, required: true },
-      participants: [
-        {
-          type: Schema.Types.ObjectId,
-          ref: "User",
-        },
-      ],
-    },
-    { _id: false }
-  );
+export const eventTimeSlotSchema = new Schema<ITimeSlotWithParticipants>(
+  {
+    title: { type: String, required: true },
+    startTime: { type: String, required: true },
+    endTime: { type: String, required: true },
+    participants: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+  },
+  { _id: false }
+);
 
-export interface ICustomScheduleWithParticipants {
-  date: Date;
-  open: boolean;
+export interface IEventPeriod {
+  startDate: Date;
+  endDate: Date;
   timeSlots: ITimeSlotWithParticipants[];
 }
 
-export const customScheduleWithParticipantsSchema =
-  new Schema<ICustomScheduleWithParticipants>(
-    {
-      date: { type: Date, required: true },
-      open: { type: Boolean, required: true },
-      timeSlots: [timeSlotWithParticipantsSchema],
-    },
-    { _id: false }
-  );
+export const customScheduleWithParticipantsSchema = new Schema<IEventPeriod>(
+  {
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
+    timeSlots: [eventTimeSlotSchema],
+  },
+  { _id: false }
+);
 
 export interface IEvent extends Document {
-  title: string;
+  name: string;
   collaborators: Types.ObjectId[];
+  createdCollaborators: ICreatedCollaborator[];
   description: string;
-  schedule: ICustomScheduleWithParticipants[];
+  schedule: IEventPeriod[];
+  placeId: Types.ObjectId;
   image: string;
   status: "upcoming" | "ongoing" | "completed" | "cancelled";
 }
 
 export const eventSchema = new Schema<IEvent>(
   {
-    title: {
+    name: {
       type: String,
       required: [true, "Please add a title"],
       trim: true,
     },
-    collaborators: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
     description: {
       type: String,
       required: [true, "Please add a description"],
@@ -69,7 +64,19 @@ export const eventSchema = new Schema<IEvent>(
       type: [customScheduleWithParticipantsSchema],
       required: [true, "Please add a schedule"],
     },
+    placeId: {
+      type: Schema.Types.ObjectId,
+      ref: "Place",
+      required: [true, "Please add a place"],
+    },
     image: String,
+    collaborators: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    createdCollaborators: [createdCollaboratorSchema],
     status: {
       type: String,
       enum: ["upcoming", "ongoing", "completed", "cancelled"],
@@ -79,4 +86,4 @@ export const eventSchema = new Schema<IEvent>(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Event", eventSchema);
+export default model<IEvent>("Event", eventSchema);

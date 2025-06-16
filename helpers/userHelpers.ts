@@ -24,21 +24,18 @@ export const parseJson = <T>(str: string | undefined, fallback: T): T => {
 
 export const parseLocation = (location: string): Location | null => {
   try {
-    const parsed = JSON.parse(location) as ParsedLocation;
+    const parsed = JSON.parse(location) as Location;
     if (
-      parsed?.coordinates?.latitude == null ||
-      parsed?.coordinates?.longitude == null ||
+      !parsed.coordinates ||
+      !Array.isArray(parsed.coordinates) ||
+      parsed.coordinates.length !== 2 ||
       !parsed.label ||
-      !parsed.id
+      !parsed.id ||
+      !parsed.type
     ) {
-      throw new Error("Invalid address fields");
+      throw new Error("Invalid location fields");
     }
-    return {
-      type: "Point",
-      coordinates: [parsed.coordinates.longitude, parsed.coordinates.latitude],
-      label: parsed.label,
-      id: parsed.id,
-    };
+    return parsed;
   } catch {
     return null;
   }

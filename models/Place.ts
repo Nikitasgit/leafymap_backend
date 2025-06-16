@@ -32,7 +32,7 @@ interface ICollaborator {
   status: "pending" | "accepted" | "refused";
 }
 
-interface ICreatedCollaborator {
+export interface ICreatedCollaborator {
   name?: string;
   category?: Types.ObjectId;
 }
@@ -68,10 +68,13 @@ export interface IPlace extends Document {
 }
 
 // Schemas
-export const timeSlotSchema = new Schema<ITimeSlot>({
-  startTime: { type: String, required: true },
-  endTime: { type: String, required: true },
-});
+const timeSlotSchema = new Schema<ITimeSlot>(
+  {
+    startTime: { type: String, required: true },
+    endTime: { type: String, required: true },
+  },
+  { _id: false }
+);
 
 const defaultScheduleSchema = new Schema<IDefaultSchedule>(
   {
@@ -129,7 +132,7 @@ const collaboratorSchema = new Schema<ICollaborator>(
   { _id: false }
 );
 
-const createdCollaboratorSchema = new Schema<ICreatedCollaborator>({
+export const createdCollaboratorSchema = new Schema<ICreatedCollaborator>({
   name: { type: String },
   category: { type: Schema.Types.ObjectId, ref: "SubCategory" },
 });

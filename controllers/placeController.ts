@@ -1,24 +1,18 @@
 import { Request, Response } from "express";
 import { parseJson, parseLocation } from "../helpers/userHelpers";
 import Place, { IPlace } from "../models/Place";
-import User, { IUser } from "../models/User";
+import User from "../models/User";
 import { generateSignedUrlFromFullUrl } from "../types/s3";
 import mongoose from "mongoose";
-import { S3File } from "../middlewares/uploadToS3";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
+import { CustomRequest } from "../types/custom";
 
-interface AuthRequest extends Request {
-  user?: IUser;
-}
-
-const updatePlace = async (req: AuthRequest, res: Response): Promise<void> => {
+const updatePlace = async (
+  req: CustomRequest,
+  res: Response
+): Promise<void> => {
   try {
-    console.log("Update place request received");
-    console.log("Request headers:", req.headers);
-    console.log("Request file:", req.file);
-    console.log("Request body:", req.body);
-
     const user = await User.findById(req.user?.id);
     if (!user) {
       APIResponse(res, null, "User not found", 404);
@@ -85,23 +79,9 @@ const updatePlace = async (req: AuthRequest, res: Response): Promise<void> => {
     };
 
     if (req.file) {
-      console.log("File received:", {
-        fieldname: req.file.fieldname,
-        originalname: req.file.originalname,
-        mimetype: req.file.mimetype,
-        size: req.file.size,
-        location: (req.file as S3File).location,
-      });
-      updateData.image = (req.file as S3File).location;
-      console.log("Image location set to:", updateData.image);
-    } else {
-      console.log("No file received in request");
+      updateData.image = req.file.location;
     }
-
-    console.log("Update data:", updateData);
-    const place = await Place.findByIdAndUpdate(id, updateData, {
-      new: true,
-    });
+    const place = await Place.findByIdAndUpdate(id, updateData);
 
     if (!place) {
       APIResponse(res, null, "Place not found", 404);
@@ -204,6 +184,11 @@ const getPlacesInView = async (req: Request, res: Response): Promise<void> => {
           return {
             ...place,
             image: await generateSignedUrlFromFullUrl(place.userId.image),
+          };
+        } else if (place.image) {
+          return {
+            ...place,
+            image: await generateSignedUrlFromFullUrl(place.image),
           };
         }
         return place;
