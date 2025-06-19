@@ -2,10 +2,12 @@ import { Request, Response } from "express";
 import { parseJson, parseLocation } from "../helpers/userHelpers";
 import Place, { IPlace } from "../models/Place";
 import User from "../models/User";
+import Event from "../models/Event";
 import { generateSignedUrlFromFullUrl } from "../types/s3";
 import mongoose from "mongoose";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
+import { enrichScheduleWithEvents } from "../utils/schedule";
 import { CustomRequest } from "../types/custom";
 
 const updatePlace = async (
@@ -99,6 +101,8 @@ const updatePlace = async (
 const getPlaceById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+    const { enrichSchedule = "true" } = req.query; // Default to true for backward compatibility
+
     let place = await Place.findById(id)
       .populate({
         path: "categories",
@@ -112,17 +116,46 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
         path: "collaborators.userId",
         model: "User",
         select: "-password",
-      });
+      })
+      .lean();
 
     if (!place) {
       APIResponse(res, null, "Place not found", 404);
       return;
     }
 
-    place = place.toObject();
+    // Only enrich schedule if explicitly requested
+    if (enrichSchedule === "true") {
+      // Fetch events for this place
+      const events = await Event.find({
+        placeId: id,
+        status: { $in: ["upcoming", "ongoing"] }, // Only include active events
+      }).select("name schedule");
+
+      // Convert events to the expected format
+      const formattedEvents = events.map((event) => ({
+        _id: event._id.toString(),
+        name: event.name,
+        schedule: event.schedule.map((period) => ({
+          startDate: new Date(period.startDate),
+          endDate: new Date(period.endDate),
+        })),
+      }));
+
+      // Enrich the default schedule with events for the current week
+      const enrichedSchedule = enrichScheduleWithEvents(
+        place.defaultSchedule,
+        formattedEvents
+      );
+
+      // Replace the default schedule with the enriched one
+      place.defaultSchedule = enrichedSchedule;
+    }
+
     if (place.image) {
       place.image = await generateSignedUrlFromFullUrl(place.image);
     }
+
     place.collaborators = await Promise.all(
       place.collaborators.map(async (collab: any) => {
         const user = await User.findById(collab.userId);
@@ -165,7 +198,6 @@ const getPlacesInView = async (req: Request, res: Response): Promise<void> => {
     const maxLimit = 100;
     const queryLimit = Math.min(parseInt((limit as string) || "20"), maxLimit);
 
-    // Get places with user data populated
     const places = await Place.find({
       location: {
         $geoWithin: {
@@ -174,28 +206,11 @@ const getPlacesInView = async (req: Request, res: Response): Promise<void> => {
       },
       active: true,
     })
+      .select("location")
       .limit(queryLimit)
-      .populate("userId", "image")
       .lean();
 
-    const enrichedPlaces = await Promise.all(
-      places.map(async (place: any) => {
-        if (place.isCreatorPlace && place.userId?.image) {
-          return {
-            ...place,
-            image: await generateSignedUrlFromFullUrl(place.userId.image),
-          };
-        } else if (place.image) {
-          return {
-            ...place,
-            image: await generateSignedUrlFromFullUrl(place.image),
-          };
-        }
-        return place;
-      })
-    );
-
-    res.status(200).json(enrichedPlaces);
+    APIResponse(res, places, "Places fetched successfully", 200);
   } catch (error) {
     console.error("Error fetching places in view:", error);
     APIResponse(res, null, "Failed to fetch places in view", 500);

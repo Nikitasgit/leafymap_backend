@@ -6,3 +6,5 @@
 [14-06-2025 10:24:42] - [[31merror[39m]: Error creating event: Event validation failed: name: Please add a title, description: Please add a description
 [14-06-2025 10:27:27] - [[31merror[39m]: Error creating event: Event validation failed: name: Please add a title, description: Please add a description
 [14-06-2025 11:44:57] - [[31merror[39m]: Error creating event: Event validation failed: schedule.0.startDate: Cast to date failed for value "Invalid Date" (type Date) at path "startDate", schedule.0.endDate: Cast to date failed for value "Invalid Date" (type Date) at path "endDate"
+[19-06-2025 21:14:19] - [[31merror[39m]: Error creating event: Argument passed in does not match the accepted types
+[19-06-2025 21:17:11] - [[31merror[39m]: Error creating event: Argument passed in does not match the accepted types
