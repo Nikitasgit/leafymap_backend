@@ -95,12 +95,17 @@ const createEvent = async (
     }
 
     const parsedCollaborators = parseJson(collaborators, []).map(
-      (id: string) => new mongoose.Types.ObjectId(id)
+      (collaborator: any) => ({
+        userId: new mongoose.Types.ObjectId(
+          collaborator.userId || collaborator
+        ),
+        status: collaborator.status || "pending",
+      })
     );
 
     // Validate collaborators are valid ObjectIds
-    const validCollaborators = parsedCollaborators.filter((id: any) =>
-      mongoose.Types.ObjectId.isValid(id)
+    const validCollaborators = parsedCollaborators.filter((collab: any) =>
+      mongoose.Types.ObjectId.isValid(collab.userId)
     );
 
     // Parse createdCollaborators properly according to schema
@@ -177,7 +182,7 @@ const getEventsByPlaceId = async (
     const events = await Event.find({
       placeId: new mongoose.Types.ObjectId(id),
     }).populate({
-      path: "collaborators",
+      path: "collaborators.userId",
       model: "User",
       select: "_id username image",
     });
@@ -191,9 +196,9 @@ const getEventsByPlaceId = async (
         if (eventObj.collaborators) {
           eventObj.collaborators = await Promise.all(
             eventObj.collaborators.map(async (collaborator: any) => {
-              if (collaborator.image) {
-                collaborator.image = await generateSignedUrlFromFullUrl(
-                  collaborator.image
+              if (collaborator.userId && collaborator.userId.image) {
+                collaborator.userId.image = await generateSignedUrlFromFullUrl(
+                  collaborator.userId.image
                 );
               }
               return collaborator;
@@ -215,7 +220,7 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const event = await Event.findById(id).populate({
-      path: "collaborators",
+      path: "collaborators.userId",
       model: "User",
       select: "_id username image",
     });
@@ -225,9 +230,9 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
     if (event?.collaborators) {
       event.collaborators = await Promise.all(
         event.collaborators.map(async (collaborator: any) => {
-          if (collaborator.image) {
-            collaborator.image = await generateSignedUrlFromFullUrl(
-              collaborator.image
+          if (collaborator.userId && collaborator.userId.image) {
+            collaborator.userId.image = await generateSignedUrlFromFullUrl(
+              collaborator.userId.image
             );
           }
           return collaborator;
@@ -323,12 +328,17 @@ const updateEvent = async (
     }
 
     const parsedCollaborators = parseJson(collaborators, []).map(
-      (id: string) => new mongoose.Types.ObjectId(id)
+      (collaborator: any) => ({
+        userId: new mongoose.Types.ObjectId(
+          collaborator.userId || collaborator
+        ),
+        status: collaborator.status || "pending",
+      })
     );
 
     // Validate collaborators are valid ObjectIds
-    const validCollaborators = parsedCollaborators.filter((id: any) =>
-      mongoose.Types.ObjectId.isValid(id)
+    const validCollaborators = parsedCollaborators.filter((collab: any) =>
+      mongoose.Types.ObjectId.isValid(collab.userId)
     );
 
     // Parse createdCollaborators properly according to schema

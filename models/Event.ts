@@ -1,5 +1,10 @@
 import { model, Schema, Types } from "mongoose";
-import { createdCollaboratorSchema, ICreatedCollaborator } from "./Place";
+import {
+  createdCollaboratorSchema,
+  ICreatedCollaborator,
+  ICollaborator,
+  collaboratorSchema,
+} from "./Place";
 
 export interface ITimeSlotWithParticipants {
   title: string;
@@ -40,7 +45,7 @@ export const customScheduleWithParticipantsSchema = new Schema<IEventPeriod>(
 
 export interface IEvent extends Document {
   name: string;
-  collaborators: Types.ObjectId[];
+  collaborators: ICollaborator[];
   createdCollaborators: ICreatedCollaborator[];
   description: string;
   schedule: IEventPeriod[];
@@ -70,12 +75,7 @@ export const eventSchema = new Schema<IEvent>(
       required: [true, "Please add a place"],
     },
     image: String,
-    collaborators: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+    collaborators: [collaboratorSchema],
     createdCollaborators: [createdCollaboratorSchema],
     status: {
       type: String,

@@ -42,6 +42,7 @@ const updatePlace = async (
       email,
       website,
       placeCategory,
+      placeType,
       defaultSchedule,
       collaborators,
       createdCollaborators,
@@ -75,6 +76,7 @@ const updatePlace = async (
       email,
       website,
       placeCategory,
+      placeType,
       defaultSchedule: parsedDefaultSchedule,
       collaborators: parsedCollaborators,
       createdCollaborators: parsedCreatedCollaborators,
@@ -104,10 +106,6 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
     const { enrichSchedule = "true" } = req.query; // Default to true for backward compatibility
 
     let place = await Place.findById(id)
-      .populate({
-        path: "categories",
-        model: "SubCategory",
-      })
       .populate({
         path: "placeCategory",
         model: "PlaceCategory",
@@ -198,18 +196,34 @@ const getPlacesInView = async (req: Request, res: Response): Promise<void> => {
     const maxLimit = 100;
     const queryLimit = Math.min(parseInt((limit as string) || "20"), maxLimit);
 
-    const places = await Place.find({
+    const { placeType, placeCategory } = parseJson(filters as string, {
+      placeType: ["all"],
+      placeCategory: "all",
+    });
+
+    const query: any = {
       location: {
         $geoWithin: {
           $box: [bounds.sw, bounds.ne],
         },
       },
       active: true,
-    })
-      .select("location")
+    };
+    if (placeType && placeType.length > 0 && !placeType.includes("all")) {
+      query.placeType = { $in: placeType };
+    }
+    if (placeCategory && placeCategory !== "all") {
+      query.placeCategory = placeCategory;
+    }
+
+    const places = await Place.find(query)
+      .select("location placeCategory isCreatorPlace")
+      .populate({
+        path: "placeCategory",
+        model: "PlaceCategory",
+      })
       .limit(queryLimit)
       .lean();
-
     APIResponse(res, places, "Places fetched successfully", 200);
   } catch (error) {
     console.error("Error fetching places in view:", error);
@@ -218,4 +232,120 @@ const getPlacesInView = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export { updatePlace, getPlaceById, getPlacesInView };
+const getPlacesBySearch = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { searchType, search } = req.query;
+
+    if (!searchType || !search) {
+      APIResponse(
+        res,
+        null,
+        "searchType and search parameters are required",
+        400
+      );
+      return;
+    }
+
+    if (searchType === "members") {
+      const users = await User.find({
+        "creatorProfile.name": { $regex: search as string, $options: "i" },
+      }).select("_id creatorProfile.name image");
+
+      if (users.length === 0) {
+        APIResponse(
+          res,
+          { places: [], events: [] },
+          "No users found with this name",
+          200
+        );
+        return;
+      }
+
+      const userIds = users.map((user) => user._id);
+
+      const places = await Place.find({
+        "collaborators.userId": { $in: userIds },
+        "collaborators.status": "accepted",
+        active: true,
+      })
+        .select("_id name collaborators")
+        .populate({
+          path: "collaborators.userId",
+          model: "User",
+          select: "_id creatorProfile.name image",
+        })
+        .lean();
+
+      const events = await Event.find({
+        "collaborators.userId": { $in: userIds },
+        "collaborators.status": "accepted",
+        status: { $in: ["upcoming", "ongoing"] },
+      })
+        .select("_id name collaborators")
+        .populate({
+          path: "collaborators.userId",
+          model: "User",
+          select: "_id creatorProfile.name image",
+        })
+        .lean();
+
+      // Formater les résultats pour ne retourner que les informations essentielles
+      const formattedResults = users.map((user) => {
+        // Trouver les places où cet utilisateur est collaborateur
+        const userPlaces = places
+          .filter((place) =>
+            place.collaborators.some(
+              (collab: any) =>
+                collab.userId._id.toString() === user._id.toString() &&
+                collab.status === "accepted"
+            )
+          )
+          .map((place) => ({
+            _id: place._id,
+            name: place.name,
+          }));
+
+        // Trouver les events où cet utilisateur est collaborateur
+        const userEvents = events
+          .filter((event) =>
+            event.collaborators.some(
+              (collab: any) =>
+                collab.userId._id.toString() === user._id.toString() &&
+                collab.status === "accepted"
+            )
+          )
+          .map((event) => ({
+            _id: event._id,
+            name: event.name,
+            placeId: event.placeId,
+          }));
+
+        return {
+          user: {
+            _id: user._id,
+            name: user.creatorProfile?.name || "Unknown",
+          },
+          places: userPlaces,
+          events: userEvents,
+        };
+      });
+
+      APIResponse(
+        res,
+        formattedResults,
+        "Search results fetched successfully",
+        200
+      );
+    } else {
+      APIResponse(res, null, "Invalid search type", 400);
+    }
+  } catch (error) {
+    console.error("Error fetching places by search:", error);
+    APIResponse(res, null, "Failed to fetch places by search", 500);
+    logger.error("Error fetching places by search:", error);
+  }
+};
+export { updatePlace, getPlaceById, getPlacesInView, getPlacesBySearch };

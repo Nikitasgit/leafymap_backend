@@ -1,10 +1,11 @@
-import mongoose, { Schema, model, Types, Document } from "mongoose";
+import { Schema, model, Types, Document } from "mongoose";
 
-// Interfaces
 export interface ITimeSlot {
   startTime: string;
   endTime: string;
 }
+
+export type PlaceType = "food" | "art" | "craft";
 
 interface IDaySchedule {
   open: boolean;
@@ -27,7 +28,7 @@ export interface ICustomSchedule {
   timeSlots: ITimeSlot[];
 }
 
-interface ICollaborator {
+export interface ICollaborator {
   userId: Types.ObjectId;
   status: "pending" | "accepted" | "refused";
 }
@@ -58,11 +59,11 @@ export interface IPlace extends Document {
   isCreatorPlace: boolean;
   rating: number;
   placeCategory: Types.ObjectId;
+  placeType: PlaceType[];
   defaultSchedule: IDefaultSchedule;
   customSchedule: ICustomSchedule[];
   collaborators: ICollaborator[];
   createdCollaborators: ICreatedCollaborator[];
-  categories: Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -70,8 +71,8 @@ export interface IPlace extends Document {
 // Schemas
 const timeSlotSchema = new Schema<ITimeSlot>(
   {
-    startTime: { type: String, required: true },
-    endTime: { type: String, required: true },
+    startTime: { type: String, default: "" },
+    endTime: { type: String, default: "" },
   },
   { _id: false }
 );
@@ -80,31 +81,31 @@ const defaultScheduleSchema = new Schema<IDefaultSchedule>(
   {
     monday: {
       open: { type: Boolean, required: true },
-      timeSlots: { type: [timeSlotSchema], required: true },
+      timeSlots: { type: [timeSlotSchema], default: [] },
     },
     tuesday: {
       open: { type: Boolean, required: true },
-      timeSlots: { type: [timeSlotSchema], required: true },
+      timeSlots: { type: [timeSlotSchema], default: [] },
     },
     wednesday: {
       open: { type: Boolean, required: true },
-      timeSlots: { type: [timeSlotSchema], required: true },
+      timeSlots: { type: [timeSlotSchema], default: [] },
     },
     thursday: {
       open: { type: Boolean, required: true },
-      timeSlots: { type: [timeSlotSchema], required: true },
+      timeSlots: { type: [timeSlotSchema], default: [] },
     },
     friday: {
       open: { type: Boolean, required: true },
-      timeSlots: { type: [timeSlotSchema], required: true },
+      timeSlots: { type: [timeSlotSchema], default: [] },
     },
     saturday: {
       open: { type: Boolean, required: true },
-      timeSlots: { type: [timeSlotSchema], required: true },
+      timeSlots: { type: [timeSlotSchema], default: [] },
     },
     sunday: {
       open: { type: Boolean, required: true },
-      timeSlots: { type: [timeSlotSchema], required: true },
+      timeSlots: { type: [timeSlotSchema], default: [] },
     },
   },
   { _id: false }
@@ -119,7 +120,7 @@ export const customScheduleSchema = new Schema<ICustomSchedule>(
   { _id: false }
 );
 
-const collaboratorSchema = new Schema<ICollaborator>(
+export const collaboratorSchema = new Schema<ICollaborator>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     status: {
@@ -169,13 +170,16 @@ const placeSchema = new Schema<IPlace>({
     ref: "PlaceCategory",
     required: true,
   },
+  placeType: {
+    type: [String],
+    enum: ["food", "art", "craft"],
+    required: true,
+    default: ["art"],
+  },
   defaultSchedule: { type: defaultScheduleSchema, required: true },
   customSchedule: [customScheduleSchema],
   collaborators: [collaboratorSchema],
   createdCollaborators: [createdCollaboratorSchema],
-  categories: {
-    type: [{ type: Schema.Types.ObjectId, ref: "SubCategory" }],
-  },
 });
 
 // Add 2dsphere index for geo queries

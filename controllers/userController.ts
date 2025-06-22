@@ -64,6 +64,7 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
       description,
       category,
       placeCategory,
+      placeType,
       location,
       defaultSchedule,
       phone,
@@ -109,7 +110,7 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
         location: formattedLocation,
         isCreatorPlace: true,
         placeCategory,
-        categories: category ? [category] : [],
+        placeType: parseJson(placeType, ["art"]),
         defaultSchedule: parseJson(defaultSchedule, {}),
       });
 
@@ -140,8 +141,8 @@ const addOrganizer = async (
     const {
       name,
       description,
-      category,
       placeCategory,
+      placeType,
       location,
       defaultSchedule,
       phone,
@@ -183,7 +184,7 @@ const addOrganizer = async (
         location: formattedLocation,
         isCreatorPlace: false,
         placeCategory,
-        categories: category ? [category] : [],
+        placeType: parseJson(placeType, ["art"]),
         defaultSchedule: parseJson(defaultSchedule, {}),
         collaborators: parseJson(collaborators, []).map((id: string) => ({
           userId: id,
@@ -220,6 +221,7 @@ const updateCreator = async (
       description,
       category,
       placeCategory,
+      placeType,
       location,
       defaultSchedule,
       phone,
@@ -273,7 +275,7 @@ const updateCreator = async (
         place.active = true;
         place.description = description || place.description;
         place.placeCategory = placeCategory || place.placeCategory;
-        place.categories = category ? [category] : place.categories;
+        place.placeType = parseJson(placeType, place.placeType);
         if (formattedLocation) {
           place.location = { ...formattedLocation, type: "Point" };
         }
@@ -289,7 +291,7 @@ const updateCreator = async (
         location: formattedLocation,
         isCreatorPlace: true,
         placeCategory,
-        categories: category ? [category] : [],
+        placeType: parseJson(placeType, ["art"]),
         defaultSchedule: parseJson(defaultSchedule, {}),
       });
       await place.save();
@@ -338,16 +340,7 @@ const findUsers = async (req: Request, res: Response): Promise<void> => {
       })
       .populate({
         path: "creatorProfile.place",
-        populate: [
-          {
-            path: "categories",
-            model: "SubCategory",
-          },
-          {
-            path: "placeCategory",
-            model: "PlaceCategory",
-          },
-        ],
+        populate: [{ path: "placeCategory", model: "PlaceCategory" }],
       });
 
     for (let user of users) {
