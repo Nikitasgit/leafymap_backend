@@ -1,4 +1,4 @@
-import express, { Router, Request, Response, NextFunction } from "express";
+import express, { Router } from "express";
 import auth from "../middlewares/auth";
 import upload from "../middlewares/uploadToS3";
 import {
@@ -6,13 +6,9 @@ import {
   updateCreator,
   addCreator,
   addOrganizer,
-  findUsers,
+  findCreators,
+  getUserInPlacesAndEvents,
 } from "../controllers/userController";
-
-interface AuthRequest extends Request {
-  user?: any;
-  file?: Express.Multer.File & { location?: string };
-}
 
 const router: Router = express.Router();
 
@@ -35,6 +31,7 @@ router.put(
   updateCreator as any
 );
 router.get("/profile", auth as any, getUser as any);
-router.get("/find-users", findUsers as any);
+router.get("/find-creators", findCreators as any);
+router.get("/creator-in-places-and-events", getUserInPlacesAndEvents as any);
 
 export default router;

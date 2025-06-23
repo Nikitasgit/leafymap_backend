@@ -1,9 +1,12 @@
 import { Request, Response } from "express";
 import User from "../models/User";
 import Place, { IPlace } from "../models/Place";
+import Event from "../models/Event";
 import { parseJson, parseLocation } from "../helpers/userHelpers";
 import { generateSignedUrlFromFullUrl } from "../types/s3";
 import { CustomRequest } from "../types/custom";
+import { APIResponse } from "../utils/response";
+import logger from "../utils/logger";
 
 const getUser = async (req: CustomRequest, res: Response): Promise<void> => {
   try {
@@ -233,19 +236,19 @@ const updateCreator = async (
     const placeActiveBoolean = placeActive === "true";
     const user = await User.findById(req.user?.id);
     if (!user) {
-      res.status(404).json({ error: "User not found" });
+      APIResponse(res, null, "User not found", 404);
+      return;
+    }
+    if (user.userType !== "creator") {
+      APIResponse(res, null, "User is not a creator", 400);
       return;
     }
 
-    if (user.userType !== "creator") {
-      res.status(400).json({ error: "User is not a creator" });
-      return;
-    }
     const profilePicture = req.file ? req.file.location : null;
 
     const formattedLocation = location ? parseLocation(location) : null;
     if (location && !formattedLocation) {
-      res.status(400).json({ error: "Invalid location format" });
+      APIResponse(res, null, "Invalid location format", 400);
       return;
     }
     user.description = description || user.description;
@@ -265,7 +268,7 @@ const updateCreator = async (
     if (user.creatorProfile.place) {
       place = await Place.findById(user.creatorProfile.place);
       if (!place) {
-        res.status(404).json({ error: "Place not found" });
+        APIResponse(res, null, "Place not found", 404);
         return;
       }
       if (!placeActiveBoolean) {
@@ -306,42 +309,22 @@ const updateCreator = async (
     });
   } catch (err) {
     console.error("Error updating creator:", err);
-    res.status(500).json({ error: "Server error" });
+    APIResponse(res, null, "Server error", 500);
   }
 };
 
-const findUsers = async (req: Request, res: Response): Promise<void> => {
+const findCreators = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { role, category, city, name, limit = 10 } = req.query;
+    const { name, limit = 10 } = req.query;
     const query: any = {};
-
-    if (role) {
-      query.userType = role;
-    }
 
     if (name) {
       query["creatorProfile.name"] = { $regex: name, $options: "i" };
     }
 
-    if (category) {
-      query["creatorProfile.categories"] = category;
-    }
-
-    if (city) {
-      query["creatorProfile.place.location.city"] = city;
-    }
-
     const users = await User.find(query)
-      .select("-password")
-      .limit(parseInt(limit as string))
-      .populate({
-        path: "creatorProfile.categories",
-        model: "SubCategory",
-      })
-      .populate({
-        path: "creatorProfile.place",
-        populate: [{ path: "placeCategory", model: "PlaceCategory" }],
-      });
+      .select("creatorProfile.name image")
+      .limit(parseInt(limit as string));
 
     for (let user of users) {
       if (user?.image) {
@@ -349,11 +332,106 @@ const findUsers = async (req: Request, res: Response): Promise<void> => {
       }
     }
 
-    res.status(200).json({ users });
+    APIResponse(res, users, "Users fetched successfully", 200);
   } catch (err) {
     console.error("Error finding users:", err);
-    res.status(500).json({ error: "Server error" });
+    APIResponse(res, null, "Server error", 500);
   }
 };
 
-export { getUser, addCreator, addOrganizer, updateCreator, findUsers };
+const getUserInPlacesAndEvents = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId) {
+      APIResponse(res, null, "userId parameter is required", 400);
+      return;
+    }
+
+    const user = await User.findById(userId).select(
+      "_id creatorProfile.name image"
+    );
+
+    if (!user) {
+      APIResponse(res, { places: [] }, "User not found", 200);
+      return;
+    }
+
+    const userPlaces = await Place.find({
+      "collaborators.userId": { $in: user._id },
+      "collaborators.status": "accepted",
+      active: true,
+    })
+      .select("_id name location")
+      .lean();
+
+    const userEvents = await Event.find({
+      "collaborators.userId": { $in: user._id },
+      "collaborators.status": "accepted",
+      status: { $in: ["upcoming", "ongoing"] },
+    })
+      .select("_id name placeId")
+      .lean();
+    const eventPlaceIds = userEvents
+      .map((event) => event.placeId)
+      .filter(Boolean);
+
+    const eventPlaces = await Place.find({
+      $and: [
+        { _id: { $in: eventPlaceIds } },
+        { _id: { $nin: userPlaces.map((place) => place._id) } },
+        { active: true },
+      ],
+    })
+      .select("_id name location")
+      .lean();
+
+    const allPlaces = [...userPlaces, ...eventPlaces];
+
+    const placeEventsMap = new Map();
+
+    allPlaces.forEach((place) => {
+      placeEventsMap.set(place._id.toString(), {
+        place,
+        events: [],
+      });
+    });
+
+    userEvents.forEach((event) => {
+      if (event.placeId) {
+        const placeId = event.placeId.toString();
+        if (placeEventsMap.has(placeId)) {
+          placeEventsMap.get(placeId).events.push(event);
+        }
+      }
+    });
+
+    const formattedResults = {
+      user,
+      places: Array.from(placeEventsMap.values()),
+    };
+
+    APIResponse(
+      res,
+      formattedResults,
+      "Search results fetched successfully",
+      200
+    );
+  } catch (error) {
+    console.error("Error fetching places by search:", error);
+    APIResponse(res, null, "Failed to fetch places by search", 500);
+    logger.error("Error fetching places by search:", error);
+  }
+};
+
+export {
+  getUser,
+  addCreator,
+  addOrganizer,
+  updateCreator,
+  findCreators,
+  getUserInPlacesAndEvents,
+};
