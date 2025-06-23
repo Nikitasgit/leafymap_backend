@@ -351,46 +351,54 @@ const getUserInPlacesAndEvents = async (
       return;
     }
 
-    const user = await User.findById(userId).select(
-      "_id creatorProfile.name image"
-    );
+    const user = await User.findById(userId)
+      .select("_id creatorProfile.name image creatorProfile.categories")
+      .populate({
+        path: "creatorProfile.categories",
+        model: "SubCategory",
+        select: "name",
+      });
 
     if (!user) {
       APIResponse(res, { places: [] }, "User not found", 200);
       return;
     }
 
-    const userPlaces = await Place.find({
-      "collaborators.userId": { $in: user._id },
-      "collaborators.status": "accepted",
-      active: true,
-    })
-      .select("_id name location")
-      .lean();
-
+    // 1. Chercher tous les events où l'utilisateur est collaborateur
     const userEvents = await Event.find({
       "collaborators.userId": { $in: user._id },
       "collaborators.status": "accepted",
       status: { $in: ["upcoming", "ongoing"] },
     })
-      .select("_id name placeId")
+      .select("_id name placeId image")
       .lean();
+
+    // 2. Extraire les placeIds des events
     const eventPlaceIds = userEvents
       .map((event) => event.placeId)
       .filter(Boolean);
 
-    const eventPlaces = await Place.find({
+    // 3. Chercher toutes les places où soit l'utilisateur est collaborateur, soit la place est dans la liste des placeIds des events
+    const allPlaces = await Place.find({
       $and: [
-        { _id: { $in: eventPlaceIds } },
-        { _id: { $nin: userPlaces.map((place) => place._id) } },
         { active: true },
+        {
+          $or: [
+            // Places où l'utilisateur est collaborateur
+            {
+              "collaborators.userId": { $in: user._id },
+              "collaborators.status": "accepted",
+            },
+            // Places qui sont dans les events de l'utilisateur
+            { _id: { $in: eventPlaceIds } },
+          ],
+        },
       ],
     })
-      .select("_id name location")
+      .select("_id name location image")
       .lean();
 
-    const allPlaces = [...userPlaces, ...eventPlaces];
-
+    // 4. Créer un map pour organiser les places et leurs events
     const placeEventsMap = new Map();
 
     allPlaces.forEach((place) => {
@@ -400,6 +408,7 @@ const getUserInPlacesAndEvents = async (
       });
     });
 
+    // 5. Associer les events aux places correspondantes
     userEvents.forEach((event) => {
       if (event.placeId) {
         const placeId = event.placeId.toString();
@@ -408,6 +417,33 @@ const getUserInPlacesAndEvents = async (
         }
       }
     });
+
+    // 6. Générer les URLs signées pour toutes les images
+    // Image de l'utilisateur
+    if (user?.image) {
+      user.image = await generateSignedUrlFromFullUrl(user.image);
+    }
+
+    // Images des places et des events
+    await Promise.all(
+      Array.from(placeEventsMap.values()).map(async (placeData) => {
+        // Image de la place
+        if (placeData.place?.image) {
+          placeData.place.image = await generateSignedUrlFromFullUrl(
+            placeData.place.image
+          );
+        }
+
+        // Images des events
+        await Promise.all(
+          placeData.events.map(async (event: any) => {
+            if (event?.image) {
+              event.image = await generateSignedUrlFromFullUrl(event.image);
+            }
+          })
+        );
+      })
+    );
 
     const formattedResults = {
       user,
