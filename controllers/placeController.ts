@@ -217,7 +217,7 @@ const getPlacesInView = async (req: Request, res: Response): Promise<void> => {
     }
 
     const places = await Place.find(query)
-      .select("location placeCategory isCreatorPlace")
+      .select("location placeCategory isCreatorPlace name")
       .populate({
         path: "placeCategory",
         model: "PlaceCategory",
