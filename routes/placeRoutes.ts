@@ -4,6 +4,7 @@ import {
   updatePlace,
   getPlaceById,
   getPlacesInView,
+  searchPlaces,
 } from "../controllers/placeController";
 import upload from "../middlewares/uploadToS3";
 import {
@@ -16,6 +17,7 @@ const router: Router = express.Router();
 
 router.post("/:placeId/events", auth, upload.single("image"), createEvent);
 
+router.get("/search", searchPlaces);
 router.get("/in-view", getPlacesInView);
 router.get("/:id", getPlaceById);
 router.get("/:id/events", getEventsByPlaceId);

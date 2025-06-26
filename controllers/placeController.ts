@@ -232,4 +232,48 @@ const getPlacesInView = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export { updatePlace, getPlaceById, getPlacesInView };
+const searchPlaces = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, limit = "10" } = req.query;
+
+    if (!name || (name as string).length < 3) {
+      APIResponse(res, [], "Search query must be at least 2 characters", 200);
+      return;
+    }
+
+    const maxLimit = 20;
+    const queryLimit = Math.min(parseInt(limit as string), maxLimit);
+
+    const places = await Place.find({
+      name: { $regex: name as string, $options: "i" },
+      active: true,
+      deleted: false,
+    })
+      .select("_id name location image placeCategory")
+      .populate({
+        path: "placeCategory",
+        model: "PlaceCategory",
+        select: "name",
+      })
+      .limit(queryLimit)
+      .lean();
+
+    // Generate signed URLs for images
+    const placesWithSignedUrls = await Promise.all(
+      places.map(async (place) => {
+        if (place.image) {
+          place.image = await generateSignedUrlFromFullUrl(place.image);
+        }
+        return place;
+      })
+    );
+
+    APIResponse(res, placesWithSignedUrls, "Places searched successfully", 200);
+  } catch (error) {
+    console.error("Error searching places:", error);
+    APIResponse(res, null, "Failed to search places", 500);
+    logger.error("Error searching places:", error);
+  }
+};
+
+export { updatePlace, getPlaceById, getPlacesInView, searchPlaces };
