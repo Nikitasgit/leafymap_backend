@@ -12,23 +12,17 @@ const getUser = async (req: CustomRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.id;
     const user = await User.findById(userId)
-      .select("-password")
+      .select("-password -createdAt -updatedAt -interests  -deleted -__v")
       .populate({
         path: "creatorProfile.categories",
         model: "SubCategory",
       })
       .populate({
         path: "creatorProfile.place",
-        populate: [
-          {
-            path: "categories",
-            model: "SubCategory",
-          },
-          {
-            path: "placeCategory",
-            model: "PlaceCategory",
-          },
-        ],
+        populate: {
+          path: "placeCategory",
+          model: "PlaceCategory",
+        },
       })
       .populate({
         path: "places",

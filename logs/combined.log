@@ -1687,3 +1687,11 @@
 [22-06-2025 15:48:47] - [[31merror[39m]: Error fetching places in view: Cast to ObjectId failed for value "all" (type string) at path "placeCategory" for model "Place"
 [22-06-2025 15:50:01] - [[31merror[39m]: Error fetching places in view: Cast to ObjectId failed for value "all" (type string) at path "placeCategory" for model "Place"
 [22-06-2025 15:50:12] - [[31merror[39m]: Error fetching places in view: Cast to ObjectId failed for value "all" (type string) at path "placeCategory" for model "Place"
+[01-07-2025 15:59:15] - [[31merror[39m]: Error updating event: Argument passed in does not match the accepted types
+[01-07-2025 16:01:36] - [[31merror[39m]: Error updating event: Argument passed in does not match the accepted types
+[01-07-2025 16:01:49] - [[31merror[39m]: Error updating event: Argument passed in does not match the accepted types
+[01-07-2025 16:03:09] - [[31merror[39m]: Error updating event: Argument passed in does not match the accepted types
+[01-07-2025 16:27:33] - [[31merror[39m]: Error updating event: Argument passed in does not match the accepted types
+[01-07-2025 16:27:41] - [[31merror[39m]: Error updating event: Argument passed in does not match the accepted types
+[01-07-2025 17:02:35] - [[31merror[39m]: Error updating event: Argument passed in does not match the accepted types
+[01-07-2025 17:02:43] - [[31merror[39m]: Error updating event: Argument passed in does not match the accepted types

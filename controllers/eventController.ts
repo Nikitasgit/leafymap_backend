@@ -19,18 +19,15 @@ const createEvent = async (
       APIResponse(res, null, "User not found", 404);
       return;
     }
-
     const { placeId } = req.params;
     if (!placeId) {
       APIResponse(res, null, "Place ID is required", 400);
       return;
     }
-
     if (!mongoose.Types.ObjectId.isValid(placeId)) {
       APIResponse(res, null, "Invalid Place ID format", 400);
       return;
     }
-
     const place = await Place.findById(placeId);
     if (!place) {
       APIResponse(res, null, "Place not found", 404);
@@ -43,8 +40,7 @@ const createEvent = async (
 
     const { name, description, schedule, collaborators, createdCollaborators } =
       req.body;
-
-    // Validate required fields
+    console.log("req.file", req.file);
     if (!name || !description || !schedule) {
       APIResponse(
         res,
@@ -72,7 +68,6 @@ const createEvent = async (
       })
     );
 
-    // Validate schedule structure
     if (parsedSchedule.length === 0) {
       APIResponse(res, null, "Schedule must contain at least one period", 400);
       return;
@@ -103,16 +98,10 @@ const createEvent = async (
       })
     );
 
-    // Validate collaborators are valid ObjectIds
-    const validCollaborators = parsedCollaborators.filter((collab: any) =>
-      mongoose.Types.ObjectId.isValid(collab.userId)
-    );
-
-    // Parse createdCollaborators properly according to schema
     const parsedCreatedCollaborators = parseJson(createdCollaborators, []).map(
       (collaborator: any) => {
         const parsedCollaborator: any = {};
-        if (collaborator.name) {
+        if (collaborator.name && typeof collaborator.name === "string") {
           parsedCollaborator.name = collaborator.name;
         }
         if (
@@ -123,37 +112,25 @@ const createEvent = async (
             collaborator.category
           );
         }
-        return parsedCollaborator;
+        return Object.keys(parsedCollaborator).length > 0
+          ? parsedCollaborator
+          : null;
       }
     );
-
-    // Ensure all arrays are properly initialized
-    const finalCollaborators = Array.isArray(parsedCollaborators)
-      ? parsedCollaborators
-      : [];
-    const finalCreatedCollaborators = Array.isArray(parsedCreatedCollaborators)
-      ? parsedCreatedCollaborators
-      : [];
 
     const eventData: any = {
       name,
       description,
       schedule: parsedSchedule,
-      collaborators: validCollaborators,
-      createdCollaborators: finalCreatedCollaborators,
+      collaborators: parsedCollaborators,
+      createdCollaborators: parsedCreatedCollaborators,
       placeId: new mongoose.Types.ObjectId(placeId),
       status: "upcoming",
     };
 
-    // Only add image if it exists
     if (req.file) {
       eventData.image = req.file.location;
     }
-
-    console.log(
-      "Creating event with data:",
-      JSON.stringify(eventData, null, 2)
-    );
 
     const event = await Event.create(eventData);
 
@@ -222,28 +199,38 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
     const event = await Event.findById(id).populate({
       path: "collaborators.userId",
       model: "User",
-      select: "_id username image",
+      select: "_id creatorProfile image",
     });
-    if (event?.image) {
-      event.image = await generateSignedUrlFromFullUrl(event.image);
-    }
-    if (event?.collaborators) {
-      event.collaborators = await Promise.all(
-        event.collaborators.map(async (collaborator: any) => {
-          if (collaborator.userId && collaborator.userId.image) {
-            collaborator.userId.image = await generateSignedUrlFromFullUrl(
-              collaborator.userId.image
-            );
-          }
-          return collaborator;
-        })
-      );
-    }
+
     if (!event) {
       APIResponse(res, null, "Event not found", 404);
       return;
     }
-    APIResponse(res, event, "Event fetched successfully", 200);
+
+    if (event.image) {
+      event.image = await generateSignedUrlFromFullUrl(event.image);
+    }
+    const eventObj = event.toObject();
+    if (eventObj.collaborators) {
+      eventObj.collaborators = (await Promise.all(
+        eventObj.collaborators.map(async (collaborator: any) => {
+          const transformedCollaborator = {
+            _id: collaborator.userId._id,
+            status: collaborator.status,
+            name: collaborator.userId.creatorProfile?.name || "",
+            image: collaborator.userId.image || "",
+          };
+          if (transformedCollaborator.image) {
+            transformedCollaborator.image = await generateSignedUrlFromFullUrl(
+              transformedCollaborator.image
+            );
+          }
+          return transformedCollaborator;
+        })
+      )) as any;
+    }
+
+    APIResponse(res, eventObj, "Event fetched successfully", 200);
   } catch (error) {
     APIResponse(res, null, "Failed to fetch event", 500);
     logger.error("Error fetching event:", error);
@@ -305,7 +292,6 @@ const updateEvent = async (
       })
     );
 
-    // Validate schedule structure
     if (parsedSchedule.length === 0) {
       APIResponse(res, null, "Schedule must contain at least one period", 400);
       return;
@@ -336,16 +322,10 @@ const updateEvent = async (
       })
     );
 
-    // Validate collaborators are valid ObjectIds
-    const validCollaborators = parsedCollaborators.filter((collab: any) =>
-      mongoose.Types.ObjectId.isValid(collab.userId)
-    );
-
-    // Parse createdCollaborators properly according to schema
-    const parsedCreatedCollaborators = parseJson(createdCollaborators, []).map(
-      (collaborator: any) => {
+    const parsedCreatedCollaborators = parseJson(createdCollaborators, [])
+      .map((collaborator: any) => {
         const parsedCollaborator: any = {};
-        if (collaborator.name) {
+        if (collaborator.name && typeof collaborator.name === "string") {
           parsedCollaborator.name = collaborator.name;
         }
         if (
@@ -356,24 +336,18 @@ const updateEvent = async (
             collaborator.category
           );
         }
-        return parsedCollaborator;
-      }
-    );
-
-    // Ensure all arrays are properly initialized
-    const finalCollaborators = Array.isArray(parsedCollaborators)
-      ? parsedCollaborators
-      : [];
-    const finalCreatedCollaborators = Array.isArray(parsedCreatedCollaborators)
-      ? parsedCreatedCollaborators
-      : [];
+        return Object.keys(parsedCollaborator).length > 0
+          ? parsedCollaborator
+          : null;
+      })
+      .filter(Boolean);
 
     const updateData: Partial<IEvent> = {
       name,
       description,
       schedule: parsedSchedule,
-      collaborators: validCollaborators,
-      createdCollaborators: finalCreatedCollaborators,
+      collaborators: parsedCollaborators,
+      createdCollaborators: parsedCreatedCollaborators,
     };
 
     if (status) {

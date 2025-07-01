@@ -103,7 +103,7 @@ const updatePlace = async (
 const getPlaceById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { enrichSchedule = "true" } = req.query; // Default to true for backward compatibility
+    const { enrichSchedule = "true" } = req.query;
 
     let place = await Place.findById(id)
       .populate({
@@ -122,15 +122,12 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Only enrich schedule if explicitly requested
     if (enrichSchedule === "true") {
-      // Fetch events for this place
       const events = await Event.find({
         placeId: id,
-        status: { $in: ["upcoming", "ongoing"] }, // Only include active events
+        status: { $in: ["upcoming", "ongoing"] },
       }).select("name schedule");
 
-      // Convert events to the expected format
       const formattedEvents = events.map((event) => ({
         _id: event._id.toString(),
         name: event.name,
@@ -139,14 +136,10 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
           endDate: new Date(period.endDate),
         })),
       }));
-
-      // Enrich the default schedule with events for the current week
       const enrichedSchedule = enrichScheduleWithEvents(
         place.defaultSchedule,
         formattedEvents
       );
-
-      // Replace the default schedule with the enriched one
       place.defaultSchedule = enrichedSchedule;
     }
 
@@ -196,10 +189,15 @@ const getPlacesInView = async (req: Request, res: Response): Promise<void> => {
     const maxLimit = 100;
     const queryLimit = Math.min(parseInt((limit as string) || "20"), maxLimit);
 
-    const { placeType, placeCategory } = parseJson(filters as string, {
-      placeType: ["all"],
-      placeCategory: "all",
-    });
+    const { placeType, placeCategories, startDate, endDate } = parseJson(
+      filters as string,
+      {
+        placeType: "all",
+        placeCategories: [],
+        startDate: null,
+        endDate: null,
+      }
+    );
 
     const query: any = {
       location: {
@@ -209,21 +207,86 @@ const getPlacesInView = async (req: Request, res: Response): Promise<void> => {
       },
       active: true,
     };
-    if (placeType && placeType.length > 0 && !placeType.includes("all")) {
-      query.placeType = { $in: placeType };
+    if (placeType && placeType !== "all") {
+      if (placeType === "art-craft") {
+        query.placeType = { $in: ["art", "craft"] };
+      } else {
+        query.placeType = placeType;
+      }
     }
-    if (placeCategory && placeCategory !== "all") {
-      query.placeCategory = placeCategory;
+    if (placeCategories && placeCategories.length > 0) {
+      query.placeCategory = { $in: placeCategories };
     }
 
-    const places = await Place.find(query)
-      .select("location placeCategory isCreatorPlace name")
-      .populate({
-        path: "placeCategory",
-        model: "PlaceCategory",
-      })
-      .limit(queryLimit)
-      .lean();
+    let places;
+    if (startDate || endDate) {
+      const aggregationPipeline = [
+        { $match: query },
+        {
+          $lookup: {
+            from: "events",
+            localField: "_id",
+            foreignField: "placeId",
+            as: "events",
+          },
+        },
+        {
+          $match: {
+            events: {
+              $elemMatch: {
+                status: { $in: ["upcoming", "ongoing"] },
+                schedule: {
+                  $elemMatch: {
+                    $and: [
+                      ...(startDate
+                        ? [{ endDate: { $gte: new Date(startDate) } }]
+                        : []),
+                      ...(endDate
+                        ? [{ startDate: { $lte: new Date(endDate) } }]
+                        : []),
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            location: 1,
+            placeCategory: 1,
+            isCreatorPlace: 1,
+            name: 1,
+          },
+        },
+        {
+          $lookup: {
+            from: "placecategories",
+            localField: "placeCategory",
+            foreignField: "_id",
+            as: "placeCategory",
+          },
+        },
+        {
+          $unwind: {
+            path: "$placeCategory",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        { $limit: queryLimit },
+      ];
+
+      places = await Place.aggregate(aggregationPipeline);
+    } else {
+      places = await Place.find(query)
+        .select("location placeCategory isCreatorPlace name")
+        .populate({
+          path: "placeCategory",
+          model: "PlaceCategory",
+        })
+        .limit(queryLimit)
+        .lean();
+    }
     APIResponse(res, places, "Places fetched successfully", 200);
   } catch (error) {
     console.error("Error fetching places in view:", error);
@@ -249,7 +312,7 @@ const searchPlaces = async (req: Request, res: Response): Promise<void> => {
       active: true,
       deleted: false,
     })
-      .select("_id name location image placeCategory")
+      .select("_id name location.label image placeCategory")
       .populate({
         path: "placeCategory",
         model: "PlaceCategory",
@@ -258,7 +321,6 @@ const searchPlaces = async (req: Request, res: Response): Promise<void> => {
       .limit(queryLimit)
       .lean();
 
-    // Generate signed URLs for images
     const placesWithSignedUrls = await Promise.all(
       places.map(async (place) => {
         if (place.image) {

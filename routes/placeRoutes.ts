@@ -6,7 +6,7 @@ import {
   getPlacesInView,
   searchPlaces,
 } from "../controllers/placeController";
-import upload from "../middlewares/uploadToS3";
+import upload, { handleMulterError } from "../middlewares/uploadToS3";
 import {
   createEvent,
   getEventsByPlaceId,
@@ -15,7 +15,13 @@ import {
 
 const router: Router = express.Router();
 
-router.post("/:placeId/events", auth, upload.single("image"), createEvent);
+router.post(
+  "/:placeId/events",
+  auth,
+  upload.single("image"),
+  handleMulterError,
+  createEvent
+);
 
 router.get("/search", searchPlaces);
 router.get("/in-view", getPlacesInView);
@@ -27,6 +33,7 @@ router.put(
   "/:placeId/events/:eventId",
   auth,
   upload.single("image"),
+  handleMulterError,
   updateEvent
 );
 
