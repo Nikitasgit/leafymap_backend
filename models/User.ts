@@ -68,7 +68,7 @@ const userSchema = new Schema<IUser>(
     },
     deleted: { type: Boolean, default: false },
     location: locationSchema,
-    description: { type: String },
+    description: { type: String, maxlength: 300 },
     country: { type: String, enum: ISO_COUNTRIES_ALPHA2 },
     image: { type: String },
     followers: [{ type: Types.ObjectId, ref: "User" }],
