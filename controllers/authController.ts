@@ -1,11 +1,9 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import User from "../models/User";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
-
-const JWT_SECRET = process.env.JWT_SECRET as string;
+import { generateToken, setTokenCookie } from "../utils/jwt";
 
 const register = async (req: Request, res: Response): Promise<void> => {
   const { email, password, username } = req.body;
@@ -43,24 +41,13 @@ const signIn = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const token = jwt.sign(
-      {
-        id: user._id,
-        userType: user.userType,
-      },
-      JWT_SECRET,
-      {
-        expiresIn: "1d",
-      }
-    );
+    const token = generateToken({
+      id: user._id.toString(),
+      userType: user.userType,
+    });
 
+    setTokenCookie(res, token);
     res
-      .cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 86400000, // 1 day
-      })
       .cookie("logged_in", "true", {
         httpOnly: false, // readable from JavaScript
         secure: process.env.NODE_ENV === "production",

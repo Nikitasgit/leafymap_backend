@@ -7,6 +7,8 @@ import { generateSignedUrlFromFullUrl } from "../types/s3";
 import { CustomRequest } from "../types/custom";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
+import { generateToken, setTokenCookie } from "../utils/jwt";
+import mongoose from "mongoose";
 
 const getUser = async (req: CustomRequest, res: Response): Promise<void> => {
   try {
@@ -77,6 +79,32 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
       res.status(400).json({ error: "User can not be a creator" });
       return;
     }
+    if (phone) {
+      const existingUserWithPhone = await User.findOne({
+        phone,
+        _id: { $ne: req.user?.id },
+      });
+      if (existingUserWithPhone) {
+        res.status(400).json({
+          error:
+            "Ce numéro de téléphone est déjà utilisé par un autre utilisateur",
+        });
+        return;
+      }
+    }
+    if (email) {
+      const existingUserWithEmail = await User.findOne({
+        email,
+        _id: { $ne: req.user?.id },
+      });
+      if (existingUserWithEmail) {
+        res.status(400).json({
+          error: "Cet email est déjà utilisé par un autre utilisateur",
+        });
+        return;
+      }
+    }
+
     const profilePicture = req.file ? req.file.location : null;
 
     const formattedLocation = parseLocation(location);
@@ -85,6 +113,7 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
       res.status(400).json({ error: "Invalid location format" });
       return;
     }
+    console.log(category);
 
     user.userType = "creator";
     user.description = description || user.description;
@@ -96,6 +125,7 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
       name,
       categories: [category],
     };
+    console.log(user.creatorProfile);
 
     let place = null;
 
@@ -106,7 +136,7 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
         userId: user._id,
         location: formattedLocation,
         isCreatorPlace: true,
-        placeCategory,
+        placeCategory: placeCategory,
         placeType: parseJson(placeType, ["art"]),
         defaultSchedule: parseJson(defaultSchedule, {}),
       });
@@ -117,6 +147,12 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
 
     await user.save();
 
+    const newToken = generateToken({
+      id: user._id.toString(),
+      userType: user.userType,
+    });
+    setTokenCookie(res, newToken);
+
     res.status(201).json({
       message: "Creator profile added successfully",
       data: {
@@ -124,7 +160,7 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
         place,
       },
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("Error adding creator:", err);
     res.status(500).json({ error: "Server error" });
   }
@@ -158,6 +194,7 @@ const addOrganizer = async (
       res.status(400).json({ error: "User can not be an organizer" });
       return;
     }
+
     const profilePicture = req.file ? req.file.location : null;
 
     const formattedLocation = parseLocation(location);
@@ -195,6 +232,12 @@ const addOrganizer = async (
 
     await user.save();
 
+    const newToken = generateToken({
+      id: user._id.toString(),
+      userType: user.userType,
+    });
+    setTokenCookie(res, newToken);
+
     res.status(201).json({
       message: "Organizer profile added successfully",
       data: {
@@ -202,7 +245,7 @@ const addOrganizer = async (
         place,
       },
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("Error adding creator:", err);
     res.status(500).json({ error: "Server error" });
   }
@@ -236,6 +279,38 @@ const updateCreator = async (
     if (user.userType !== "creator") {
       APIResponse(res, null, "User is not a creator", 400);
       return;
+    }
+
+    if (phone && phone !== user.phone) {
+      const existingUserWithPhone = await User.findOne({
+        phone,
+        _id: { $ne: req.user?.id },
+      });
+      if (existingUserWithPhone) {
+        APIResponse(
+          res,
+          null,
+          "Ce numéro de téléphone est déjà utilisé par un autre utilisateur",
+          400
+        );
+        return;
+      }
+    }
+
+    if (email && email !== user.email) {
+      const existingUserWithEmail = await User.findOne({
+        email,
+        _id: { $ne: req.user?.id },
+      });
+      if (existingUserWithEmail) {
+        APIResponse(
+          res,
+          null,
+          "Cet email est déjà utilisé par un autre utilisateur",
+          400
+        );
+        return;
+      }
     }
 
     const profilePicture = req.file ? req.file.location : null;
@@ -301,7 +376,7 @@ const updateCreator = async (
       message: "Creator profile updated successfully",
       data: { user, place },
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("Error updating creator:", err);
     APIResponse(res, null, "Server error", 500);
   }
