@@ -12,28 +12,10 @@ import {
 
 const router: Router = express.Router();
 
-router.post(
-  "/create-creator",
-  auth as any,
-  upload.single("image"),
-  handleMulterError,
-  addCreator as any
-);
-router.post(
-  "/create-organizer",
-  auth as any,
-  upload.single("image"),
-  handleMulterError,
-  addOrganizer as any
-);
-router.put(
-  "/update-creator",
-  auth as any,
-  upload.single("image"),
-  handleMulterError,
-  updateCreator as any
-);
-router.get("/profile", auth as any, getUser as any);
+router.post("/create-creator", auth, addCreator);
+router.post("/create-organizer", auth, addOrganizer);
+router.put("/update-creator", auth, updateCreator);
+router.get("/profile", auth, getUser);
 router.get("/find-creators", findCreators as any);
 router.get("/creator-in-places-and-events", getUserInPlacesAndEvents as any);
 

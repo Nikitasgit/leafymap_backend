@@ -174,7 +174,7 @@ const placeSchema = new Schema<IPlace>({
     type: [String],
     enum: ["food", "art", "craft"],
     required: true,
-    default: ["art"],
+    default: [],
   },
   defaultSchedule: { type: defaultScheduleSchema, required: true },
   customSchedule: [customScheduleSchema],

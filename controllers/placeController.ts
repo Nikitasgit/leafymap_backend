@@ -94,9 +94,8 @@ const updatePlace = async (
 
     APIResponse(res, place, "Place updated successfully", 200);
   } catch (error) {
-    console.error("Error updating place:", error);
-    APIResponse(res, null, "Failed to update place", 500);
     logger.error("Error updating place:", error);
+    APIResponse(res, null, "Failed to update place", 500);
   }
 };
 
@@ -160,9 +159,8 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
 
     APIResponse(res, place, "Place fetched successfully", 200);
   } catch (error) {
-    console.error("Error fetching place:", error);
-    APIResponse(res, null, "Server error", 500);
     logger.error("Error fetching place:", error);
+    APIResponse(res, null, "Server error", 500);
   }
 };
 
@@ -289,9 +287,8 @@ const getPlacesInView = async (req: Request, res: Response): Promise<void> => {
     }
     APIResponse(res, places, "Places fetched successfully", 200);
   } catch (error) {
-    console.error("Error fetching places in view:", error);
-    APIResponse(res, null, "Failed to fetch places in view", 500);
     logger.error("Error fetching places in view:", error);
+    APIResponse(res, null, "Failed to fetch places in view", 500);
   }
 };
 
@@ -332,9 +329,8 @@ const searchPlaces = async (req: Request, res: Response): Promise<void> => {
 
     APIResponse(res, placesWithSignedUrls, "Places searched successfully", 200);
   } catch (error) {
-    console.error("Error searching places:", error);
-    APIResponse(res, null, "Failed to search places", 500);
     logger.error("Error searching places:", error);
+    APIResponse(res, null, "Failed to search places", 500);
   }
 };
 

@@ -7,17 +7,6 @@ export interface S3File extends Express.Multer.File {
   location: string;
 }
 
-if (
-  !process.env.AWS_ACCESS_KEY_ID ||
-  !process.env.AWS_SECRET_ACCESS_KEY ||
-  !process.env.AWS_BUCKET_NAME
-) {
-  console.error("❌ Variables d'environnement AWS manquantes!");
-  console.error("AWS_ACCESS_KEY_ID:", !!process.env.AWS_ACCESS_KEY_ID);
-  console.error("AWS_SECRET_ACCESS_KEY:", !!process.env.AWS_SECRET_ACCESS_KEY);
-  console.error("AWS_BUCKET_NAME:", !!process.env.AWS_BUCKET_NAME);
-}
-
 const s3 = new S3Client({
   region: process.env.AWS_REGION || "us-east-1",
   credentials: {
@@ -39,7 +28,6 @@ const upload = multer({
       const key = `${file.fieldname}-${uniqueSuffix}${path.extname(
         file.originalname
       )}`;
-      console.log("📤 Uploading file:", file.originalname, "->", key);
       cb(null, key);
     },
   }),
@@ -47,17 +35,10 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024, // 5MB
   },
   fileFilter: (req, file, cb) => {
-    console.log(
-      "🔍 Processing file:",
-      file.originalname,
-      "Type:",
-      file.mimetype
-    );
     const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      console.error("❌ Invalid file type:", file.mimetype);
       cb(
         new Error(
           "Invalid file type. Only JPEG, PNG, GIF and WebP are allowed."
@@ -67,7 +48,6 @@ const upload = multer({
   },
 });
 
-// Middleware pour gérer les erreurs multer
 export const handleMulterError = (err: any, req: any, res: any, next: any) => {
   if (err instanceof multer.MulterError) {
     if (err.code === "LIMIT_FILE_SIZE") {
@@ -87,5 +67,4 @@ export const handleMulterError = (err: any, req: any, res: any, next: any) => {
   next();
 };
 
-console.log("upload", upload);
 export default upload;

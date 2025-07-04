@@ -40,7 +40,6 @@ const createEvent = async (
 
     const { name, description, schedule, collaborators, createdCollaborators } =
       req.body;
-    console.log("req.file", req.file);
     if (!name || !description || !schedule) {
       APIResponse(
         res,
@@ -136,7 +135,6 @@ const createEvent = async (
 
     APIResponse(res, event, "Event created successfully", 201);
   } catch (error) {
-    console.error("Error creating event:", error);
     if (error instanceof Error) {
       APIResponse(res, null, `Failed to create event: ${error.message}`, 500);
     } else {
@@ -369,7 +367,6 @@ const updateEvent = async (
 
     APIResponse(res, event, "Event updated successfully", 200);
   } catch (error) {
-    console.error("Error updating event:", error);
     if (error instanceof Error) {
       APIResponse(res, null, `Failed to update event: ${error.message}`, 500);
     } else {

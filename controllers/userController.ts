@@ -9,6 +9,13 @@ import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
 import { generateToken, setTokenCookie } from "../utils/jwt";
 import mongoose from "mongoose";
+import {
+  addCreatorSchema,
+  updateCreatorSchema,
+  findCreatorsQuerySchema,
+  getUserInPlacesAndEventsQuerySchema,
+} from "../validations/userValidation";
+import { addOrganizerSchema } from "../validations/placeValidations";
 
 const getUser = async (req: CustomRequest, res: Response): Promise<void> => {
   try {
@@ -32,7 +39,7 @@ const getUser = async (req: CustomRequest, res: Response): Promise<void> => {
       });
 
     if (!user) {
-      res.status(404).json({ error: "User not found" });
+      APIResponse(res, null, "User not found", 404);
       return;
     }
     if (user?.places) {
@@ -49,34 +56,41 @@ const getUser = async (req: CustomRequest, res: Response): Promise<void> => {
       user.image = signedUrl;
     }
 
-    res.status(200).json({ user });
+    APIResponse(res, { user }, "User fetched successfully", 200);
   } catch (err) {
-    console.error("Error getting user:", err);
-    res.status(500).json({ error: "Server error" });
+    logger.error("Error getting user:", err);
+    APIResponse(res, null, "Server error", 500);
   }
 };
 
 const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
+  const parseResult = addCreatorSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    APIResponse(res, null, "Validation error", 400);
+    return;
+  }
+  const data = parseResult.data;
   try {
     const {
       name,
       description,
       category,
       placeCategory,
-      placeType,
+
       location,
       defaultSchedule,
+      placeActive,
       phone,
       email,
       website,
-    } = req.body;
+    } = data;
     const user = await User.findById(req.user?.id);
     if (!user) {
-      res.status(404).json({ error: "User not found" });
+      APIResponse(res, null, "User not found", 404);
       return;
     }
     if (user.userType !== "guest") {
-      res.status(400).json({ error: "User can not be a creator" });
+      APIResponse(res, null, "User can not be a creator", 400);
       return;
     }
     if (phone) {
@@ -85,10 +99,12 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
         _id: { $ne: req.user?.id },
       });
       if (existingUserWithPhone) {
-        res.status(400).json({
-          error:
-            "Ce numéro de téléphone est déjà utilisé par un autre utilisateur",
-        });
+        APIResponse(
+          res,
+          null,
+          "Ce numéro de téléphone est déjà utilisé par un autre utilisateur",
+          400
+        );
         return;
       }
     }
@@ -98,49 +114,38 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
         _id: { $ne: req.user?.id },
       });
       if (existingUserWithEmail) {
-        res.status(400).json({
-          error: "Cet email est déjà utilisé par un autre utilisateur",
-        });
+        APIResponse(
+          res,
+          null,
+          "Cet email est déjà utilisé par un autre utilisateur",
+          400
+        );
         return;
       }
     }
-
-    const profilePicture = req.file ? req.file.location : null;
-
-    const formattedLocation = parseLocation(location);
-
-    if (location && !formattedLocation) {
-      res.status(400).json({ error: "Invalid location format" });
-      return;
-    }
-    console.log(category);
 
     user.userType = "creator";
     user.description = description || user.description;
     user.phone = phone || user.phone;
     user.email = email || user.email;
     user.website = website || user.website;
-    user.image = profilePicture || user.image;
     user.creatorProfile = {
       name,
-      categories: [category],
+      categories: [new mongoose.Types.ObjectId(category)],
     };
-    console.log(user.creatorProfile);
 
     let place = null;
 
-    if (formattedLocation) {
+    if (placeActive) {
       place = new Place({
         name: name || user.username,
         description,
         userId: user._id,
-        location: formattedLocation,
+        location: location,
         isCreatorPlace: true,
         placeCategory: placeCategory,
-        placeType: parseJson(placeType, ["art"]),
-        defaultSchedule: parseJson(defaultSchedule, {}),
+        defaultSchedule: defaultSchedule || {},
       });
-
       await place.save();
       user.creatorProfile.place = place._id;
     }
@@ -153,16 +158,15 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
     });
     setTokenCookie(res, newToken);
 
-    res.status(201).json({
-      message: "Creator profile added successfully",
-      data: {
-        user,
-        place,
-      },
-    });
+    APIResponse(
+      res,
+      { user, place },
+      "Creator profile added successfully",
+      201
+    );
   } catch (err: any) {
-    console.error("Error adding creator:", err);
-    res.status(500).json({ error: "Server error" });
+    logger.error("Error adding creator:", err);
+    APIResponse(res, null, "Server error", 500);
   }
 };
 
@@ -170,6 +174,12 @@ const addOrganizer = async (
   req: CustomRequest,
   res: Response
 ): Promise<void> => {
+  const parseResult = addOrganizerSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    APIResponse(res, null, "Validation error", 400);
+    return;
+  }
+  const data = parseResult.data;
   try {
     const {
       name,
@@ -183,52 +193,46 @@ const addOrganizer = async (
       website,
       collaborators,
       createdCollaborators,
-    } = req.body;
+    } = data;
 
     const user = await User.findById(req.user?.id);
     if (!user) {
-      res.status(404).json({ error: "User not found" });
+      APIResponse(res, null, "User not found", 404);
       return;
     }
     if (user.userType !== "guest") {
-      res.status(400).json({ error: "User can not be an organizer" });
+      APIResponse(res, null, "User can not be an organizer", 400);
       return;
     }
 
-    const profilePicture = req.file ? req.file.location : null;
-
-    const formattedLocation = parseLocation(location);
-
-    if (!location && !formattedLocation) {
-      res.status(400).json({ error: "Invalid location format" });
+    if (!location) {
+      APIResponse(res, null, "Location is required", 400);
       return;
     }
 
     user.userType = "organizer";
     let place = null;
-    if (formattedLocation) {
-      place = new Place({
-        name: name,
-        description,
-        userId: user._id,
-        phone,
-        email,
-        website,
-        image: profilePicture,
-        location: formattedLocation,
-        isCreatorPlace: false,
-        placeCategory,
-        placeType: parseJson(placeType, ["art"]),
-        defaultSchedule: parseJson(defaultSchedule, {}),
-        collaborators: parseJson(collaborators, []).map((id: string) => ({
-          userId: id,
-          status: "pending",
-        })),
-        createdCollaborators: parseJson(createdCollaborators, []),
-      });
-      await place.save();
-      user.places.push(place._id);
-    }
+
+    place = new Place({
+      name: name,
+      description,
+      userId: user._id,
+      phone,
+      email,
+      website,
+      location: location,
+      isCreatorPlace: false,
+      placeCategory,
+      placeType: placeType || ["art"],
+      defaultSchedule: defaultSchedule || {},
+      collaborators: (collaborators || []).map((id: string) => ({
+        userId: id,
+        status: "pending",
+      })),
+      createdCollaborators: createdCollaborators || [],
+    });
+    await place.save();
+    user.places.push(place._id);
 
     await user.save();
 
@@ -238,16 +242,15 @@ const addOrganizer = async (
     });
     setTokenCookie(res, newToken);
 
-    res.status(201).json({
-      message: "Organizer profile added successfully",
-      data: {
-        user,
-        place,
-      },
-    });
+    APIResponse(
+      res,
+      { user, place },
+      "Organizer profile added successfully",
+      201
+    );
   } catch (err: any) {
-    console.error("Error adding creator:", err);
-    res.status(500).json({ error: "Server error" });
+    logger.error("Error adding organizer:", err);
+    APIResponse(res, null, "Server error", 500);
   }
 };
 
@@ -255,22 +258,26 @@ const updateCreator = async (
   req: CustomRequest,
   res: Response
 ): Promise<void> => {
+  const parseResult = updateCreatorSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    APIResponse(res, null, "Validation error", 400);
+    return;
+  }
+  const data = parseResult.data;
   try {
     const {
       name,
       description,
       category,
       placeCategory,
-      placeType,
       location,
       defaultSchedule,
       phone,
       email,
       website,
       placeActive,
-    } = req.body;
+    } = data;
 
-    const placeActiveBoolean = placeActive === "true";
     const user = await User.findById(req.user?.id);
     if (!user) {
       APIResponse(res, null, "User not found", 404);
@@ -313,25 +320,17 @@ const updateCreator = async (
       }
     }
 
-    const profilePicture = req.file ? req.file.location : null;
-
-    const formattedLocation = location ? parseLocation(location) : null;
-    if (location && !formattedLocation) {
-      APIResponse(res, null, "Invalid location format", 400);
-      return;
-    }
     user.description = description || user.description;
     user.phone = phone || user.phone;
     user.email = email || user.email;
     user.website = website || user.website;
-    user.image = profilePicture || user.image;
 
     if (!user.creatorProfile) {
       user.creatorProfile = { name: "", categories: [] };
     }
     user.creatorProfile.name = name || user.creatorProfile.name;
     if (category) {
-      user.creatorProfile.categories = [category];
+      user.creatorProfile.categories = [new mongoose.Types.ObjectId(category)];
     }
     let place = null;
     if (user.creatorProfile.place) {
@@ -340,31 +339,27 @@ const updateCreator = async (
         APIResponse(res, null, "Place not found", 404);
         return;
       }
-      if (!placeActiveBoolean) {
+      if (!placeActive) {
         place.active = false;
       } else {
         place.name = name || place.name;
         place.active = true;
         place.description = description || place.description;
-        place.placeCategory = placeCategory || place.placeCategory;
-        place.placeType = parseJson(placeType, place.placeType);
-        if (formattedLocation) {
-          place.location = { ...formattedLocation, type: "Point" };
+        place.placeCategory = new mongoose.Types.ObjectId(placeCategory);
+        if (location) {
+          place.location = location;
         }
-        place.defaultSchedule = defaultSchedule
-          ? parseJson(defaultSchedule, place.defaultSchedule)
-          : place.defaultSchedule;
+        place.defaultSchedule = defaultSchedule || place.defaultSchedule;
       }
       await place.save();
-    } else if (formattedLocation) {
+    } else if (location) {
       place = new Place({
         name: name || user.creatorProfile.name,
         userId: user._id,
-        location: formattedLocation,
+        location: location,
         isCreatorPlace: true,
         placeCategory,
-        placeType: parseJson(placeType, ["art"]),
-        defaultSchedule: parseJson(defaultSchedule, {}),
+        defaultSchedule: defaultSchedule || {},
       });
       await place.save();
       user.creatorProfile.place = place._id;
@@ -372,26 +367,34 @@ const updateCreator = async (
 
     await user.save();
 
-    res.status(200).json({
-      message: "Creator profile updated successfully",
-      data: { user, place },
-    });
+    APIResponse(
+      res,
+      { user, place },
+      "Creator profile updated successfully",
+      200
+    );
   } catch (err: any) {
-    console.error("Error updating creator:", err);
+    logger.error("Error updating creator:", err);
     APIResponse(res, null, "Server error", 500);
   }
 };
 
 const findCreators = async (req: Request, res: Response): Promise<void> => {
+  const parseResult = findCreatorsQuerySchema.safeParse(req.query);
+  if (!parseResult.success) {
+    APIResponse(res, null, "Validation error", 400);
+    return;
+  }
+  const query = parseResult.data;
   try {
-    const { name, limit = 10 } = req.query;
-    const query: any = {};
+    const { name, limit = 10 } = query;
+    const queryFilter: any = {};
 
     if (name) {
-      query["creatorProfile.name"] = { $regex: name, $options: "i" };
+      queryFilter["creatorProfile.name"] = { $regex: name, $options: "i" };
     }
 
-    const users = await User.find(query)
+    const users = await User.find(queryFilter)
       .select("creatorProfile.name image")
       .limit(parseInt(limit as string));
 
@@ -403,7 +406,7 @@ const findCreators = async (req: Request, res: Response): Promise<void> => {
 
     APIResponse(res, users, "Users fetched successfully", 200);
   } catch (err) {
-    console.error("Error finding users:", err);
+    logger.error("Error finding users:", err);
     APIResponse(res, null, "Server error", 500);
   }
 };
@@ -412,8 +415,14 @@ const getUserInPlacesAndEvents = async (
   req: Request,
   res: Response
 ): Promise<void> => {
+  const parseResult = getUserInPlacesAndEventsQuerySchema.safeParse(req.query);
+  if (!parseResult.success) {
+    APIResponse(res, null, "Validation error", 400);
+    return;
+  }
+  const query = parseResult.data;
   try {
-    const { userId } = req.query;
+    const { userId } = query;
 
     if (!userId) {
       APIResponse(res, null, "userId parameter is required", 400);
@@ -520,9 +529,8 @@ const getUserInPlacesAndEvents = async (
       200
     );
   } catch (error) {
-    console.error("Error fetching places by search:", error);
-    APIResponse(res, null, "Failed to fetch places by search", 500);
     logger.error("Error fetching places by search:", error);
+    APIResponse(res, null, "Failed to fetch places by search", 500);
   }
 };
 
