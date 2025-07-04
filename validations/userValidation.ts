@@ -16,11 +16,11 @@ export const addCreatorSchema = baseFormDataSchema.extend({
 });
 
 export const updateCreatorSchema = baseFormDataSchema.extend({
-  name: nameSchema.optional(),
-  category: z.string().optional(),
+  name: nameSchema,
+  category: z.string().min(1, "La catégorie est requise"),
   defaultSchedule: defaultScheduleSchema.optional(),
-  phone: phoneSchema.optional(),
-  email: emailSchema.optional(),
+  phone: phoneSchema,
+  email: emailSchema,
 });
 
 export const findCreatorsQuerySchema = z.object({

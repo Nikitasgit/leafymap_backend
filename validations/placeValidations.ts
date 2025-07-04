@@ -28,8 +28,8 @@ export const defaultScheduleSchema = z.object({
 });
 
 const createdCollaboratorSchema = z.object({
-  name: z.string().optional(),
-  category: z.string().optional(),
+  name: z.string(),
+  category: z.string(),
 });
 
 export const nameSchema = z
@@ -73,30 +73,45 @@ export const websiteSchema = z
   }, "L'URL du site web n'est pas valide");
 
 export const baseFormDataSchema = z.object({
-  name: nameSchema.optional(),
+  name: nameSchema,
   description: z.string().optional(),
-  phone: phoneSchema.optional(),
-  email: emailSchema.optional(),
+  phone: phoneSchema,
+  email: emailSchema,
   website: websiteSchema,
-  category: z.string().optional(),
-  placeCategory: z.string().optional(),
+  placeCategory: z.string(),
   location: locationSchema.optional().nullable(),
   placeType: z.array(z.enum(["food", "art", "craft"])).optional(),
   placeActive: z.boolean().optional(),
-  userType: z.enum(["creator", "organizer", "guest"]).optional(),
+  userType: z.enum(["creator", "organizer", "guest"]),
 });
 
 export const addOrganizerSchema = baseFormDataSchema.extend({
   name: nameSchema,
   placeCategory: z.string().min(1, "La catégorie du lieu est requise"),
   location: locationSchema,
-  placeType: z.array(z.enum(["food", "art", "craft"])).optional(),
-  defaultSchedule: defaultScheduleSchema.optional(),
-  phone: phoneSchema.optional(),
-  email: emailSchema.optional(),
+  placeType: z.array(z.enum(["food", "art", "craft"])),
+  defaultSchedule: defaultScheduleSchema,
+  phone: phoneSchema,
+  email: emailSchema,
   website: websiteSchema,
   collaborators: z.array(z.string()).optional(),
   createdCollaborators: z.array(createdCollaboratorSchema).optional(),
 });
 
 export type AddOrganizerInput = z.infer<typeof addOrganizerSchema>;
+
+export const updatePlaceSchema = z.object({
+  name: nameSchema,
+  description: z.string().optional(),
+  phone: phoneSchema,
+  email: emailSchema,
+  website: websiteSchema,
+  placeCategory: z.string().min(1, "La catégorie du lieu est requise"),
+  location: locationSchema,
+  placeType: z.array(z.enum(["food", "art", "craft"])).optional(),
+  defaultSchedule: defaultScheduleSchema,
+  collaborators: z.array(z.string()).optional(),
+  createdCollaborators: z.array(createdCollaboratorSchema).optional(),
+});
+
+export type UpdatePlaceInput = z.infer<typeof updatePlaceSchema>;

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { parseJson, parseLocation } from "../helpers/userHelpers";
+import { parseJson } from "../helpers/userHelpers";
 import Place, { IPlace } from "../models/Place";
 import User from "../models/User";
 import Event from "../models/Event";
@@ -9,6 +9,7 @@ import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
 import { enrichScheduleWithEvents } from "../utils/schedule";
 import { CustomRequest } from "../types/custom";
+import { updatePlaceSchema } from "../validations/placeValidations";
 
 const updatePlace = async (
   req: CustomRequest,
@@ -34,6 +35,71 @@ const updatePlace = async (
       return;
     }
 
+    const validationResult = updatePlaceSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      APIResponse(res, validationResult.error.errors, "Validation failed", 400);
+      return;
+    }
+
+    const {
+      name,
+      description,
+      location,
+      phone,
+      email,
+      website,
+      placeCategory,
+      placeType,
+      defaultSchedule,
+      collaborators,
+      createdCollaborators,
+    } = validationResult.data;
+
+    const updateData: Partial<IPlace> = {
+      name,
+      description,
+      location: { ...location, type: "Point" as const },
+      phone,
+      email,
+      website,
+      placeCategory: new mongoose.Types.ObjectId(placeCategory),
+      placeType,
+      defaultSchedule,
+      collaborators: collaborators?.map((id: string) => ({
+        userId: new mongoose.Types.ObjectId(id),
+        status: "pending" as const,
+      })),
+      createdCollaborators: createdCollaborators?.map((collab) => ({
+        name: collab.name,
+        category: new mongoose.Types.ObjectId(collab.category),
+      })),
+    };
+
+    const place = await Place.findByIdAndUpdate(id, updateData);
+
+    if (!place) {
+      APIResponse(res, null, "Place not found", 404);
+      return;
+    }
+
+    APIResponse(res, place, "Place updated successfully", 200);
+  } catch (error) {
+    logger.error("Error updating place:", error);
+    APIResponse(res, null, "Failed to update place", 500);
+  }
+};
+
+const createPlace = async (
+  req: CustomRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const user = await User.findById(req.user?.id);
+    if (!user) {
+      APIResponse(res, null, "User not found", 404);
+      return;
+    }
+
     const {
       name,
       description,
@@ -48,54 +114,35 @@ const updatePlace = async (
       createdCollaborators,
     } = req.body;
 
-    const formattedLocation = parseLocation(location);
-    const parsedDefaultSchedule = parseJson(defaultSchedule, {
-      monday: { open: false, timeSlots: [] },
-      tuesday: { open: false, timeSlots: [] },
-      wednesday: { open: false, timeSlots: [] },
-      thursday: { open: false, timeSlots: [] },
-      friday: { open: false, timeSlots: [] },
-      saturday: { open: false, timeSlots: [] },
-      sunday: { open: false, timeSlots: [] },
-    });
-    const parsedCollaborators = parseJson(collaborators, []).map(
-      (id: string) => ({
-        userId: new mongoose.Types.ObjectId(id),
-        status: "pending" as const,
-      })
-    );
-    const parsedCreatedCollaborators = parseJson(createdCollaborators, []);
-
-    const updateData: Partial<IPlace> = {
+    const placeData: Partial<IPlace> = {
       name,
       description,
-      ...(formattedLocation && {
-        location: { ...formattedLocation, type: "Point" as const },
-      }),
+      location: { ...location, type: "Point" as const },
       phone,
       email,
       website,
       placeCategory,
       placeType,
-      defaultSchedule: parsedDefaultSchedule,
-      collaborators: parsedCollaborators,
-      createdCollaborators: parsedCreatedCollaborators,
+      defaultSchedule,
+      collaborators: collaborators?.map((id: string) => ({
+        userId: new mongoose.Types.ObjectId(id),
+        status: "pending" as const,
+      })),
+      createdCollaborators,
+      active: true,
+      deleted: false,
     };
 
-    if (req.file) {
-      updateData.image = req.file.location;
-    }
-    const place = await Place.findByIdAndUpdate(id, updateData);
+    const place = await Place.create(placeData);
 
-    if (!place) {
-      APIResponse(res, null, "Place not found", 404);
-      return;
-    }
+    await User.findByIdAndUpdate(user._id, {
+      $push: { places: place._id },
+    });
 
-    APIResponse(res, place, "Place updated successfully", 200);
+    APIResponse(res, place, "Place created successfully", 201);
   } catch (error) {
-    logger.error("Error updating place:", error);
-    APIResponse(res, null, "Failed to update place", 500);
+    logger.error("Error creating place:", error);
+    APIResponse(res, null, "Failed to create place", 500);
   }
 };
 
@@ -112,7 +159,7 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
       .populate({
         path: "collaborators.userId",
         model: "User",
-        select: "-password",
+        select: "creatorProfile.name creatorProfile.categories",
       })
       .lean();
 
@@ -334,4 +381,10 @@ const searchPlaces = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export { updatePlace, getPlaceById, getPlacesInView, searchPlaces };
+export {
+  updatePlace,
+  createPlace,
+  getPlaceById,
+  getPlacesInView,
+  searchPlaces,
+};
