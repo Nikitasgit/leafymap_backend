@@ -4,10 +4,18 @@ import User from "../models/User";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
 import { generateToken, setTokenCookie } from "../utils/jwt";
+import {
+  validateRegisterData,
+  validateLoginData,
+  getValidationErrors,
+} from "../validations/authValidations";
+import { z } from "zod";
 
 const register = async (req: Request, res: Response): Promise<void> => {
-  const { email, password, username } = req.body;
   try {
+    const validatedData = validateRegisterData(req.body);
+    const { email, password, username } = validatedData;
+
     const emailExists = await User.findOne({ email });
     if (emailExists) {
       APIResponse(res, null, "Email already exists", 400);
@@ -22,16 +30,23 @@ const register = async (req: Request, res: Response): Promise<void> => {
     await User.create({ email, password: hashed, username });
 
     APIResponse(res, null, "User registered", 201);
-  } catch (err) {
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const validationErrors = getValidationErrors(error);
+      const errorMessage = Object.values(validationErrors).join(", ");
+      APIResponse(res, null, errorMessage, 400);
+      return;
+    }
     APIResponse(res, null, "Server error", 500);
-    logger.error("Error in register:", err);
+    logger.error("Error in register:", error);
   }
 };
 
 const signIn = async (req: Request, res: Response): Promise<void> => {
-  const { identifier, password } = req.body;
-
   try {
+    const validatedData = validateLoginData(req.body);
+    const { identifier, password } = validatedData;
+
     const user = await User.findOne({
       $or: [{ email: identifier }, { username: identifier }],
     });
@@ -49,15 +64,21 @@ const signIn = async (req: Request, res: Response): Promise<void> => {
     setTokenCookie(res, token);
     res
       .cookie("logged_in", "true", {
-        httpOnly: false, // readable from JavaScript
+        httpOnly: false,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         maxAge: 86400000,
       })
       .json({ message: "Logged in", user });
-  } catch (err) {
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const validationErrors = getValidationErrors(error);
+      const errorMessage = Object.values(validationErrors).join(", ");
+      APIResponse(res, null, errorMessage, 400);
+      return;
+    }
     APIResponse(res, null, "Server error", 500);
-    logger.error("Error in signIn:", err);
+    logger.error("Error in signIn:", error);
   }
 };
 

@@ -35,8 +35,9 @@ const createdCollaboratorSchema = z.object({
 export const nameSchema = z
   .string()
   .min(4, "Le nom doit contenir au moins 4 caractères")
+  .max(40, "Le nom ne peut pas dépasser 40 caractères")
   .regex(
-    /^[a-zA-Z0-9\s']+$/,
+    /^[a-zA-ZÀ-ÿ0-9\s']+$/,
     "Le nom ne peut contenir que des lettres, chiffres, espaces et le caractère '"
   );
 
