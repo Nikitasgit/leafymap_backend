@@ -6,8 +6,10 @@ export const APIResponse = (
   message: string,
   status: number = 200
 ) => {
-  response.status(status).json({
+  const responseData = {
     message,
     data,
-  });
+  };
+  console.log("APIResponse:", { status, responseData });
+  response.status(status).json(responseData);
 };

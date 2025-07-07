@@ -65,10 +65,11 @@ const updatePlace = async (
       placeCategory: new mongoose.Types.ObjectId(placeCategory),
       placeType,
       defaultSchedule,
-      collaborators: collaborators?.map((id: string) => ({
-        userId: new mongoose.Types.ObjectId(id),
-        status: "pending" as const,
-      })),
+      collaborators:
+        collaborators?.map((collab: any) => ({
+          userId: new mongoose.Types.ObjectId(collab._id),
+          status: "pending" as const,
+        })) || [],
       createdCollaborators: createdCollaborators?.map((collab) => ({
         name: collab.name,
         category: new mongoose.Types.ObjectId(collab.category),
@@ -124,8 +125,8 @@ const createPlace = async (
       placeCategory,
       placeType,
       defaultSchedule,
-      collaborators: collaborators?.map((id: string) => ({
-        userId: new mongoose.Types.ObjectId(id),
+      collaborators: collaborators?.map((collab: { _id: string }) => ({
+        userId: new mongoose.Types.ObjectId(collab._id),
         status: "pending" as const,
       })),
       createdCollaborators,

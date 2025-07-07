@@ -176,7 +176,7 @@ const addOrganizer = async (
 ): Promise<void> => {
   const parseResult = addOrganizerSchema.safeParse(req.body);
   if (!parseResult.success) {
-    APIResponse(res, null, "Validation error", 400);
+    APIResponse(res, parseResult.error.errors, "Validation error", 400);
     return;
   }
   const data = parseResult.data;
@@ -225,10 +225,11 @@ const addOrganizer = async (
       placeCategory,
       placeType: placeType || ["art"],
       defaultSchedule: defaultSchedule || {},
-      collaborators: (collaborators || []).map((id: string) => ({
-        userId: id,
-        status: "pending",
-      })),
+      collaborators:
+        collaborators?.map((collab: any) => ({
+          userId: new mongoose.Types.ObjectId(collab._id),
+          status: "pending" as const,
+        })) || [],
       createdCollaborators: createdCollaborators || [],
     });
     await place.save();

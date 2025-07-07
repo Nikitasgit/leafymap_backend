@@ -87,15 +87,11 @@ export const baseFormDataSchema = z.object({
 });
 
 export const addOrganizerSchema = baseFormDataSchema.extend({
-  name: nameSchema,
   placeCategory: z.string().min(1, "La catégorie du lieu est requise"),
   location: locationSchema,
-  placeType: z.array(z.enum(["food", "art", "craft"])),
+  placeType: z.array(z.enum(["food", "art", "craft"])).optional(),
   defaultSchedule: defaultScheduleSchema,
-  phone: phoneSchema,
-  email: emailSchema,
-  website: websiteSchema,
-  collaborators: z.array(z.string()).optional(),
+  collaborators: z.array(z.object({ _id: z.string() })).optional(),
   createdCollaborators: z.array(createdCollaboratorSchema).optional(),
 });
 
@@ -111,7 +107,7 @@ export const updatePlaceSchema = z.object({
   location: locationSchema,
   placeType: z.array(z.enum(["food", "art", "craft"])).optional(),
   defaultSchedule: defaultScheduleSchema,
-  collaborators: z.array(z.string()).optional(),
+  collaborators: z.array(z.object({ _id: z.string() })).optional(),
   createdCollaborators: z.array(createdCollaboratorSchema).optional(),
 });
 
