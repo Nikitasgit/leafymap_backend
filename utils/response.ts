@@ -10,6 +10,5 @@ export const APIResponse = (
     message,
     data,
   };
-  console.log("APIResponse:", { status, responseData });
   response.status(status).json(responseData);
 };

@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import User from "../models/User";
 import Place, { IPlace } from "../models/Place";
 import Event from "../models/Event";
-import { parseJson, parseLocation } from "../helpers/userHelpers";
 import { generateSignedUrlFromFullUrl } from "../types/s3";
 import { CustomRequest } from "../types/custom";
 import { APIResponse } from "../utils/response";
@@ -16,6 +15,8 @@ import {
   getUserInPlacesAndEventsQuerySchema,
 } from "../validations/userValidation";
 import { addOrganizerSchema } from "../validations/placeValidations";
+import SubCategory from "../models/SubCategory";
+import Category from "../models/Category";
 
 const getUser = async (req: CustomRequest, res: Response): Promise<void> => {
   try {
@@ -76,11 +77,11 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
       description,
       category,
       placeCategory,
-
       location,
       defaultSchedule,
       placeActive,
       phone,
+      placeType,
       email,
       website,
     } = data;
@@ -142,6 +143,7 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
         description,
         userId: user._id,
         location: location,
+        placeType: placeType || ["art"],
         isCreatorPlace: true,
         placeCategory: placeCategory,
         defaultSchedule: defaultSchedule || {},
@@ -277,6 +279,7 @@ const updateCreator = async (
       email,
       website,
       placeActive,
+      placeType,
     } = data;
 
     const user = await User.findById(req.user?.id);
@@ -345,6 +348,7 @@ const updateCreator = async (
       } else {
         place.name = name || place.name;
         place.active = true;
+        place.placeType = placeType || place.placeType || ["art"];
         place.description = description || place.description;
         place.placeCategory = new mongoose.Types.ObjectId(placeCategory);
         if (location) {
@@ -360,6 +364,7 @@ const updateCreator = async (
         location: location,
         isCreatorPlace: true,
         placeCategory,
+        placeType: placeType || ["art"],
         defaultSchedule: defaultSchedule || {},
       });
       await place.save();

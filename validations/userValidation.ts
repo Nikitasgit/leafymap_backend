@@ -7,20 +7,50 @@ import {
   emailSchema,
 } from "./placeValidations";
 
-export const addCreatorSchema = baseFormDataSchema.extend({
+export const addCreatorSchema = z.object({
   name: nameSchema,
-  category: z.string().min(1, "La catégorie est requise"),
+  description: z.string().optional(),
   phone: phoneSchema,
   email: emailSchema,
+  website: z.string().optional(),
+  category: z.string().min(1, "La catégorie est requise"),
+  placeCategory: z.string().optional(),
+  location: z
+    .object({
+      type: z.literal("Point"),
+      coordinates: z.tuple([z.number(), z.number()]),
+      label: z.string().min(1, "L'emplacement est requis"),
+      id: z.string().min(1, "L'ID de l'emplacement est requis"),
+    })
+    .optional()
+    .nullable(),
+  placeType: z.array(z.enum(["food", "art", "craft"])).optional(),
+  placeActive: z.boolean().optional(),
+  userType: z.enum(["creator", "organizer", "guest"]),
   defaultSchedule: defaultScheduleSchema.optional(),
 });
 
-export const updateCreatorSchema = baseFormDataSchema.extend({
+export const updateCreatorSchema = z.object({
   name: nameSchema,
-  category: z.string().min(1, "La catégorie est requise"),
-  defaultSchedule: defaultScheduleSchema.optional(),
+  description: z.string().optional(),
   phone: phoneSchema,
   email: emailSchema,
+  website: z.string().optional(),
+  category: z.string().min(1, "La catégorie est requise"),
+  placeCategory: z.string().optional(),
+  location: z
+    .object({
+      type: z.literal("Point"),
+      coordinates: z.tuple([z.number(), z.number()]),
+      label: z.string().min(1, "L'emplacement est requis"),
+      id: z.string().min(1, "L'ID de l'emplacement est requis"),
+    })
+    .optional()
+    .nullable(),
+  placeType: z.array(z.enum(["food", "art", "craft"])).optional(),
+  placeActive: z.boolean().optional(),
+  userType: z.enum(["creator", "organizer", "guest"]),
+  defaultSchedule: defaultScheduleSchema.optional(),
 });
 
 export const findCreatorsQuerySchema = z.object({

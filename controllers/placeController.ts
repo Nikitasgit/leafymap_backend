@@ -158,6 +158,11 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
         model: "PlaceCategory",
       })
       .populate({
+        path: "userId",
+        model: "User",
+        select: "creatorProfile.categories",
+      })
+      .populate({
         path: "collaborators.userId",
         model: "User",
         select: "creatorProfile.name creatorProfile.categories",
@@ -167,6 +172,20 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
     if (!place) {
       APIResponse(res, null, "Place not found", 404);
       return;
+    }
+
+    if (place.isCreatorPlace) {
+      const user = await User.findById(place.userId._id)
+        .populate({
+          path: "creatorProfile.categories",
+          model: "SubCategory",
+        })
+        .select("creatorProfile.categories")
+        .lean();
+
+      if (user?.creatorProfile?.categories) {
+        (place as any).creatorCategories = user.creatorProfile.categories;
+      }
     }
 
     if (enrichSchedule === "true") {
