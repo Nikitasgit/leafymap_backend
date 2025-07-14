@@ -1699,3 +1699,40 @@
 [04-07-2025 17:19:37] - [[31merror[39m]: Error updating place: Plan executor error during findAndModify :: caused by :: Can't extract geo keys: { _id: ObjectId('6867d5a84e3ec3a24a379d18'), name: "", description: "ça test", userId: ObjectId('6867d391c5df3b2869ed2f01'), location: { type: "Point" }, phone: "0645959111", email: "ma@gmail.com", website: "", active: true, deleted: false, isCreatorPlace: false, rating: 0, placeCategory: ObjectId('6829d98b10932bd6121ed073'), placeType: [ "food", "craft" ], defaultSchedule: { monday: { open: false, timeSlots: [] }, tuesday: { open: false, timeSlots: [] }, wednesday: { open: false, timeSlots: [] }, thursday: { open: false, timeSlots: [] }, friday: { open: false, timeSlots: [] }, saturday: { open: false, timeSlots: [] }, sunday: { open: false, timeSlots: [] } }, collaborators: [ { userId: ObjectId('683838fd41efd5253e89b5ef'), status: "pending" } ], createdCollaborators: [ { name: "Prokopiou Semeli", _id: ObjectId('6867dee0b5900255fb8ca09c') } ], customSchedule: [], __v: 0 }  Point must be an array or object, instead got type missing
 [04-07-2025 17:29:58] - [[31merror[39m]: Error updating place: Argument passed in must be a string of 12 bytes or a string of 24 hex characters or an integer
 [04-07-2025 17:31:38] - [[31merror[39m]: Error updating place: Argument passed in must be a string of 12 bytes or a string of 24 hex characters or an integer
+[13-07-2025 15:22:35] - [[31merror[39m]: Error uploading profile picture: You can only update profile pictures for your own places
+[13-07-2025 15:22:44] - [[31merror[39m]: Error uploading profile picture: You can only update profile pictures for your own places
+[13-07-2025 15:34:19] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "profile" (type string) at path "_id" for model "User"
+[13-07-2025 15:34:30] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "profile" (type string) at path "_id" for model "User"
+[13-07-2025 15:34:41] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "profile" (type string) at path "_id" for model "User"
+[13-07-2025 15:34:52] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "profile" (type string) at path "_id" for model "User"
+[13-07-2025 15:35:03] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "profile" (type string) at path "_id" for model "User"
+[13-07-2025 15:35:14] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "profile" (type string) at path "_id" for model "User"
+[13-07-2025 15:36:42] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "find-creators" (type string) at path "_id" for model "User"
+[13-07-2025 15:36:47] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "find-creators" (type string) at path "_id" for model "User"
+[14-07-2025 12:08:25] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "find-creators" (type string) at path "_id" for model "User"
+[14-07-2025 12:16:15] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "find-creators" (type string) at path "_id" for model "User"
+[14-07-2025 12:19:04] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "find-creators" (type string) at path "_id" for model "User"
+[14-07-2025 12:20:04] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "find-creators" (type string) at path "_id" for model "User"
+[14-07-2025 12:20:33] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "find-creators" (type string) at path "_id" for model "User"
+[14-07-2025 12:20:49] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "find-creators" (type string) at path "_id" for model "User"
+[14-07-2025 12:34:26] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "profile" (type string) at path "_id" for model "User"
+[14-07-2025 13:07:13] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "profile" (type string) at path "_id" for model "User"
+[14-07-2025 13:11:05] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "profile" (type string) at path "_id" for model "User"
+[14-07-2025 13:13:20] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "profile" (type string) at path "_id" for model "User"
+[14-07-2025 13:13:29] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "profile" (type string) at path "_id" for model "User"
+[14-07-2025 13:13:50] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "profile" (type string) at path "_id" for model "User"
+[14-07-2025 13:20:18] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "profile" (type string) at path "_id" for model "User"
+[14-07-2025 13:21:26] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "profile" (type string) at path "_id" for model "User"
+[14-07-2025 13:22:52] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "profile" (type string) at path "_id" for model "User"
+[14-07-2025 13:24:44] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "profile" (type string) at path "_id" for model "User"
+[14-07-2025 13:25:05] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "profile" (type string) at path "_id" for model "User"
+[14-07-2025 13:31:29] - [[31merror[39m]: Error uploading profile picture: You can only update profile pictures for your own places
+[14-07-2025 13:54:18] - [[31merror[39m]: Error adding organizer: Cannot read properties of undefined (reading 'push')
+[14-07-2025 13:55:02] - [[31merror[39m]: Error adding organizer: Cannot read properties of undefined (reading 'push')
+[14-07-2025 13:57:17] - [[31merror[39m]: Error adding organizer: Cannot read properties of undefined (reading 'push')
+[14-07-2025 14:30:47] - [[31merror[39m]: Error uploading profile picture: You can only update profile pictures for your own places
+[14-07-2025 14:50:17] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "[object Object]" (type string) at path "_id" for model "User"
+[14-07-2025 14:50:17] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "[object Object]" (type string) at path "_id" for model "User"
+[14-07-2025 15:30:00] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "https://linkal.s3.eu-west-3.amazonaws.com/image-1752498488099-687520860.jpg" (type string) at path "_id" for model "PlaceCategory"
+[14-07-2025 15:30:10] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "https://linkal.s3.eu-west-3.amazonaws.com/image-1752498488099-687520860.jpg" (type string) at path "_id" for model "PlaceCategory"
+[14-07-2025 15:30:10] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "https://linkal.s3.eu-west-3.amazonaws.com/image-1752498488099-687520860.jpg" (type string) at path "_id" for model "PlaceCategory"

@@ -54,6 +54,7 @@ export interface IPlace extends Document {
   email?: string;
   website?: string;
   image?: string;
+  images?: string[];
   active: boolean;
   deleted: boolean;
   isCreatorPlace: boolean;
@@ -161,6 +162,7 @@ const placeSchema = new Schema<IPlace>({
   email: { type: String },
   website: { type: String },
   image: { type: String },
+  images: [{ type: String }],
   active: { type: Boolean, default: true },
   deleted: { type: Boolean, default: false },
   isCreatorPlace: { type: Boolean, required: true },

@@ -15,12 +15,13 @@ import {
   getUserInPlacesAndEventsQuerySchema,
 } from "../validations/userValidation";
 import { addOrganizerSchema } from "../validations/placeValidations";
-import SubCategory from "../models/SubCategory";
-import Category from "../models/Category";
 
-const getUser = async (req: CustomRequest, res: Response): Promise<void> => {
+const getUserById = async (
+  req: CustomRequest,
+  res: Response
+): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = req.params.userId;
     const user = await User.findById(userId)
       .select("-password -createdAt -updatedAt -interests  -deleted -__v")
       .populate({
@@ -43,6 +44,7 @@ const getUser = async (req: CustomRequest, res: Response): Promise<void> => {
       APIResponse(res, null, "User not found", 404);
       return;
     }
+
     if (user?.places) {
       await Promise.all(
         (user.places as unknown as IPlace[]).map(async (place) => {
@@ -55,6 +57,13 @@ const getUser = async (req: CustomRequest, res: Response): Promise<void> => {
     if (user?.image) {
       const signedUrl = await generateSignedUrlFromFullUrl(user.image);
       user.image = signedUrl;
+    }
+
+    if (user?.userType === "creator" && user?.creatorProfile?.place) {
+      const place = user.creatorProfile.place as any;
+      if (place?.image) {
+        place.image = await generateSignedUrlFromFullUrl(place.image);
+      }
     }
 
     APIResponse(res, { user }, "User fetched successfully", 200);
@@ -85,7 +94,7 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
       email,
       website,
     } = data;
-    const user = await User.findById(req.user?.id);
+    const user = await User.findById(req.user?.id).select("_id userType");
     if (!user) {
       APIResponse(res, null, "User not found", 404);
       return;
@@ -197,7 +206,9 @@ const addOrganizer = async (
       createdCollaborators,
     } = data;
 
-    const user = await User.findById(req.user?.id);
+    const user = await User.findById(req.user?.id).select(
+      "_id userType places"
+    );
     if (!user) {
       APIResponse(res, null, "User not found", 404);
       return;
@@ -541,7 +552,7 @@ const getUserInPlacesAndEvents = async (
 };
 
 export {
-  getUser,
+  getUserById,
   addCreator,
   addOrganizer,
   updateCreator,

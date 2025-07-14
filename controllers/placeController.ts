@@ -16,7 +16,9 @@ const updatePlace = async (
   res: Response
 ): Promise<void> => {
   try {
-    const user = await User.findById(req.user?.id);
+    const user = await User.findById(req.user?.id).select(
+      "_id userType places"
+    );
     if (!user) {
       APIResponse(res, null, "User not found", 404);
       return;
@@ -95,7 +97,7 @@ const createPlace = async (
   res: Response
 ): Promise<void> => {
   try {
-    const user = await User.findById(req.user?.id);
+    const user = await User.findById(req.user?.id).select("_id places");
     if (!user) {
       APIResponse(res, null, "User not found", 404);
       return;

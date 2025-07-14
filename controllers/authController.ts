@@ -10,6 +10,7 @@ import {
   validateLoginData,
   getValidationErrors,
 } from "../validations/authValidations";
+import { generateSignedUrlFromFullUrl } from "../utils/s3";
 import { z } from "zod";
 
 const register = async (req: Request, res: Response): Promise<void> => {
@@ -127,4 +128,59 @@ const verifyToken = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export { register, signIn, signOut, verifyToken };
+const getCurrentUser = async (
+  req: Request & { user?: any },
+  res: Response
+): Promise<void> => {
+  try {
+    const user = await User.findById(req.user?.id)
+      .select("-password -createdAt -updatedAt -interests  -deleted -__v")
+      .populate({
+        path: "creatorProfile.categories",
+        model: "SubCategory",
+      })
+      .populate({
+        path: "creatorProfile.place",
+        populate: {
+          path: "placeCategory",
+          model: "PlaceCategory",
+        },
+      })
+      .populate({
+        path: "places",
+        model: "Place",
+      });
+    if (!user) {
+      APIResponse(res, null, "User not found", 404);
+      return;
+    }
+
+    let signedImageUrl = null;
+    if (user.image) {
+      try {
+        signedImageUrl = await generateSignedUrlFromFullUrl(user.image);
+      } catch (error) {
+        logger.error("Error generating signed URL for user image:", error);
+      }
+    }
+
+    const userWithSignedImage = {
+      ...user.toObject(),
+      image: signedImageUrl || user.image,
+    };
+
+    APIResponse(
+      res,
+      {
+        user: userWithSignedImage,
+      },
+      "User retrieved successfully",
+      200
+    );
+  } catch (error) {
+    APIResponse(res, null, "Server error", 500);
+    logger.error("Error in getCurrentUser:", error);
+  }
+};
+
+export { register, signIn, signOut, verifyToken, getCurrentUser };
