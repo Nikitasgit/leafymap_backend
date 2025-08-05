@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { parseJson } from "../helpers/userHelpers";
 import Event, { IEvent, IEventPeriod } from "../models/Event";
 import User from "../models/User";
 import mongoose from "mongoose";
@@ -40,6 +39,9 @@ const createEvent = async (
 
     const { name, description, schedule, collaborators, createdCollaborators } =
       req.body;
+    console.log(req.body.schedule[0].timeSlots);
+    console.log(req.body.schedule[0]);
+    return;
     if (!name || !description || !schedule) {
       APIResponse(
         res,
@@ -50,86 +52,15 @@ const createEvent = async (
       return;
     }
 
-    const parsedSchedule: IEventPeriod[] = parseJson(schedule, []).map(
-      (period: any) => ({
-        startDate: new Date(period.startDate),
-        endDate: new Date(period.endDate),
-        timeSlots: (period.timeSlots || []).map((slot: any) => ({
-          title: slot.title || "",
-          startTime: slot.startTime || "",
-          endTime: slot.endTime || "",
-          participants: Array.isArray(slot.participants)
-            ? slot.participants
-                .filter((id: string) => mongoose.Types.ObjectId.isValid(id))
-                .map((id: string) => new mongoose.Types.ObjectId(id))
-            : [],
-        })),
-      })
-    );
-
-    if (parsedSchedule.length === 0) {
-      APIResponse(res, null, "Schedule must contain at least one period", 400);
-      return;
-    }
-
-    for (const period of parsedSchedule) {
-      if (
-        !period.startDate ||
-        !period.endDate ||
-        period.timeSlots.length === 0
-      ) {
-        APIResponse(
-          res,
-          null,
-          "Each schedule period must have valid dates and at least one time slot",
-          400
-        );
-        return;
-      }
-    }
-
-    const parsedCollaborators = parseJson(collaborators, []).map(
-      (collaborator: any) => ({
-        userId: new mongoose.Types.ObjectId(
-          collaborator.userId || collaborator
-        ),
-        status: collaborator.status || "pending",
-      })
-    );
-
-    const parsedCreatedCollaborators = parseJson(createdCollaborators, []).map(
-      (collaborator: any) => {
-        const parsedCollaborator: any = {};
-        if (collaborator.name && typeof collaborator.name === "string") {
-          parsedCollaborator.name = collaborator.name;
-        }
-        if (
-          collaborator.category &&
-          mongoose.Types.ObjectId.isValid(collaborator.category)
-        ) {
-          parsedCollaborator.category = new mongoose.Types.ObjectId(
-            collaborator.category
-          );
-        }
-        return Object.keys(parsedCollaborator).length > 0
-          ? parsedCollaborator
-          : null;
-      }
-    );
-
     const eventData: any = {
       name,
       description,
-      schedule: parsedSchedule,
-      collaborators: parsedCollaborators,
-      createdCollaborators: parsedCreatedCollaborators,
+      schedule,
+      collaborators,
+      createdCollaborators,
       placeId: new mongoose.Types.ObjectId(placeId),
       status: "upcoming",
     };
-
-    if (req.file) {
-      eventData.image = req.file.location;
-    }
 
     const event = await Event.create(eventData);
 
@@ -273,45 +204,40 @@ const updateEvent = async (
       createdCollaborators,
     } = req.body;
 
-    const parsedSchedule: IEventPeriod[] = parseJson(schedule, []).map(
-      (period: any) => ({
-        startDate: new Date(period.startDate),
-        endDate: new Date(period.endDate),
-        timeSlots: (period.timeSlots || []).map((slot: any) => ({
-          title: slot.title || "",
-          startTime: slot.startTime || "",
-          endTime: slot.endTime || "",
-          participants: Array.isArray(slot.participants)
-            ? slot.participants
-                .filter((id: string) => mongoose.Types.ObjectId.isValid(id))
-                .map((id: string) => new mongoose.Types.ObjectId(id))
-            : [],
-        })),
-      })
-    );
+    const transformedSchedule: IEventPeriod[] = schedule.map((period: any) => ({
+      startDate: new Date(period.startDate),
+      endDate: new Date(period.endDate),
+      timeSlots: (period.timeSlots || []).map((slot: any) => ({
+        title: slot.title || "",
+        startTime: slot.startTime || "",
+        endTime: slot.endTime || "",
+        participants: Array.isArray(slot.participants)
+          ? slot.participants
+              .filter((id: string) => mongoose.Types.ObjectId.isValid(id))
+              .map((id: string) => new mongoose.Types.ObjectId(id))
+          : [],
+      })),
+    }));
 
-    if (parsedSchedule.length === 0) {
+    if (transformedSchedule.length === 0) {
       APIResponse(res, null, "Schedule must contain at least one period", 400);
       return;
     }
 
-    for (const period of parsedSchedule) {
-      if (
-        !period.startDate ||
-        !period.endDate ||
-        period.timeSlots.length === 0
-      ) {
+    // Validate that each period has valid dates
+    for (const period of transformedSchedule) {
+      if (!period.startDate || !period.endDate) {
         APIResponse(
           res,
           null,
-          "Each schedule period must have valid dates and at least one time slot",
+          "Each schedule period must have valid dates",
           400
         );
         return;
       }
     }
 
-    const parsedCollaborators = parseJson(collaborators, []).map(
+    const transformedCollaborators = (collaborators || []).map(
       (collaborator: any) => ({
         userId: new mongoose.Types.ObjectId(
           collaborator.userId || collaborator
@@ -320,22 +246,22 @@ const updateEvent = async (
       })
     );
 
-    const parsedCreatedCollaborators = parseJson(createdCollaborators, [])
+    const transformedCreatedCollaborators = (createdCollaborators || [])
       .map((collaborator: any) => {
-        const parsedCollaborator: any = {};
+        const transformedCollaborator: any = {};
         if (collaborator.name && typeof collaborator.name === "string") {
-          parsedCollaborator.name = collaborator.name;
+          transformedCollaborator.name = collaborator.name;
         }
         if (
           collaborator.category &&
           mongoose.Types.ObjectId.isValid(collaborator.category)
         ) {
-          parsedCollaborator.category = new mongoose.Types.ObjectId(
+          transformedCollaborator.category = new mongoose.Types.ObjectId(
             collaborator.category
           );
         }
-        return Object.keys(parsedCollaborator).length > 0
-          ? parsedCollaborator
+        return Object.keys(transformedCollaborator).length > 0
+          ? transformedCollaborator
           : null;
       })
       .filter(Boolean);
@@ -343,17 +269,13 @@ const updateEvent = async (
     const updateData: Partial<IEvent> = {
       name,
       description,
-      schedule: parsedSchedule,
-      collaborators: parsedCollaborators,
-      createdCollaborators: parsedCreatedCollaborators,
+      schedule: transformedSchedule,
+      collaborators: transformedCollaborators,
+      createdCollaborators: transformedCreatedCollaborators,
     };
 
     if (status) {
       updateData.status = status;
-    }
-
-    if (req.file) {
-      updateData.image = req.file.location;
     }
 
     const event = await Event.findByIdAndUpdate(eventId, updateData, {

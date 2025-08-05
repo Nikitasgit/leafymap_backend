@@ -34,8 +34,8 @@ export interface ICollaborator {
 }
 
 export interface ICreatedCollaborator {
-  name?: string;
-  category?: Types.ObjectId;
+  name: string;
+  category: Types.ObjectId;
 }
 
 interface ILocation {

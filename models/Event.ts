@@ -50,7 +50,7 @@ export interface IEvent extends Document {
   description: string;
   schedule: IEventPeriod[];
   placeId: Types.ObjectId;
-  image: string;
+  image?: string;
   status: "upcoming" | "ongoing" | "completed" | "cancelled";
 }
 

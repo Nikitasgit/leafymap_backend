@@ -396,7 +396,10 @@ const updateCreator = async (
   }
 };
 
-const findCreators = async (req: Request, res: Response): Promise<void> => {
+const findCreators = async (
+  req: CustomRequest,
+  res: Response
+): Promise<void> => {
   const parseResult = findCreatorsQuerySchema.safeParse(req.query);
   if (!parseResult.success) {
     APIResponse(res, null, "Validation error", 400);
@@ -406,7 +409,10 @@ const findCreators = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, limit = 10 } = query;
     const queryFilter: any = {};
-
+    const user = await User.findById(req.user?._id);
+    if (user?.userType === "creator") {
+      queryFilter._id = { $ne: req.user?._id };
+    }
     if (name) {
       queryFilter["creatorProfile.name"] = { $regex: name, $options: "i" };
     }

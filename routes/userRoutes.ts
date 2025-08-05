@@ -15,7 +15,7 @@ const router: Router = express.Router();
 router.post("/create-creator", auth, addCreator);
 router.post("/create-organizer", auth, addOrganizer);
 router.put("/update-creator", auth, updateCreator);
-router.get("/find-creators", findCreators as any);
+router.get("/find-creators", auth, findCreators as any);
 router.get("/creator-in-places-and-events", getUserInPlacesAndEvents as any);
 router.get("/:userId", getUserById);
 
