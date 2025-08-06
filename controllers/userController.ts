@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import User from "../models/User";
-import Place, { IPlace } from "../models/Place";
+import Place, { ICollaborator, IPlace } from "../models/Place";
 import Event from "../models/Event";
 import { generateSignedUrlFromFullUrl } from "../types/s3";
 import { CustomRequest } from "../types/custom";
@@ -224,26 +224,23 @@ const addOrganizer = async (
     }
 
     user.userType = "organizer";
-    let place = null;
 
-    place = new Place({
+    const place = new Place({
       name: name,
       description,
       userId: user._id,
       phone,
       email,
       website,
-      location: location,
-      isCreatorPlace: false,
+      location,
       placeCategory,
-      placeType: placeType || ["art"],
-      defaultSchedule: defaultSchedule || {},
-      collaborators:
-        collaborators?.map((collab: any) => ({
-          userId: new mongoose.Types.ObjectId(collab._id),
-          status: "pending" as const,
-        })) || [],
-      createdCollaborators: createdCollaborators || [],
+      placeType: placeType,
+      defaultSchedule: defaultSchedule,
+      collaborators: collaborators?.map((collab: any) => ({
+        userId: collab._id,
+        status: collab.status,
+      })),
+      createdCollaborators: createdCollaborators,
     });
     await place.save();
     user.places.push(place._id);

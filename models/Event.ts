@@ -13,20 +13,17 @@ export interface ITimeSlotWithParticipants {
   participants: Types.ObjectId[];
 }
 
-export const eventTimeSlotSchema = new Schema<ITimeSlotWithParticipants>(
-  {
-    title: { type: String, required: true },
-    startTime: { type: String, required: true },
-    endTime: { type: String, required: true },
-    participants: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
-  },
-  { _id: false }
-);
+export const eventTimeSlotSchema = new Schema<ITimeSlotWithParticipants>({
+  title: { type: String, required: true },
+  startTime: { type: String, required: true },
+  endTime: { type: String, required: true },
+  participants: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
+});
 
 export interface IEventPeriod {
   startDate: Date;

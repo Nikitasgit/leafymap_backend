@@ -30,6 +30,7 @@ export const defaultScheduleSchema = z.object({
 const createdCollaboratorSchema = z.object({
   name: z.string(),
   category: z.string(),
+  _id: z.string().optional(),
 });
 
 export const nameSchema = z

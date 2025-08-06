@@ -67,15 +67,24 @@ const updatePlace = async (
       placeCategory: new mongoose.Types.ObjectId(placeCategory),
       placeType,
       defaultSchedule,
-      collaborators:
-        collaborators?.map((collab: any) => ({
-          userId: new mongoose.Types.ObjectId(collab._id),
-          status: "pending" as const,
-        })) || [],
-      createdCollaborators: createdCollaborators?.map((collab) => ({
-        name: collab.name,
-        category: new mongoose.Types.ObjectId(collab.category),
+      collaborators: collaborators?.map((collab: any) => ({
+        userId: new mongoose.Types.ObjectId(collab._id),
+        status: collab.status,
       })),
+      createdCollaborators: createdCollaborators?.map((collab) => {
+        if (collab._id) {
+          return {
+            _id: new mongoose.Types.ObjectId(collab._id),
+            name: collab.name,
+            category: new mongoose.Types.ObjectId(collab.category),
+          };
+        } else {
+          return {
+            name: collab.name,
+            category: new mongoose.Types.ObjectId(collab.category),
+          };
+        }
+      }),
     };
 
     const place = await Place.findByIdAndUpdate(id, updateData);
