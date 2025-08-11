@@ -80,6 +80,7 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
     return;
   }
   const data = parseResult.data;
+  console.log("parsed data", parseResult);
   try {
     const {
       name,
@@ -100,7 +101,7 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
       return;
     }
     if (user.userType !== "guest") {
-      APIResponse(res, null, "User can not be a creator", 400);
+      APIResponse(res, null, "User has already an updated profile", 400);
       return;
     }
     if (phone) {
@@ -234,13 +235,13 @@ const addOrganizer = async (
       website,
       location,
       placeCategory,
-      placeType: placeType,
-      defaultSchedule: defaultSchedule,
+      placeType,
+      defaultSchedule,
       collaborators: collaborators?.map((collab: any) => ({
         userId: collab._id,
         status: collab.status,
       })),
-      createdCollaborators: createdCollaborators,
+      createdCollaborators,
     });
     await place.save();
     user.places.push(place._id);

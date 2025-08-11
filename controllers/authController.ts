@@ -57,21 +57,15 @@ const signIn = async (req: Request, res: Response): Promise<void> => {
       APIResponse(res, null, "Invalid credentials", 401);
       return;
     }
-
+    const userWithoutPassword = await User.findById(user._id).select(
+      "email username"
+    );
     const token = generateToken({
       id: user._id.toString(),
       userType: user.userType,
     });
-
     setTokenCookie(res, token);
-    res
-      .cookie("logged_in", "true", {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 86400000,
-      })
-      .json({ message: "Logged in", user });
+    APIResponse(res, { user: userWithoutPassword }, "Logged in", 200);
   } catch (error) {
     if (error instanceof z.ZodError) {
       const validationErrors = getValidationErrors(error);
@@ -87,7 +81,6 @@ const signIn = async (req: Request, res: Response): Promise<void> => {
 const signOut = async (_req: Request, res: Response): Promise<void> => {
   res
     .clearCookie("token")
-    .clearCookie("logged_in")
     .clearCookie("userType")
     .json({ message: "Logged out" });
 };
@@ -127,7 +120,18 @@ const verifyToken = async (req: Request, res: Response): Promise<void> => {
     logger.error("Error in verifyToken:", error);
   }
 };
-
+const getAuthUser = async (
+  req: Request & { user?: any },
+  res: Response
+): Promise<void> => {
+  try {
+    const user = await User.findById(req.user?.id).select("email username");
+    APIResponse(res, user, "User retrieved successfully", 200);
+  } catch (error) {
+    APIResponse(res, null, "Server error", 500);
+    logger.error("Error in getAuthUser:", error);
+  }
+};
 const getCurrentUser = async (
   req: Request & { user?: any },
   res: Response
@@ -183,4 +187,4 @@ const getCurrentUser = async (
   }
 };
 
-export { register, signIn, signOut, verifyToken, getCurrentUser };
+export { register, signIn, signOut, verifyToken, getAuthUser, getCurrentUser };
