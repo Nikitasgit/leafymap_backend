@@ -34,7 +34,7 @@ export interface IEventPeriod {
 export const customScheduleWithParticipantsSchema = new Schema<IEventPeriod>(
   {
     startDate: { type: Date, required: true },
-    endDate: { type: Date, required: true },
+    endDate: { type: Date },
     timeSlots: [eventTimeSlotSchema],
   },
   { _id: false }

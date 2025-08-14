@@ -39,6 +39,7 @@ const createEvent = async (
 
     const { name, description, schedule, collaborators, createdCollaborators } =
       req.body;
+    console.log(schedule);
     if (!name || !description || !schedule) {
       APIResponse(
         res,

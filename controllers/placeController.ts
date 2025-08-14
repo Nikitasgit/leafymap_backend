@@ -209,8 +209,8 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
         _id: event._id.toString(),
         name: event.name,
         schedule: event.schedule.map((period) => ({
-          startDate: new Date(period.startDate),
-          endDate: new Date(period.endDate),
+          startDate: period.startDate,
+          endDate: period.endDate,
         })),
       }));
       const enrichedSchedule = enrichScheduleWithEvents(

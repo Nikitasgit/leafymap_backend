@@ -1737,3 +1737,16 @@
 [14-07-2025 15:30:10] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "https://linkal.s3.eu-west-3.amazonaws.com/image-1752498488099-687520860.jpg" (type string) at path "_id" for model "PlaceCategory"
 [14-07-2025 15:30:10] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "https://linkal.s3.eu-west-3.amazonaws.com/image-1752498488099-687520860.jpg" (type string) at path "_id" for model "PlaceCategory"
 [03-08-2025 15:52:14] - [[31merror[39m]: Error updating creator: Place validation failed: placeCategory: Cast to ObjectId failed for value "" (type string) at path "placeCategory" because of "BSONError"
+[14-08-2025 19:08:16] - [[31merror[39m]: Error creating event: Event validation failed: schedule.0.startDate: Cast to date failed for value "16-08-2025" (type string) at path "startDate", schedule.0.endDate: Path `endDate` is required.
+[14-08-2025 19:08:21] - [[31merror[39m]: Error creating event: Event validation failed: schedule.0.startDate: Cast to date failed for value "16-08-2025" (type string) at path "startDate", schedule.0.endDate: Path `endDate` is required.
+[14-08-2025 19:08:33] - [[31merror[39m]: Error creating event: Event validation failed: schedule.0.startDate: Cast to date failed for value "16-08-2025" (type string) at path "startDate", schedule.0.endDate: Path `endDate` is required.
+[14-08-2025 19:08:39] - [[31merror[39m]: Error creating event: Event validation failed: schedule.0.startDate: Cast to date failed for value "16-08-2025" (type string) at path "startDate", schedule.0.endDate: Path `endDate` is required.
+[14-08-2025 19:10:47] - [[31merror[39m]: Error creating event: Event validation failed: schedule.0.startDate: Cast to date failed for value "15-08-2025" (type string) at path "startDate", schedule.0.endDate: Path `endDate` is required.
+[14-08-2025 19:12:29] - [[31merror[39m]: Error creating event: Event validation failed: schedule.0.startDate: Cast to date failed for value "15-08-2025" (type string) at path "startDate"
+[14-08-2025 19:12:33] - [[31merror[39m]: Error creating event: Event validation failed: schedule.0.startDate: Cast to date failed for value "15-08-2025" (type string) at path "startDate"
+[14-08-2025 19:25:53] - [[31merror[39m]: Error creating event: Event validation failed: schedule.0.startDate: Path `startDate` is required.
+[14-08-2025 19:26:15] - [[31merror[39m]: Error creating event: Event validation failed: schedule.0.startDate: Path `startDate` is required.
+[14-08-2025 19:27:06] - [[31merror[39m]: Error creating event: Event validation failed: schedule.0.startDate: Path `startDate` is required.
+[14-08-2025 19:27:42] - [[31merror[39m]: Error creating event: Event validation failed: schedule.0.startDate: Path `startDate` is required.
+[14-08-2025 19:28:27] - [[31merror[39m]: Error creating event: Event validation failed: schedule.0.startDate: Path `startDate` is required.
+[14-08-2025 19:28:34] - [[31merror[39m]: Error creating event: Event validation failed: schedule.0.startDate: Path `startDate` is required.

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import User from "../models/User";
-import Place, { ICollaborator, IPlace } from "../models/Place";
+import Place, { IPlace, PlaceType } from "../models/Place";
 import Event from "../models/Event";
 import { generateSignedUrlFromFullUrl } from "../types/s3";
 import { CustomRequest } from "../types/custom";
@@ -15,6 +15,26 @@ import {
   getUserInPlacesAndEventsQuerySchema,
 } from "../validations/userValidation";
 import { addOrganizerSchema } from "../validations/placeValidations";
+import SubCategory from "../models/SubCategory";
+
+const getPlaceTypeFromCategory = async (
+  categoryId: string
+): Promise<PlaceType[]> => {
+  try {
+    const subCategory = await SubCategory.findById(categoryId).populate(
+      "categoryId"
+    );
+    if (subCategory && subCategory.categoryId) {
+      const categoryName = (subCategory.categoryId as any).name;
+      if (categoryName && ["food", "art", "craft"].includes(categoryName)) {
+        return [categoryName as PlaceType];
+      }
+    }
+  } catch (error) {
+    logger.error("Error getting place type from category:", error);
+  }
+  return ["art"];
+};
 
 const getUserById = async (
   req: CustomRequest,
@@ -80,7 +100,7 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
     return;
   }
   const data = parseResult.data;
-  console.log("parsed data", parseResult);
+
   try {
     const {
       name,
@@ -149,14 +169,14 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
 
     if (placeActive) {
       place = new Place({
-        name: name || user.username,
+        name,
         description,
         userId: user._id,
-        location: location,
-        placeType: placeType || ["art"],
+        location,
+        placeType: await getPlaceTypeFromCategory(category),
         isCreatorPlace: true,
-        placeCategory: placeCategory,
-        defaultSchedule: defaultSchedule || {},
+        placeCategory,
+        defaultSchedule,
       });
       await place.save();
       user.creatorProfile.place = place._id;
@@ -352,29 +372,32 @@ const updateCreator = async (
         APIResponse(res, null, "Place not found", 404);
         return;
       }
-      if (!placeActive) {
-        place.active = false;
+
+      place.name = name || place.name;
+      place.active = placeActive || place.active;
+      if (category) {
+        place.placeType = await getPlaceTypeFromCategory(category);
       } else {
-        place.name = name || place.name;
-        place.active = true;
-        place.placeType = placeType || place.placeType || ["art"];
-        place.description = description || place.description;
-        place.placeCategory = new mongoose.Types.ObjectId(placeCategory);
-        if (location) {
-          place.location = location;
-        }
+        place.placeType = place.placeType || ["art"];
+      }
+      place.placeCategory = new mongoose.Types.ObjectId(placeCategory);
+      place.description = description || place.description;
+      place.placeCategory = new mongoose.Types.ObjectId(placeCategory);
+      if (location) {
+        place.location = location;
+
         place.defaultSchedule = defaultSchedule || place.defaultSchedule;
       }
       await place.save();
     } else if (location) {
       place = new Place({
-        name: name || user.creatorProfile.name,
+        name,
         userId: user._id,
-        location: location,
+        location,
         isCreatorPlace: true,
         placeCategory,
-        placeType: placeType || ["art"],
-        defaultSchedule: defaultSchedule || {},
+        placeType: await getPlaceTypeFromCategory(category),
+        defaultSchedule,
       });
       await place.save();
       user.creatorProfile.place = place._id;
