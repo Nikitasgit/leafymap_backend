@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import User from "../models/User";
-import Place, { IPlace, PlaceType } from "../models/Place";
+import Place from "../models/Place";
 import Event from "../models/Event";
 import { generateSignedUrlFromFullUrl } from "../types/s3";
 import { CustomRequest } from "../types/custom";
@@ -16,6 +16,8 @@ import {
 } from "../validations/userValidation";
 import { addOrganizerSchema } from "../validations/placeValidations";
 import SubCategory from "../models/SubCategory";
+import { IPlace } from "types/models/place";
+import { PlaceType } from "types/models/place";
 
 const getPlaceTypeFromCategory = async (
   categoryId: string
@@ -171,7 +173,7 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
       place = new Place({
         name,
         description,
-        userId: user._id,
+        user: user._id,
         location,
         placeType: await getPlaceTypeFromCategory(category),
         isCreatorPlace: true,
@@ -224,7 +226,6 @@ const addOrganizer = async (
       email,
       website,
       collaborators,
-      createdCollaborators,
     } = data;
 
     const user = await User.findById(req.user?.id).select(
@@ -249,7 +250,7 @@ const addOrganizer = async (
     const place = new Place({
       name: name,
       description,
-      userId: user._id,
+      user: user._id,
       phone,
       email,
       website,
@@ -258,10 +259,9 @@ const addOrganizer = async (
       placeType,
       defaultSchedule,
       collaborators: collaborators?.map((collab: any) => ({
-        userId: collab._id,
+        user: collab._id,
         status: collab.status,
       })),
-      createdCollaborators,
     });
     await place.save();
     user.places.push(place._id);
@@ -392,7 +392,7 @@ const updateCreator = async (
     } else if (location) {
       place = new Place({
         name,
-        userId: user._id,
+        user: user._id,
         location,
         isCreatorPlace: true,
         placeCategory,
@@ -493,7 +493,7 @@ const getUserInPlacesAndEvents = async (
       return;
     }
     const userEvents = await Event.find({
-      "collaborators.userId": { $in: user._id },
+      "collaborators.user": { $in: user._id },
       "collaborators.status": "accepted",
       status: { $in: ["upcoming", "ongoing"] },
     })
@@ -501,7 +501,7 @@ const getUserInPlacesAndEvents = async (
       .lean();
 
     const eventPlaceIds = userEvents
-      .map((event) => event.placeId)
+      .map((event) => event.place)
       .filter(Boolean);
 
     const allPlaces = await Place.find({
@@ -510,7 +510,7 @@ const getUserInPlacesAndEvents = async (
         {
           $or: [
             {
-              "collaborators.userId": { $in: user._id },
+              "collaborators.user": { $in: user._id },
               "collaborators.status": "accepted",
             },
             { _id: { $in: eventPlaceIds } },
@@ -531,8 +531,8 @@ const getUserInPlacesAndEvents = async (
     });
 
     userEvents.forEach((event) => {
-      if (event.placeId) {
-        const placeId = event.placeId.toString();
+      if (event.place) {
+        const placeId = event.place.toString();
         if (placeEventsMap.has(placeId)) {
           placeEventsMap.get(placeId).events.push(event);
         }

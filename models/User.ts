@@ -1,44 +1,8 @@
-import mongoose, { Schema, model, Types, Document } from "mongoose";
+import { Schema, model, Types } from "mongoose";
 import { ISO_COUNTRIES_ALPHA2 } from "../utils/constants/countries";
+import { ICreatorProfile, IUser, IAddress } from "../types/models/user";
 
-// Interfaces
-interface ILocation {
-  number?: string;
-  street: string;
-  code: string;
-  extra?: string;
-}
-
-interface ICreatorProfile {
-  categories: Types.ObjectId[];
-  place?: Types.ObjectId;
-  name: string;
-}
-
-export interface IUser extends Document {
-  firstname?: string;
-  lastname?: string;
-  username: string;
-  email: string;
-  website?: string;
-  phone?: string;
-  password: string;
-  userType: "creator" | "organizer" | "guest";
-  deleted: boolean;
-  location?: ILocation;
-  description?: string;
-  country?: (typeof ISO_COUNTRIES_ALPHA2)[number];
-  image?: string;
-  followers: Types.ObjectId[];
-  creatorProfile?: ICreatorProfile;
-  interests: Types.ObjectId[];
-  places: Types.ObjectId[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Schemas
-const locationSchema = new Schema<ILocation>({
+const addressSchema = new Schema<IAddress>({
   number: { type: String },
   street: { type: String, required: true },
   code: { type: String, required: true },
@@ -67,7 +31,7 @@ const userSchema = new Schema<IUser>(
       default: "guest",
     },
     deleted: { type: Boolean, default: false },
-    location: locationSchema,
+    address: addressSchema,
     description: { type: String, maxlength: 300 },
     country: { type: String, enum: ISO_COUNTRIES_ALPHA2 },
     image: { type: String },

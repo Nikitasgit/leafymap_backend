@@ -1750,3 +1750,21 @@
 [14-08-2025 19:27:42] - [[31merror[39m]: Error creating event: Event validation failed: schedule.0.startDate: Path `startDate` is required.
 [14-08-2025 19:28:27] - [[31merror[39m]: Error creating event: Event validation failed: schedule.0.startDate: Path `startDate` is required.
 [14-08-2025 19:28:34] - [[31merror[39m]: Error creating event: Event validation failed: schedule.0.startDate: Path `startDate` is required.
+[14-08-2025 22:58:12] - [[31merror[39m]: Error creating event: Cannot read properties of undefined (reading '0')
+[14-08-2025 22:58:17] - [[31merror[39m]: Error creating event: Cannot read properties of undefined (reading '0')
+[14-08-2025 22:58:47] - [[31merror[39m]: Error creating event: Cannot read properties of undefined (reading '0')
+[14-08-2025 22:59:10] - [[31merror[39m]: Error creating event: Cannot read properties of undefined (reading '0')
+[14-08-2025 23:00:10] - [[31merror[39m]: Error creating event: Cannot read properties of undefined (reading '0')
+[14-08-2025 23:12:58] - [[31merror[39m]: Error creating event: Cannot read properties of undefined (reading '0')
+[15-08-2025 11:08:07] - [[31merror[39m]: Error fetching events: Cannot read properties of undefined (reading '_id')
+[15-08-2025 11:08:08] - [[31merror[39m]: Error fetching events: Cannot read properties of undefined (reading '_id')
+[15-08-2025 11:09:16] - [[31merror[39m]: Error fetching events: Cannot read properties of undefined (reading '_id')
+[15-08-2025 11:09:32] - [[31merror[39m]: Error fetching events: Cannot read properties of undefined (reading '_id')
+[15-08-2025 13:01:14] - [[31merror[39m]: Error fetching place: Cannot populate path `userId` because it is not in your schema. Set the `strictPopulate` option to false to override.
+[15-08-2025 13:01:14] - [[31merror[39m]: Error fetching place: Cannot populate path `userId` because it is not in your schema. Set the `strictPopulate` option to false to override.
+[15-08-2025 13:01:16] - [[31merror[39m]: Error fetching place: Cannot populate path `userId` because it is not in your schema. Set the `strictPopulate` option to false to override.
+[15-08-2025 13:01:18] - [[31merror[39m]: Error fetching place: Cannot populate path `userId` because it is not in your schema. Set the `strictPopulate` option to false to override.
+[15-08-2025 13:04:28] - [[31merror[39m]: Error adding organizer: Place validation failed: user: Path `user` is required., collaborators.0.user: Path `user` is required.
+[15-08-2025 13:07:40] - [[31merror[39m]: Error fetching place: Cannot populate path `userId` because it is not in your schema. Set the `strictPopulate` option to false to override.
+[15-08-2025 13:07:40] - [[31merror[39m]: Error fetching place: Cannot populate path `userId` because it is not in your schema. Set the `strictPopulate` option to false to override.
+[15-08-2025 13:09:09] - [[31merror[39m]: Error fetching place: Cannot populate path `collaborators._id` because it is not in your schema. Set the `strictPopulate` option to false to override.

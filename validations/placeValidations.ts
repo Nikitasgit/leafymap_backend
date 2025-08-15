@@ -27,12 +27,6 @@ export const defaultScheduleSchema = z.object({
   sunday: dayScheduleSchema,
 });
 
-const createdCollaboratorSchema = z.object({
-  name: z.string(),
-  category: z.string(),
-  _id: z.string().optional(),
-});
-
 export const nameSchema = z
   .string()
   .min(4, "Le nom doit contenir au moins 4 caractères")
@@ -93,7 +87,6 @@ export const addOrganizerSchema = baseFormDataSchema.extend({
   placeType: z.array(z.enum(["food", "art", "craft"])).optional(),
   defaultSchedule: defaultScheduleSchema,
   collaborators: z.array(z.object({ _id: z.string() })).optional(),
-  createdCollaborators: z.array(createdCollaboratorSchema).optional(),
 });
 
 export type AddOrganizerInput = z.infer<typeof addOrganizerSchema>;
@@ -109,7 +102,6 @@ export const updatePlaceSchema = z.object({
   placeType: z.array(z.enum(["food", "art", "craft"])).optional(),
   defaultSchedule: defaultScheduleSchema,
   collaborators: z.array(z.object({ _id: z.string() })).optional(),
-  createdCollaborators: z.array(createdCollaboratorSchema).optional(),
 });
 
 export type UpdatePlaceInput = z.infer<typeof updatePlaceSchema>;

@@ -1,76 +1,14 @@
-import { Schema, model, Types, Document } from "mongoose";
+import { Schema, model } from "mongoose";
+import {
+  ICustomDate,
+  IDefaultSchedule,
+  ILocation,
+  IPlace,
+  IPlaceTimeSlot,
+} from "../types/models/place";
+import { ICollaborator } from "../types/models/collaborator";
 
-export interface ITimeSlot {
-  startTime: string;
-  endTime: string;
-}
-
-export type PlaceType = "food" | "art" | "craft";
-
-interface IDaySchedule {
-  open: boolean;
-  timeSlots: ITimeSlot[];
-}
-
-interface IDefaultSchedule {
-  monday: IDaySchedule;
-  tuesday: IDaySchedule;
-  wednesday: IDaySchedule;
-  thursday: IDaySchedule;
-  friday: IDaySchedule;
-  saturday: IDaySchedule;
-  sunday: IDaySchedule;
-}
-
-export interface ICustomSchedule {
-  date: Date;
-  open: boolean;
-  timeSlots: ITimeSlot[];
-}
-
-export interface ICollaborator {
-  userId: Types.ObjectId;
-  status: "pending" | "accepted" | "refused";
-}
-
-export interface ICreatedCollaborator {
-  name: string;
-  category: Types.ObjectId;
-}
-
-interface ILocation {
-  type: "Point";
-  coordinates: [number, number];
-  label: string;
-  id: string;
-}
-
-export interface IPlace extends Document {
-  name: string;
-  description?: string;
-  userId: Types.ObjectId;
-  location: ILocation;
-  phone?: string;
-  email?: string;
-  website?: string;
-  image?: string;
-  images?: string[];
-  active: boolean;
-  deleted: boolean;
-  isCreatorPlace: boolean;
-  rating: number;
-  placeCategory: Types.ObjectId;
-  placeType: PlaceType[];
-  defaultSchedule: IDefaultSchedule;
-  customSchedule: ICustomSchedule[];
-  collaborators: ICollaborator[];
-  createdCollaborators: ICreatedCollaborator[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Schemas
-const timeSlotSchema = new Schema<ITimeSlot>(
+const timeSlotSchema = new Schema<IPlaceTimeSlot>(
   {
     startTime: { type: String, default: "" },
     endTime: { type: String, default: "" },
@@ -112,7 +50,7 @@ const defaultScheduleSchema = new Schema<IDefaultSchedule>(
   { _id: false }
 );
 
-export const customScheduleSchema = new Schema<ICustomSchedule>(
+export const customDateSchema = new Schema<ICustomDate>(
   {
     date: { type: Date, required: true },
     open: { type: Boolean, required: true },
@@ -123,7 +61,7 @@ export const customScheduleSchema = new Schema<ICustomSchedule>(
 
 export const collaboratorSchema = new Schema<ICollaborator>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     status: {
       type: String,
       enum: ["pending", "accepted", "refused"],
@@ -133,11 +71,6 @@ export const collaboratorSchema = new Schema<ICollaborator>(
   },
   { _id: false }
 );
-
-export const createdCollaboratorSchema = new Schema<ICreatedCollaborator>({
-  name: { type: String },
-  category: { type: Schema.Types.ObjectId, ref: "SubCategory" },
-});
 
 const locationSchema = new Schema<ILocation>(
   {
@@ -156,7 +89,7 @@ const locationSchema = new Schema<ILocation>(
 const placeSchema = new Schema<IPlace>({
   name: { type: String, required: true },
   description: { type: String },
-  userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
   location: locationSchema,
   phone: { type: String },
   email: { type: String },
@@ -179,12 +112,10 @@ const placeSchema = new Schema<IPlace>({
     default: ["art"],
   },
   defaultSchedule: { type: defaultScheduleSchema, required: true, default: {} },
-  customSchedule: [customScheduleSchema],
+  customDates: [customDateSchema],
   collaborators: [collaboratorSchema],
-  createdCollaborators: [createdCollaboratorSchema],
 });
 
-// Add 2dsphere index for geo queries
 placeSchema.index({ "location.coordinates": "2dsphere" });
 
 export default model<IPlace>("Place", placeSchema);

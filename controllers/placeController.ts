@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { parseJson } from "../helpers/userHelpers";
-import Place, { IPlace } from "../models/Place";
+import Place from "../models/Place";
 import User from "../models/User";
 import Event from "../models/Event";
 import { generateSignedUrlFromFullUrl } from "../types/s3";
@@ -10,6 +10,9 @@ import logger from "../utils/logger";
 import { enrichScheduleWithEvents } from "../utils/schedule";
 import { CustomRequest } from "../types/custom";
 import { updatePlaceSchema } from "../validations/placeValidations";
+import { IPlace } from "types/models/place";
+import { ICollaborator } from "types/models";
+import { CollaboratorDTO, UserDTO } from "types/api";
 
 const updatePlace = async (
   req: CustomRequest,
@@ -19,11 +22,13 @@ const updatePlace = async (
     const user = await User.findById(req.user?.id).select(
       "_id userType places"
     );
+
     if (!user) {
       APIResponse(res, null, "User not found", 404);
       return;
     }
     const { id } = req.params;
+
     if (!id) {
       APIResponse(res, null, "Place ID is required", 400);
       return;
@@ -54,7 +59,6 @@ const updatePlace = async (
       placeType,
       defaultSchedule,
       collaborators,
-      createdCollaborators,
     } = validationResult.data;
 
     const updateData: Partial<IPlace> = {
@@ -67,24 +71,9 @@ const updatePlace = async (
       placeCategory: new mongoose.Types.ObjectId(placeCategory),
       placeType,
       defaultSchedule,
-      collaborators: collaborators?.map((collab: any) => ({
-        userId: new mongoose.Types.ObjectId(collab._id),
-        status: collab.status,
+      collaborators: collaborators?.map((collab: CollaboratorDTO) => ({
+        user: new mongoose.Types.ObjectId(collab._id),
       })),
-      createdCollaborators: createdCollaborators?.map((collab) => {
-        if (collab._id) {
-          return {
-            _id: new mongoose.Types.ObjectId(collab._id),
-            name: collab.name,
-            category: new mongoose.Types.ObjectId(collab.category),
-          };
-        } else {
-          return {
-            name: collab.name,
-            category: new mongoose.Types.ObjectId(collab.category),
-          };
-        }
-      }),
     };
 
     const place = await Place.findByIdAndUpdate(id, updateData);
@@ -123,7 +112,6 @@ const createPlace = async (
       placeType,
       defaultSchedule,
       collaborators,
-      createdCollaborators,
     } = req.body;
 
     const placeData: Partial<IPlace> = {
@@ -137,10 +125,9 @@ const createPlace = async (
       placeType,
       defaultSchedule,
       collaborators: collaborators?.map((collab: { _id: string }) => ({
-        userId: new mongoose.Types.ObjectId(collab._id),
+        _id: new mongoose.Types.ObjectId(collab._id),
         status: "pending" as const,
       })),
-      createdCollaborators,
       active: true,
       deleted: false,
     };
@@ -162,21 +149,20 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { enrichSchedule = "true" } = req.query;
-
     let place = await Place.findById(id)
       .populate({
         path: "placeCategory",
         model: "PlaceCategory",
       })
       .populate({
-        path: "userId",
+        path: "user",
         model: "User",
         select: "creatorProfile.categories",
       })
       .populate({
-        path: "collaborators.userId",
+        path: "collaborators.user",
         model: "User",
-        select: "creatorProfile.name creatorProfile.categories",
+        select: "creatorProfile.name creatorProfile.categories image",
       })
       .lean();
 
@@ -186,7 +172,7 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
     }
 
     if (place.isCreatorPlace) {
-      const user = await User.findById(place.userId._id)
+      const user = await User.findById(place.user._id)
         .populate({
           path: "creatorProfile.categories",
           model: "SubCategory",
@@ -201,7 +187,7 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
 
     if (enrichSchedule === "true") {
       const events = await Event.find({
-        placeId: id,
+        place: id,
         status: { $in: ["upcoming", "ongoing"] },
       }).select("name schedule");
 
@@ -224,16 +210,16 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
       place.image = await generateSignedUrlFromFullUrl(place.image);
     }
 
-    place.collaborators = await Promise.all(
-      place.collaborators.map(async (collab: any) => {
-        const user = await User.findById(collab.userId);
-        if (user?.image) {
-          user.image = await generateSignedUrlFromFullUrl(user.image);
+    if (place.collaborators && place.collaborators.length > 0) {
+      for (const collaborator of place.collaborators) {
+        const populatedUser = collaborator.user as { image?: string };
+        if (populatedUser.image && typeof populatedUser.image === "string") {
+          populatedUser.image = await generateSignedUrlFromFullUrl(
+            populatedUser.image
+          );
         }
-        const { userId, ...rest } = collab;
-        return { ...rest, user };
-      })
-    );
+      }
+    }
 
     APIResponse(res, place, "Place fetched successfully", 200);
   } catch (error) {

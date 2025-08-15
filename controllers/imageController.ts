@@ -30,13 +30,11 @@ const uploadProfilePicture = async (
 
     const { entityType, entityId } = req.body;
 
-    // Validate entity type
     if (!["user", "place", "event"].includes(entityType)) {
       APIResponse(res, null, "Invalid entity type", 400);
       return;
     }
 
-    // Validate entityId for place and event
     if (entityType !== "user" && !entityId) {
       APIResponse(res, null, `${entityType} ID is required`, 400);
       return;
@@ -111,8 +109,7 @@ const handlePlaceProfilePicture = async (
     throw new Error("Place not found");
   }
 
-  // Check if user owns the place
-  if (place.userId.toString() !== userId) {
+  if (place.user.toString() !== userId) {
     throw new Error("You can only update profile pictures for your own places");
   }
 
@@ -134,9 +131,8 @@ const handleEventProfilePicture = async (
     throw new Error("Event not found");
   }
 
-  // Check if user owns the place where the event is hosted
-  const place = await Place.findById(event.placeId);
-  if (!place || place.userId.toString() !== userId) {
+  const place = await Place.findById(event.place);
+  if (!place || place.user.toString() !== userId) {
     throw new Error(
       "You can only update profile pictures for events in your places"
     );
