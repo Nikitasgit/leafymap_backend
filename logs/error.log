@@ -1775,3 +1775,7 @@
 [16-08-2025 16:24:54] - [[31merror[39m]: Error getting partnerships by place id: Cast to ObjectId failed for value "undefined" (type string) at path "_id" for model "Event"
 [16-08-2025 16:48:53] - [[31merror[39m]: Error getting partnerships by place id: Cast to ObjectId failed for value "undefined" (type string) at path "_id" for model "Event"
 [16-08-2025 16:48:53] - [[31merror[39m]: Error getting partnerships by place id: Cast to ObjectId failed for value "undefined" (type string) at path "_id" for model "Event"
+[16-08-2025 17:00:22] - [[31merror[39m]: Error getting partnerships by place id: Cast to ObjectId failed for value "undefined" (type string) at path "_id" for model "Event"
+[16-08-2025 17:00:22] - [[31merror[39m]: Error getting partnerships by place id: Cast to ObjectId failed for value "undefined" (type string) at path "_id" for model "Event"
+[16-08-2025 17:04:03] - [[31merror[39m]: Error creating partnership: Cast to ObjectId failed for value "undefined" (type string) at path "place" for model "Partnership"
+[16-08-2025 17:05:52] - [[31merror[39m]: Error creating partnership: Cast to ObjectId failed for value "undefined" (type string) at path "place" for model "Partnership"
