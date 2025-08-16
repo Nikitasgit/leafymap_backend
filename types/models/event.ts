@@ -6,6 +6,7 @@ export interface IEventTimeSlot {
   title: string;
   startTime: string;
   endTime: string;
+  collaborators: Types.ObjectId[];
 }
 
 export interface IEventPeriod {

@@ -144,6 +144,13 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const event = await Event.findById(id)
       .populate([{ path: "place", model: "Place", select: "_id" }])
+      .populate([
+        {
+          path: "schedule.timeSlots.collaborators",
+          model: "User",
+          select: "_id creatorProfile.name image",
+        },
+      ])
       .lean();
 
     if (!event) {
@@ -151,46 +158,36 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    if (event.image) {
-      event.image = await generateSignedUrlFromFullUrl(event.image);
-    }
+    const updatedEvent = {
+      ...event,
+      schedule: await Promise.all(
+        event.schedule.map(async (period) => ({
+          ...period,
+          timeSlots: await Promise.all(
+            period.timeSlots.map(async (slot) => ({
+              ...slot,
+              collaborators: await Promise.all(
+                slot.collaborators.map(async (collaborator: any) => ({
+                  _id: collaborator._id,
+                  name: collaborator.creatorProfile.name,
+                  image: collaborator.image
+                    ? await generateSignedUrlFromFullUrl(collaborator.image)
+                    : "",
+                }))
+              ),
+            }))
+          ),
+        }))
+      ),
+    };
 
-    // Transform collaborators in timeSlots
-    if (event.schedule) {
-      event.schedule = await Promise.all(
-        event.schedule.map(async (period: any) => {
-          if (period.timeSlots) {
-            period.timeSlots = await Promise.all(
-              period.timeSlots.map(async (slot: any) => {
-                if (slot.collaborators) {
-                  slot.collaborators = await Promise.all(
-                    slot.collaborators.map(async (collaborator: any) => {
-                      const transformedCollaborator = {
-                        _id: collaborator._id._id,
-                        status: collaborator.status,
-                        name: collaborator._id.creatorProfile?.name || "",
-                        image: collaborator._id.image || "",
-                      };
-                      if (transformedCollaborator.image) {
-                        transformedCollaborator.image =
-                          await generateSignedUrlFromFullUrl(
-                            transformedCollaborator.image
-                          );
-                      }
-                      return transformedCollaborator;
-                    })
-                  );
-                }
-                return slot;
-              })
-            );
-          }
-          return period;
-        })
+    if (updatedEvent.image) {
+      updatedEvent.image = await generateSignedUrlFromFullUrl(
+        updatedEvent.image
       );
     }
 
-    APIResponse(res, event, "Event fetched successfully", 200);
+    APIResponse(res, updatedEvent, "Event fetched successfully", 200);
   } catch (error) {
     APIResponse(res, null, "Failed to fetch event", 500);
     logger.error("Error fetching event:", error);
@@ -235,6 +232,9 @@ const updateEvent = async (
         title: slot.title || "",
         startTime: slot.startTime || "",
         endTime: slot.endTime || "",
+        collaborators: slot.collaborators.map((collaborator: any) => ({
+          _id: new mongoose.Types.ObjectId(collaborator._id),
+        })),
       })),
     }));
 

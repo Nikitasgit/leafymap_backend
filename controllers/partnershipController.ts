@@ -52,6 +52,7 @@ const createPartnerships = async (req: CustomRequest, res: Response) => {
           event: eventId,
           initiator: user._id,
           collaborator: partnership.collaborator._id,
+          type: eventId ? "event" : "place",
         });
 
         return await newPartnership.save();

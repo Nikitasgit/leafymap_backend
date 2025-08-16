@@ -1,11 +1,16 @@
 import { model, Schema } from "mongoose";
-import { collaboratorSchema } from "./Place";
 import { IEventTimeSlot, IEventPeriod, IEvent } from "../types/models/event";
 
 export const eventTimeSlotSchema = new Schema<IEventTimeSlot>({
   title: { type: String, required: true },
   startTime: { type: String, required: true },
   endTime: { type: String, required: true },
+  collaborators: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
 });
 
 export const customScheduleWithParticipantsSchema = new Schema<IEventPeriod>({

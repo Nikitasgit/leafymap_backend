@@ -1768,3 +1768,10 @@
 [15-08-2025 13:07:40] - [[31merror[39m]: Error fetching place: Cannot populate path `userId` because it is not in your schema. Set the `strictPopulate` option to false to override.
 [15-08-2025 13:07:40] - [[31merror[39m]: Error fetching place: Cannot populate path `userId` because it is not in your schema. Set the `strictPopulate` option to false to override.
 [15-08-2025 13:09:09] - [[31merror[39m]: Error fetching place: Cannot populate path `collaborators._id` because it is not in your schema. Set the `strictPopulate` option to false to override.
+[16-08-2025 15:35:20] - [[31merror[39m]: Error creating partnership: Cast to ObjectId failed for value "undefined" (type string) at path "place" for model "Partnership"
+[16-08-2025 15:35:26] - [[31merror[39m]: Error fetching events: Cannot populate path `schedule.timeSlots.collaborators.user` because it is not in your schema. Set the `strictPopulate` option to false to override.
+[16-08-2025 15:35:26] - [[31merror[39m]: Error fetching events: Cannot populate path `schedule.timeSlots.collaborators.user` because it is not in your schema. Set the `strictPopulate` option to false to override.
+[16-08-2025 16:12:20] - [[31merror[39m]: Error creating partnership: Cast to ObjectId failed for value "undefined" (type string) at path "place" for model "Partnership"
+[16-08-2025 16:24:54] - [[31merror[39m]: Error getting partnerships by place id: Cast to ObjectId failed for value "undefined" (type string) at path "_id" for model "Event"
+[16-08-2025 16:48:53] - [[31merror[39m]: Error getting partnerships by place id: Cast to ObjectId failed for value "undefined" (type string) at path "_id" for model "Event"
+[16-08-2025 16:48:53] - [[31merror[39m]: Error getting partnerships by place id: Cast to ObjectId failed for value "undefined" (type string) at path "_id" for model "Event"
