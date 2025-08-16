@@ -7,18 +7,32 @@ const partnershipSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  receiver: {
+  collaborator: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
-
-  events: { type: [mongoose.Schema.Types.ObjectId], ref: "Event", default: [] },
+  event: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Event",
+    required: false,
+  },
   status: {
     type: String,
     enum: ["pending", "accepted", "refused", "cancelled", "completed"],
     required: true,
     default: "pending",
+  },
+  type: {
+    type: String,
+    enum: ["place", "event"],
+    required: true,
+    default: "place",
+  },
+  timeSlots: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: "EventTimeSlot",
+    required: false,
   },
   deleted: { type: Boolean, default: false },
 });

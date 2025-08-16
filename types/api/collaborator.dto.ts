@@ -1,4 +1,5 @@
 export interface CollaboratorDTO {
   _id: string;
-  status?: "pending" | "accepted" | "refused";
+  name?: string;
+  image?: string;
 }

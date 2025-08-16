@@ -1,11 +1,11 @@
 import { Document, Types } from "mongoose";
-import { ICollaborator } from "./collaborator";
+import { IPlace } from "./place";
 
 export interface IEventTimeSlot {
+  _id: Types.ObjectId;
   title: string;
   startTime: string;
   endTime: string;
-  collaborators: ICollaborator[];
 }
 
 export interface IEventPeriod {
@@ -15,11 +15,11 @@ export interface IEventPeriod {
 }
 
 export interface IEvent extends Document {
+  _id: Types.ObjectId;
   name: string;
-  collaborators: ICollaborator[];
   description: string;
   schedule: IEventPeriod[];
-  place: Types.ObjectId;
+  place: Types.ObjectId | Partial<IPlace>;
   image?: string;
   status: "upcoming" | "ongoing" | "completed" | "cancelled";
   createdAt: Date;

@@ -11,8 +11,7 @@ import { enrichScheduleWithEvents } from "../utils/schedule";
 import { CustomRequest } from "../types/custom";
 import { updatePlaceSchema } from "../validations/placeValidations";
 import { IPlace } from "types/models/place";
-import { ICollaborator } from "types/models";
-import { CollaboratorDTO, UserDTO } from "types/api";
+import { Partnership } from "../models/Partnership";
 
 const updatePlace = async (
   req: CustomRequest,
@@ -71,16 +70,71 @@ const updatePlace = async (
       placeCategory: new mongoose.Types.ObjectId(placeCategory),
       placeType,
       defaultSchedule,
-      collaborators: collaborators?.map((collab: CollaboratorDTO) => ({
-        user: new mongoose.Types.ObjectId(collab._id),
-      })),
     };
 
     const place = await Place.findByIdAndUpdate(id, updateData);
-
     if (!place) {
       APIResponse(res, null, "Place not found", 404);
       return;
+    }
+    if (collaborators) {
+      const existingPartnerships = await Partnership.find({
+        place: id,
+        type: "place",
+      });
+
+      const newCollaboratorIds = collaborators.map((collab: any) => collab._id);
+      const existingCollaboratorIds = existingPartnerships.map((p) =>
+        p.collaborator.toString()
+      );
+      const newCollaborators = collaborators.filter(
+        (collab: any) => !existingCollaboratorIds.includes(collab._id)
+      );
+      const existingCollaborators = collaborators.filter((collab: any) =>
+        existingCollaboratorIds.includes(collab._id)
+      );
+      if (newCollaborators.length > 0) {
+        const newPartnerships = newCollaborators.map(
+          async (collaborator: any) => {
+            const partnership = new Partnership({
+              place: id,
+              initiator: user._id,
+              collaborator: collaborator._id,
+              status: "pending",
+              type: "place",
+            });
+            return partnership.save();
+          }
+        );
+        await Promise.all(newPartnerships);
+      }
+
+      if (existingCollaborators.length > 0) {
+        const existingCollaboratorIdsToReactivate = existingCollaborators.map(
+          (collab: any) => collab._id
+        );
+
+        await Partnership.updateMany(
+          {
+            place: id,
+            type: "place",
+            collaborator: { $in: existingCollaboratorIdsToReactivate },
+            deleted: true,
+          },
+          { deleted: false, status: "pending" }
+        );
+      }
+      const collaboratorsToRemove = existingPartnerships.filter(
+        (p) => !newCollaboratorIds.includes(p.collaborator.toString())
+      );
+
+      if (collaboratorsToRemove.length > 0) {
+        const partnershipIdsToDelete = collaboratorsToRemove.map((p) => p._id);
+        await Partnership.updateMany(
+          { _id: { $in: partnershipIdsToDelete } },
+          { deleted: true }
+        );
+      }
     }
 
     APIResponse(res, place, "Place updated successfully", 200);
@@ -159,11 +213,6 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
         model: "User",
         select: "creatorProfile.categories",
       })
-      .populate({
-        path: "collaborators.user",
-        model: "User",
-        select: "creatorProfile.name creatorProfile.categories image",
-      })
       .lean();
 
     if (!place) {
@@ -208,17 +257,6 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
 
     if (place.image) {
       place.image = await generateSignedUrlFromFullUrl(place.image);
-    }
-
-    if (place.collaborators && place.collaborators.length > 0) {
-      for (const collaborator of place.collaborators) {
-        const populatedUser = collaborator.user as { image?: string };
-        if (populatedUser.image && typeof populatedUser.image === "string") {
-          populatedUser.image = await generateSignedUrlFromFullUrl(
-            populatedUser.image
-          );
-        }
-      }
     }
 
     APIResponse(res, place, "Place fetched successfully", 200);

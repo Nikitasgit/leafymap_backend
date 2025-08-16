@@ -113,7 +113,6 @@ const placeSchema = new Schema<IPlace>({
   },
   defaultSchedule: { type: defaultScheduleSchema, required: true, default: {} },
   customDates: [customDateSchema],
-  collaborators: [collaboratorSchema],
 });
 
 placeSchema.index({ "location.coordinates": "2dsphere" });

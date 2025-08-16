@@ -39,7 +39,7 @@ const createEvent = async (
       return;
     }
 
-    const { name, description, schedule, collaborators } = req.body;
+    const { name, description, schedule } = req.body;
 
     if (!name || !description || !schedule) {
       APIResponse(
@@ -55,7 +55,6 @@ const createEvent = async (
       name,
       description,
       schedule,
-      collaborators,
       place: new mongoose.Types.ObjectId(placeId),
       status: "upcoming",
     };
@@ -87,11 +86,6 @@ const getEventsByPlaceId = async (
       place: new mongoose.Types.ObjectId(id),
     }).populate([
       {
-        path: "collaborators.user",
-        model: "User",
-        select: "_id username image",
-      },
-      {
         path: "schedule.timeSlots.collaborators.user",
         model: "User",
         select: "_id username image",
@@ -103,20 +97,6 @@ const getEventsByPlaceId = async (
         const eventObj = event.toObject();
         if (eventObj.image) {
           eventObj.image = await generateSignedUrlFromFullUrl(eventObj.image);
-        }
-
-        // Process top-level collaborators
-        if (eventObj.collaborators) {
-          eventObj.collaborators = await Promise.all(
-            eventObj.collaborators.map(async (collaborator: any) => {
-              if (collaborator._id && collaborator._id.image) {
-                collaborator._id.image = await generateSignedUrlFromFullUrl(
-                  collaborator._id.image
-                );
-              }
-              return collaborator;
-            })
-          );
         }
 
         // Process collaborators in timeSlots
@@ -163,18 +143,7 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const event = await Event.findById(id)
-      .populate([
-        {
-          path: "collaborators.user",
-          model: "User",
-          select: "_id creatorProfile image",
-        },
-        {
-          path: "schedule.timeSlots.collaborators.user",
-          model: "User",
-          select: "_id creatorProfile image",
-        },
-      ])
+      .populate([{ path: "place", model: "Place", select: "_id" }])
       .lean();
 
     if (!event) {
@@ -184,25 +153,6 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
 
     if (event.image) {
       event.image = await generateSignedUrlFromFullUrl(event.image);
-    }
-
-    if (event.collaborators) {
-      event.collaborators = (await Promise.all(
-        event.collaborators.map(async (collaborator: any) => {
-          const transformedCollaborator = {
-            _id: collaborator._id._id,
-            status: collaborator.status,
-            name: collaborator._id.creatorProfile?.name || "",
-            image: collaborator._id.image || "",
-          };
-          if (transformedCollaborator.image) {
-            transformedCollaborator.image = await generateSignedUrlFromFullUrl(
-              transformedCollaborator.image
-            );
-          }
-          return transformedCollaborator;
-        })
-      )) as any;
     }
 
     // Transform collaborators in timeSlots
@@ -276,7 +226,7 @@ const updateEvent = async (
       return;
     }
 
-    const { name, description, schedule, collaborators, status } = req.body;
+    const { name, description, schedule, status } = req.body;
 
     const transformedSchedule: IEventPeriod[] = schedule.map((period: any) => ({
       startDate: new Date(period.startDate),
@@ -285,10 +235,6 @@ const updateEvent = async (
         title: slot.title || "",
         startTime: slot.startTime || "",
         endTime: slot.endTime || "",
-        collaborators: (slot.collaborators || []).map((collaborator: any) => ({
-          _id: new mongoose.Types.ObjectId(collaborator._id || collaborator),
-          status: collaborator.status || "pending",
-        })),
       })),
     }));
 
@@ -310,18 +256,10 @@ const updateEvent = async (
       }
     }
 
-    const transformedCollaborators = (collaborators || []).map(
-      (collaborator: any) => ({
-        _id: new mongoose.Types.ObjectId(collaborator._id || collaborator),
-        status: collaborator.status || "pending",
-      })
-    );
-
     const updateData: Partial<IEvent> = {
       name,
       description,
       schedule: transformedSchedule,
-      collaborators: transformedCollaborators,
     };
 
     if (status) {

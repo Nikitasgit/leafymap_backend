@@ -9,6 +9,7 @@ import authRoutes from "./routes/authRoutes";
 import placeRoutes from "./routes/placeRoutes";
 import eventRoutes from "./routes/eventRoutes";
 import imageRoutes from "./routes/imageRoutes";
+import partnershipRoutes from "./routes/partnershipRoutes";
 import cookieParser from "cookie-parser";
 
 dotenv.config();
@@ -33,6 +34,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/places", placeRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/images", imageRoutes);
+app.use("/api/partnerships", partnershipRoutes);
 
 app.use(errorHandler);
 

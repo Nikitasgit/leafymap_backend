@@ -18,6 +18,7 @@ import { addOrganizerSchema } from "../validations/placeValidations";
 import SubCategory from "../models/SubCategory";
 import { IPlace } from "types/models/place";
 import { PlaceType } from "types/models/place";
+import { Partnership } from "../models/Partnership";
 
 const getPlaceTypeFromCategory = async (
   categoryId: string
@@ -258,13 +259,21 @@ const addOrganizer = async (
       placeCategory,
       placeType,
       defaultSchedule,
-      collaborators: collaborators?.map((collab: any) => ({
-        user: collab._id,
-        status: collab.status,
-      })),
     });
     await place.save();
     user.places.push(place._id);
+
+    if (collaborators && collaborators.length > 0) {
+      const partnerships = collaborators.map(async (collaborator: any) => {
+        const partnership = new Partnership({
+          place: place._id,
+          initiator: user._id,
+          collaborator: collaborator._id,
+        });
+        await partnership.save();
+      });
+      await Promise.all(partnerships);
+    }
 
     await user.save();
 
@@ -308,7 +317,6 @@ const updateCreator = async (
       email,
       website,
       placeActive,
-      placeType,
     } = data;
 
     const user = await User.findById(req.user?.id);

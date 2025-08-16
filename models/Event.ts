@@ -6,7 +6,6 @@ export const eventTimeSlotSchema = new Schema<IEventTimeSlot>({
   title: { type: String, required: true },
   startTime: { type: String, required: true },
   endTime: { type: String, required: true },
-  collaborators: [collaboratorSchema],
 });
 
 export const customScheduleWithParticipantsSchema = new Schema<IEventPeriod>({
@@ -36,7 +35,6 @@ export const eventSchema = new Schema<IEvent>(
       required: [true, "Please add a place"],
     },
     image: String,
-    collaborators: [collaboratorSchema],
     status: {
       type: String,
       enum: ["upcoming", "ongoing", "completed", "cancelled"],

@@ -26,4 +26,5 @@ export interface UserDTO extends BaseEntity {
   };
   interests: string[];
   places: string[] | Partial<PlaceDTO>[];
+  deleted: boolean;
 }
