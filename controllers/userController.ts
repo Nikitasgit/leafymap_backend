@@ -9,10 +9,10 @@ import logger from "../utils/logger";
 import { generateToken, setTokenCookie } from "../utils/jwt";
 import mongoose from "mongoose";
 import {
-  addCreatorSchema,
-  updateCreatorSchema,
   findCreatorsQuerySchema,
   getUserInPlacesAndEventsQuerySchema,
+  baseUserSchema,
+  creatorSchema,
 } from "../validations/userValidation";
 import { addOrganizerSchema } from "../validations/placeValidations";
 import SubCategory from "../models/SubCategory";
@@ -39,10 +39,7 @@ const getPlaceTypeFromCategory = async (
   return ["art"];
 };
 
-const getUserById = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+const getUserById = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.params.userId;
     const user = await User.findById(userId)
@@ -97,7 +94,7 @@ const getUserById = async (
 };
 
 const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
-  const parseResult = addCreatorSchema.safeParse(req.body);
+  const parseResult = req.body;
   if (!parseResult.success) {
     APIResponse(res, null, "Validation error", 400);
     return;
@@ -300,12 +297,7 @@ const updateCreator = async (
   req: CustomRequest,
   res: Response
 ): Promise<void> => {
-  const parseResult = updateCreatorSchema.safeParse(req.body);
-  if (!parseResult.success) {
-    APIResponse(res, null, "Validation error", 400);
-    return;
-  }
-  const data = parseResult.data;
+  const data = req.body;
   try {
     const {
       name,
@@ -587,6 +579,37 @@ const getUserInPlacesAndEvents = async (
   }
 };
 
+const updateUser = async (req: CustomRequest, res: Response): Promise<void> => {
+  const user = await User.exists({ _id: req.decoded.id });
+
+  if (!user) {
+    APIResponse(res, null, "User not found", 404);
+    return;
+  }
+
+  let parseResult;
+  if (req.decoded.userType === "creator") {
+    parseResult = creatorSchema.safeParse(req.body);
+  } else {
+    parseResult = baseUserSchema.safeParse(req.body);
+  }
+
+  if (!parseResult.success) {
+    APIResponse(res, null, "Validation error", 400);
+    return;
+  }
+
+  const data = parseResult.data;
+
+  try {
+    await User.findByIdAndUpdate(req.decoded.id, data, { new: true });
+    APIResponse(res, null, "User updated successfully", 200);
+  } catch (error) {
+    logger.error("Error updating user:", error);
+    APIResponse(res, null, "Server error", 500);
+  }
+};
+
 export {
   getUserById,
   addCreator,
@@ -594,4 +617,5 @@ export {
   updateCreator,
   findCreators,
   getUserInPlacesAndEvents,
+  updateUser,
 };

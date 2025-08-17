@@ -7,6 +7,7 @@ import {
   addOrganizer,
   findCreators,
   getUserInPlacesAndEvents,
+  updateUser,
 } from "../controllers/userController";
 
 const router: Router = express.Router();
@@ -17,5 +18,6 @@ router.put("/update-creator", auth, updateCreator);
 router.get("/find-creators", auth, findCreators);
 router.get("/creator-in-places-and-events", getUserInPlacesAndEvents);
 router.get("/:userId", getUserById);
+router.put("/", auth, updateUser);
 
 export default router;

@@ -63,7 +63,6 @@ const createPlace = async (
   req: CustomRequest,
   res: Response
 ): Promise<void> => {
-
   try {
     if (req.decoded.userType !== "organizer") {
       APIResponse(res, null, "Only organizers can create multiple places", 403);

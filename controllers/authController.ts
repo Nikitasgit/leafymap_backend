@@ -12,6 +12,7 @@ import {
 } from "../validations/authValidations";
 import { generateSignedUrlFromFullUrl } from "../utils/s3";
 import { z } from "zod";
+import { CustomRequest } from "types/custom";
 
 const register = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -32,7 +33,6 @@ const register = async (req: Request, res: Response): Promise<void> => {
     await User.create({ email, password: hashed, username });
 
     APIResponse(res, null, "User registered", 201);
-    
   } catch (error) {
     if (error instanceof z.ZodError) {
       const validationErrors = getValidationErrors(error);
@@ -122,11 +122,11 @@ const verifyToken = async (req: Request, res: Response): Promise<void> => {
   }
 };
 const getAuthUser = async (
-  req: Request & { user?: any },
+  req: CustomRequest,
   res: Response
 ): Promise<void> => {
   try {
-    const user = await User.findById(req.user?.id).select("email username");
+    const user = await User.findById(req.decoded.id).select("email username");
     APIResponse(res, user, "User retrieved successfully", 200);
   } catch (error) {
     APIResponse(res, null, "Server error", 500);
@@ -134,11 +134,11 @@ const getAuthUser = async (
   }
 };
 const getCurrentUser = async (
-  req: Request & { user?: any },
+  req: CustomRequest,
   res: Response
 ): Promise<void> => {
   try {
-    const user = await User.findById(req.user?.id)
+    const user = await User.findById(req.decoded.id)
       .select("-password -createdAt -updatedAt -interests  -deleted -__v")
       .populate({
         path: "creatorProfile.categories",

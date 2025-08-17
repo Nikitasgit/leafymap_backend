@@ -16,8 +16,6 @@ const auth = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    console.log("req.cookies", req.cookies);
-    console.log("req.headers", req.headers);
     const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
 
     if (!token) {
@@ -39,9 +37,8 @@ const auth = async (
       });
       return;
     }
-
     const userExists = await User.exists({ _id: decoded.id });
-
+    
     if (!userExists) {
       res.status(401).json({
         success: false,
