@@ -32,6 +32,7 @@ const register = async (req: Request, res: Response): Promise<void> => {
     await User.create({ email, password: hashed, username });
 
     APIResponse(res, null, "User registered", 201);
+    
   } catch (error) {
     if (error instanceof z.ZodError) {
       const validationErrors = getValidationErrors(error);

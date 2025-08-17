@@ -22,7 +22,7 @@ const uploadProfilePicture = async (
   res: Response
 ): Promise<void> => {
   try {
-    const user = await User.findById(req.user?.id);
+    const user = await User.findById(req.decoded.id);
     if (!user) {
       APIResponse(res, null, "User not found", 404);
       return;
@@ -49,13 +49,13 @@ const uploadProfilePicture = async (
 
     switch (entityType) {
       case "user":
-        await handleUserProfilePicture(user.id, imageUrl);
+        await handleUserProfilePicture(user._id, imageUrl);
         break;
       case "place":
-        await handlePlaceProfilePicture(user.id, entityId!, imageUrl);
+        await handlePlaceProfilePicture(user._id, entityId!, imageUrl);
         break;
       case "event":
-        await handleEventProfilePicture(user.id, entityId!, imageUrl);
+        await handleEventProfilePicture(user._id, entityId!, imageUrl);
         break;
     }
 

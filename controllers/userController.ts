@@ -40,7 +40,7 @@ const getPlaceTypeFromCategory = async (
 };
 
 const getUserById = async (
-  req: CustomRequest,
+  req: Request,
   res: Response
 ): Promise<void> => {
   try {
@@ -118,7 +118,8 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
       email,
       website,
     } = data;
-    const user = await User.findById(req.user?.id).select("_id userType");
+    const user = await User.findById(req.decoded.id).select("_id userType");
+
     if (!user) {
       APIResponse(res, null, "User not found", 404);
       return;
@@ -130,7 +131,7 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
     if (phone) {
       const existingUserWithPhone = await User.findOne({
         phone,
-        _id: { $ne: req.user?.id },
+        _id: { $ne: req.decoded.id },
       });
       if (existingUserWithPhone) {
         APIResponse(
@@ -145,7 +146,7 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
     if (email) {
       const existingUserWithEmail = await User.findOne({
         email,
-        _id: { $ne: req.user?.id },
+        _id: { $ne: req.decoded.id },
       });
       if (existingUserWithEmail) {
         APIResponse(
@@ -229,7 +230,7 @@ const addOrganizer = async (
       collaborators,
     } = data;
 
-    const user = await User.findById(req.user?.id).select(
+    const user = await User.findById(req.decoded.id).select(
       "_id userType places"
     );
     if (!user) {
@@ -318,8 +319,8 @@ const updateCreator = async (
       website,
       placeActive,
     } = data;
+    const user = await User.findById(req.decoded.id);
 
-    const user = await User.findById(req.user?.id);
     if (!user) {
       APIResponse(res, null, "User not found", 404);
       return;
@@ -332,7 +333,7 @@ const updateCreator = async (
     if (phone && phone !== user.phone) {
       const existingUserWithPhone = await User.findOne({
         phone,
-        _id: { $ne: req.user?.id },
+        _id: { $ne: req.decoded.id },
       });
       if (existingUserWithPhone) {
         APIResponse(
@@ -348,7 +349,7 @@ const updateCreator = async (
     if (email && email !== user.email) {
       const existingUserWithEmail = await User.findOne({
         email,
-        _id: { $ne: req.user?.id },
+        _id: { $ne: req.decoded.id },
       });
       if (existingUserWithEmail) {
         APIResponse(
@@ -438,9 +439,9 @@ const findCreators = async (
   try {
     const { name, limit = 10 } = query;
     const queryFilter: any = {};
-    const user = await User.findById(req.user?._id);
+    const user = await User.findById(req.decoded.id);
     if (user?.userType === "creator") {
-      queryFilter._id = { $ne: req.user?._id };
+      queryFilter._id = { $ne: req.decoded.id };
     }
     if (name) {
       queryFilter["creatorProfile.name"] = { $regex: name, $options: "i" };

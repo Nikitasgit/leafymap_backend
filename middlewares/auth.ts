@@ -1,14 +1,23 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/User";
-import { IUser } from "types/models/user";
+import { CustomRequest } from "types/custom";
+
+export interface IDecodedToken {
+  id: string;
+  userType: string;
+  iat: number;
+  exp: number;
+}
 
 const auth = async (
-  req: Request & { user?: IUser },
+  req: CustomRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
+    console.log("req.cookies", req.cookies);
+    console.log("req.headers", req.headers);
     const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
 
     if (!token) {
@@ -18,13 +27,22 @@ const auth = async (
       });
       return;
     }
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || ""
+    ) as IDecodedToken;
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "");
-    const user = await User.findById((decoded as any).id).select(
-      "_id userType username email"
-    );
+    if (!decoded) {
+      res.status(401).json({
+        success: false,
+        message: "Invalid token",
+      });
+      return;
+    }
 
-    if (!user) {
+    const userExists = await User.exists({ _id: decoded.id });
+
+    if (!userExists) {
       res.status(401).json({
         success: false,
         message: "User not found",
@@ -32,7 +50,7 @@ const auth = async (
       return;
     }
 
-    req.user = user;
+    req.decoded = decoded;
 
     next();
   } catch (error) {

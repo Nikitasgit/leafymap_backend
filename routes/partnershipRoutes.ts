@@ -5,11 +5,12 @@ import {
   getPartnerships,
   updatePartnerships,
 } from "../controllers/partnershipController";
+import placeOwnership from "../middlewares/placeOwnership";
 
 const router: Router = express.Router();
 
 router.get("/:placeId/:eventId?", getPartnerships);
 router.put("/:placeId/:eventId?", auth, updatePartnerships);
-router.post("/:placeId/:eventId?", auth, createPartnerships);
+router.post("/:placeId/:eventId?", auth, placeOwnership, createPartnerships);
 
 export default router;

@@ -11,37 +11,16 @@ import { enrichScheduleWithEvents } from "../utils/schedule";
 import { CustomRequest } from "../types/custom";
 import { updatePlaceSchema } from "../validations/placeValidations";
 import { IPlace } from "types/models/place";
-import { Partnership } from "../models/Partnership";
 
 const updatePlace = async (
   req: CustomRequest,
   res: Response
 ): Promise<void> => {
   try {
-    const user = await User.findById(req.user?.id).select(
-      "_id userType places"
-    );
-
-    if (!user) {
-      APIResponse(res, null, "User not found", 404);
-      return;
-    }
-    const { id } = req.params;
-
-    if (!id) {
-      APIResponse(res, null, "Place ID is required", 400);
-      return;
-    }
-
-    if (
-      user.userType !== "organizer" &&
-      !user.places.includes(new mongoose.Types.ObjectId(id))
-    ) {
-      APIResponse(res, null, "You can't update this place", 400);
-      return;
-    }
+    const placeId = req.placeId;
 
     const validationResult = updatePlaceSchema.safeParse(req.body);
+
     if (!validationResult.success) {
       APIResponse(res, validationResult.error.errors, "Validation failed", 400);
       return;
@@ -57,13 +36,12 @@ const updatePlace = async (
       placeCategory,
       placeType,
       defaultSchedule,
-      collaborators,
     } = validationResult.data;
 
     const updateData: Partial<IPlace> = {
       name,
       description,
-      location: { ...location, type: "Point" as const },
+      location,
       phone,
       email,
       website,
@@ -72,70 +50,7 @@ const updatePlace = async (
       defaultSchedule,
     };
 
-    const place = await Place.findByIdAndUpdate(id, updateData);
-    if (!place) {
-      APIResponse(res, null, "Place not found", 404);
-      return;
-    }
-    if (collaborators) {
-      const existingPartnerships = await Partnership.find({
-        place: id,
-        type: "place",
-      });
-
-      const newCollaboratorIds = collaborators.map((collab: any) => collab._id);
-      const existingCollaboratorIds = existingPartnerships.map((p) =>
-        p.collaborator.toString()
-      );
-      const newCollaborators = collaborators.filter(
-        (collab: any) => !existingCollaboratorIds.includes(collab._id)
-      );
-      const existingCollaborators = collaborators.filter((collab: any) =>
-        existingCollaboratorIds.includes(collab._id)
-      );
-      if (newCollaborators.length > 0) {
-        const newPartnerships = newCollaborators.map(
-          async (collaborator: any) => {
-            const partnership = new Partnership({
-              place: id,
-              initiator: user._id,
-              collaborator: collaborator._id,
-              status: "pending",
-              type: "place",
-            });
-            return partnership.save();
-          }
-        );
-        await Promise.all(newPartnerships);
-      }
-
-      if (existingCollaborators.length > 0) {
-        const existingCollaboratorIdsToReactivate = existingCollaborators.map(
-          (collab: any) => collab._id
-        );
-
-        await Partnership.updateMany(
-          {
-            place: id,
-            type: "place",
-            collaborator: { $in: existingCollaboratorIdsToReactivate },
-            deleted: true,
-          },
-          { deleted: false, status: "pending" }
-        );
-      }
-      const collaboratorsToRemove = existingPartnerships.filter(
-        (p) => !newCollaboratorIds.includes(p.collaborator.toString())
-      );
-
-      if (collaboratorsToRemove.length > 0) {
-        const partnershipIdsToDelete = collaboratorsToRemove.map((p) => p._id);
-        await Partnership.updateMany(
-          { _id: { $in: partnershipIdsToDelete } },
-          { deleted: true }
-        );
-      }
-    }
+    const place = await Place.findByIdAndUpdate(placeId, updateData);
 
     APIResponse(res, place, "Place updated successfully", 200);
   } catch (error) {
@@ -148,10 +63,10 @@ const createPlace = async (
   req: CustomRequest,
   res: Response
 ): Promise<void> => {
+
   try {
-    const user = await User.findById(req.user?.id).select("_id places");
-    if (!user) {
-      APIResponse(res, null, "User not found", 404);
+    if (req.decoded.userType !== "organizer") {
+      APIResponse(res, null, "Only organizers can create multiple places", 403);
       return;
     }
 
@@ -165,30 +80,25 @@ const createPlace = async (
       placeCategory,
       placeType,
       defaultSchedule,
-      collaborators,
     } = req.body;
 
     const placeData: Partial<IPlace> = {
       name,
       description,
-      location: { ...location, type: "Point" as const },
+      location,
       phone,
       email,
       website,
       placeCategory,
       placeType,
       defaultSchedule,
-      collaborators: collaborators?.map((collab: { _id: string }) => ({
-        _id: new mongoose.Types.ObjectId(collab._id),
-        status: "pending" as const,
-      })),
       active: true,
       deleted: false,
     };
 
     const place = await Place.create(placeData);
 
-    await User.findByIdAndUpdate(user._id, {
+    await User.findByIdAndUpdate(req.decoded.id, {
       $push: { places: place._id },
     });
 
@@ -201,9 +111,10 @@ const createPlace = async (
 
 const getPlaceById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const { placeId } = req.params;
     const { enrichSchedule = "true" } = req.query;
-    let place = await Place.findById(id)
+
+    let place = await Place.findById(placeId)
       .populate({
         path: "placeCategory",
         model: "PlaceCategory",
@@ -212,6 +123,10 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
         path: "user",
         model: "User",
         select: "creatorProfile.categories",
+        populate: {
+          path: "creatorProfile.categories",
+          model: "SubCategory",
+        },
       })
       .lean();
 
@@ -220,23 +135,9 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    if (place.isCreatorPlace) {
-      const user = await User.findById(place.user._id)
-        .populate({
-          path: "creatorProfile.categories",
-          model: "SubCategory",
-        })
-        .select("creatorProfile.categories")
-        .lean();
-
-      if (user?.creatorProfile?.categories) {
-        (place as any).creatorCategories = user.creatorProfile.categories;
-      }
-    }
-
     if (enrichSchedule === "true") {
       const events = await Event.find({
-        place: id,
+        place: placeId,
         status: { $in: ["upcoming", "ongoing"] },
       }).select("name schedule");
 

@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 import mongoose from "mongoose";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
@@ -12,30 +12,12 @@ import { IUser } from "types/models";
 import Place from "../models/Place";
 import Event from "../models/Event";
 
-// Only organizer can create partnerships
 const createPartnerships = async (req: CustomRequest, res: Response) => {
   try {
-    const user = await User.findById(req.user?.id).select(
-      "_id userType places"
-    );
-    if (!user) {
-      APIResponse(res, null, "User not found", 404);
-      return;
-    }
-    const { placeId, eventId } = req.params;
+    const placeId = req.placeId;
+    const eventId = req.params.eventId;
+
     const { partnerships } = req.body;
-    if (
-      user.userType !== "organizer" &&
-      !user.places.includes(new mongoose.Types.ObjectId(placeId))
-    ) {
-      APIResponse(
-        res,
-        null,
-        "You can't create a partnership for this place",
-        400
-      );
-      return;
-    }
 
     const createPromises = partnerships.map(
       async (partnership: PartnershipDTO) => {
@@ -50,7 +32,7 @@ const createPartnerships = async (req: CustomRequest, res: Response) => {
         const newPartnership = new Partnership({
           place: placeId,
           event: eventId,
-          initiator: user._id,
+          initiator: req.decoded.id,
           collaborator: partnership.collaborator._id,
           type: eventId ? "event" : "place",
         });
@@ -78,20 +60,16 @@ const createPartnerships = async (req: CustomRequest, res: Response) => {
 const updatePartnerships = async (req: CustomRequest, res: Response) => {
   try {
     const { partnerships } = req.body;
-    const user = await User.findById(req.user?.id).select("_id");
-    if (!user) {
-      APIResponse(res, null, "User not found", 404);
-      return;
-    }
+
     const updatePromises = partnerships.map(async (partnership: any) => {
       const existingPartnership = await Partnership.findById(partnership._id);
       if (!existingPartnership) {
         throw new Error(`Partnership ${partnership._id} not found`);
       }
       const isInitiator =
-        existingPartnership.initiator.toString() === user._id.toString();
+        existingPartnership.initiator.toString() === req.decoded.id;
       const isCollaborator =
-        existingPartnership.collaborator.toString() === user._id.toString();
+        existingPartnership.collaborator.toString() === req.decoded.id;
 
       let updateData: any = {};
 
@@ -120,27 +98,12 @@ const updatePartnerships = async (req: CustomRequest, res: Response) => {
 };
 
 // get partnerships by place id or event id
-const getPartnerships = async (req: CustomRequest, res: Response) => {
+const getPartnerships = async (req: Request, res: Response) => {
   try {
     const { placeId, eventId } = req.params;
 
-    const place = await Place.findById(placeId);
-    if (!place) {
-      APIResponse(res, null, "Place not found", 404);
-      return;
-    }
-
-    if (eventId) {
-      const event = await Event.findById(eventId);
-      if (!event) {
-        APIResponse(res, null, "Event not found", 404);
-        return;
-      }
-    }
-
     const partnerships = await Partnership.find({
-      place: placeId,
-      event: eventId,
+      $or: [{ place: placeId }, { event: eventId }],
       type: eventId ? "event" : "place",
     })
       .populate("collaborator", "creatorProfile image deleted")

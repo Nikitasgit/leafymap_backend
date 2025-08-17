@@ -4,7 +4,6 @@ import User from "../models/User";
 import mongoose from "mongoose";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
-import Place from "../models/Place";
 import { CustomRequest } from "../types/custom";
 import { generateSignedUrlFromFullUrl } from "../types/s3";
 import { IEvent } from "types/models/event";
@@ -15,29 +14,7 @@ const createEvent = async (
   res: Response
 ): Promise<void> => {
   try {
-    const user = await User.findById(req.user?.id);
-    if (!user) {
-      APIResponse(res, null, "User not found", 404);
-      return;
-    }
-    const { placeId } = req.params;
-    if (!placeId) {
-      APIResponse(res, null, "Place ID is required", 400);
-      return;
-    }
-    if (!mongoose.Types.ObjectId.isValid(placeId)) {
-      APIResponse(res, null, "Invalid Place ID format", 400);
-      return;
-    }
-    const place = await Place.findById(placeId);
-    if (!place) {
-      APIResponse(res, null, "Place not found", 404);
-      return;
-    }
-    if (place.user.toString() !== user.id.toString()) {
-      APIResponse(res, null, "You can't create an event for this place", 400);
-      return;
-    }
+    const placeId = req.placeId;
 
     const { name, description, schedule } = req.body;
 
@@ -199,27 +176,9 @@ const updateEvent = async (
   res: Response
 ): Promise<void> => {
   try {
-    const user = await User.findById(req.user?.id);
-    if (!user) {
-      APIResponse(res, null, "User not found", 404);
-      return;
-    }
-    const { eventId, placeId } = req.params;
-    if (!eventId || !placeId) {
-      APIResponse(res, null, "Event ID and Place ID are required", 400);
-      return;
-    }
-    if (!mongoose.Types.ObjectId.isValid(placeId)) {
-      APIResponse(res, null, "Invalid Place ID format", 400);
-      return;
-    }
-    const place = await Place.findById(placeId);
-    if (!place) {
-      APIResponse(res, null, "Place not found", 404);
-      return;
-    }
-    if (place.user.toString() !== user.id.toString()) {
-      APIResponse(res, null, "You can't update this event", 400);
+    const { eventId } = req.params;
+    if (!eventId) {
+      APIResponse(res, null, "Event ID is required", 400);
       return;
     }
 
