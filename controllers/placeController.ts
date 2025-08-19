@@ -96,7 +96,7 @@ const createPlace = async (
       $push: { places: place._id },
     });
 
-    APIResponse(res, place, "Place created successfully", 201);
+    APIResponse(res, place._id, "Place created successfully", 201);
   } catch (error) {
     logger.error("Error creating place:", error);
     APIResponse(res, null, "Failed to create place", 500);

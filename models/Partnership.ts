@@ -29,11 +29,7 @@ const partnershipSchema = new mongoose.Schema({
     required: true,
     default: "place",
   },
-  timeSlots: {
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: "EventTimeSlot",
-    required: false,
-  },
+
   deleted: { type: Boolean, default: false },
 });
 

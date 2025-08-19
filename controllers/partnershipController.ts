@@ -9,14 +9,10 @@ import { IPartnership } from "../types/models/partnership";
 import { generateSignedUrlFromFullUrl } from "../types/s3";
 import { PartnershipDTO } from "../types/api/partnership.dto";
 import { IUser } from "types/models";
-import Place from "../models/Place";
-import Event from "../models/Event";
 
 const createPartnerships = async (req: CustomRequest, res: Response) => {
   try {
-    const placeId = req.placeId;
-    const eventId = req.params.eventId;
-
+    const { placeId, eventId } = req.params;
     const { partnerships } = req.body;
 
     const createPromises = partnerships.map(
