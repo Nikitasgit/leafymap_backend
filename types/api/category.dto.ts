@@ -7,7 +7,7 @@ export interface Category extends BaseEntity {
 
 export interface SubCategory extends BaseEntity {
   name: string;
-  categoryId: string;
+  type: string;
 }
 
 export interface PlaceCategory extends BaseEntity {

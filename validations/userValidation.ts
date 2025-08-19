@@ -1,20 +1,22 @@
 import { z } from "zod";
-import { emailSchema } from "./placeValidations";
-import { descriptionSchema, nameSchema } from "./commonValidations";
+import {
+  ValidationResult,
+  websiteSchema,
+  descriptionSchema,
+} from "./commonValidations";
+import { IUser } from "types/models";
 
-const addressSchema = z.object({
-  number: z
-    .string()
-    .min(
-      1,
-      "Le numéro est requis, veuillez indiquer zéro si vous n'avez pas de numéro"
-    ),
-  street: z.string().min(2, "La rue doit contenir au moins 2 caractères"),
-  code: z.string().min(5, "Le code postal doit contenir au moins 5 caractères"),
-  extra: z.string().optional(),
-});
+export const creatorNameSchema = z
+  .string()
+  .min(1, "Le nom est requis")
+  .min(4, "Le nom doit contenir au moins 4 caractères")
+  .max(40, "Le nom ne peut pas dépasser 40 caractères")
+  .regex(
+    /^[a-zA-ZÀ-ÿ0-9\s']+$/,
+    "Le nom ne peut contenir que des lettres, chiffres, espaces et le caractère '"
+  );
 
-const usernameSchema = z
+/* const usernameSchema = z
   .string()
   .min(3, "Le nom d'utilisateur doit contenir au moins 3 caractères")
   .max(30, "Le nom d'utilisateur ne peut pas dépasser 30 caractères")
@@ -22,38 +24,40 @@ const usernameSchema = z
     /^[a-zA-Z0-9_-]+$/,
     "Le nom d'utilisateur ne peut contenir que des lettres, chiffres, tirets et underscores"
   );
+*/
+const creatorCategoriesSchema = z
+  .array(z.string())
+  .min(1, "Veuillez sélectionner une catégorie");
 
-export const baseUserSchema = z.object({
-  lastname: nameSchema,
-  firstname: nameSchema,
-  username: usernameSchema,
-  email: emailSchema,
-  website: z.string().optional(),
-  address: addressSchema.optional(),
-  interests: z.array(z.string()).optional(),
-  image: z.string().optional(),
-  followers: z.array(z.string()).optional(),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
-  country: z.string().optional(),
-});
-
-export const creatorSchema = z.object({
-  ...baseUserSchema.shape,
-  categories: z.array(z.string()).min(1, "Au moins une catégorie est requise"),
+const newCreatorSchema = z.object({
+  userType: z.literal("creator"),
+  creatorName: creatorNameSchema,
+  creatorCategories: creatorCategoriesSchema,
   description: descriptionSchema,
+  website: websiteSchema.optional(),
 });
 
-export const findCreatorsQuerySchema = z.object({
-  name: z.string().optional(),
-  limit: z.string().regex(/^\d+$/, "La limite doit être un nombre").optional(),
+const newOrganizerSchema = z.object({
+  userType: z.literal("organizer"),
 });
 
-export const getUserInPlacesAndEventsQuerySchema = z.object({
-  userId: z.string().min(1, "userId parameter is required"),
-});
+export const validateNewUserData = (data: Partial<IUser>): ValidationResult => {
+  const errors: Record<string, string> = {};
 
-export type FindCreatorsQuery = z.infer<typeof findCreatorsQuerySchema>;
-export type GetUserInPlacesAndEventsQuery = z.infer<
-  typeof getUserInPlacesAndEventsQuerySchema
->;
+  let result;
+  if (data.userType === "creator") {
+    result = newCreatorSchema.safeParse(data);
+  } else if (data.userType === "organizer") {
+    result = newOrganizerSchema.safeParse(data);
+  }
+  if (result && !result.success) {
+    result.error.errors.forEach((err) => {
+      const field = err.path.join(".");
+      errors[field] = err.message;
+    });
+  }
+  return {
+    errors,
+    isValid: Object.keys(errors).length === 0,
+  };
+};

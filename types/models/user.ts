@@ -18,6 +18,8 @@ export interface IUser extends Document {
   firstname?: string;
   lastname?: string;
   username: string;
+  creatorName?: string;
+  creatorCategories?: Types.ObjectId[];
   email: string;
   website?: string;
   phone?: string;

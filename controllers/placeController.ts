@@ -9,7 +9,7 @@ import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
 import { enrichScheduleWithEvents } from "../utils/schedule";
 import { CustomRequest } from "../types/custom";
-import { updatePlaceSchema } from "../validations/placeValidations";
+import { validateNewPlaceData } from "../validations/placeValidations";
 import { IPlace } from "types/models/place";
 
 const updatePlace = async (
@@ -19,12 +19,7 @@ const updatePlace = async (
   try {
     const placeId = req.placeId;
 
-    const validationResult = updatePlaceSchema.safeParse(req.body);
-
-    if (!validationResult.success) {
-      APIResponse(res, validationResult.error.errors, "Validation failed", 400);
-      return;
-    }
+    const validationResult = req.body;
 
     const {
       name,
@@ -64,38 +59,38 @@ const createPlace = async (
   res: Response
 ): Promise<void> => {
   try {
-    if (req.decoded.userType !== "organizer") {
-      APIResponse(res, null, "Only organizers can create multiple places", 403);
+    if (!["creator", "organizer"].includes(req.decoded.userType)) {
+      APIResponse(
+        res,
+        null,
+        "Only creators and organizers can create places",
+        403
+      );
       return;
     }
 
-    const {
-      name,
-      description,
-      location,
-      phone,
-      email,
-      website,
-      placeCategory,
-      placeType,
-      defaultSchedule,
-    } = req.body;
+    if (req.decoded.userType === "creator") {
+      const user = await User.findById(req.decoded.id).select("creatorName");
+      if (!user) {
+        APIResponse(res, null, "User not found", 404);
+        return;
+      }
+      req.body.isCreatorPlace = true;
+      req.body.name = user.creatorName;
+    }
+    req.body.user = req.decoded.id;
 
-    const placeData: Partial<IPlace> = {
-      name,
-      description,
-      location,
-      phone,
-      email,
-      website,
-      placeCategory,
-      placeType,
-      defaultSchedule,
-      active: true,
-      deleted: false,
-    };
+    const validationResult = validateNewPlaceData(
+      req.body,
+      req.decoded.userType
+    );
 
-    const place = await Place.create(placeData);
+    if (!validationResult.isValid) {
+      APIResponse(res, validationResult.errors, "Validation failed", 400);
+      return;
+    }
+
+    const place = await Place.create(req.body);
 
     await User.findByIdAndUpdate(req.decoded.id, {
       $push: { places: place._id },

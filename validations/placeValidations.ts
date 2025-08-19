@@ -1,34 +1,16 @@
 import { z } from "zod";
+import {
+  descriptionSchema,
+  emailSchema,
+  phoneSchema,
+  ValidationResult,
+  websiteSchema,
+} from "./commonValidations";
+import { IPlace } from "types/models";
 
-export const locationSchema = z.object({
-  type: z.literal("Point"),
-  coordinates: z.tuple([z.number(), z.number()]),
-  label: z.string().min(1, "L'emplacement est requis"),
-  id: z.string().min(1, "L'ID de l'emplacement est requis"),
-});
-
-const timeSlotSchema = z.object({
-  startTime: z.string(),
-  endTime: z.string(),
-});
-
-const dayScheduleSchema = z.object({
-  open: z.boolean(),
-  timeSlots: z.array(timeSlotSchema),
-});
-
-export const defaultScheduleSchema = z.object({
-  monday: dayScheduleSchema,
-  tuesday: dayScheduleSchema,
-  wednesday: dayScheduleSchema,
-  thursday: dayScheduleSchema,
-  friday: dayScheduleSchema,
-  saturday: dayScheduleSchema,
-  sunday: dayScheduleSchema,
-});
-
-export const nameSchema = z
+export const placeNameSchema = z
   .string()
+  .min(1, "Le nom est requis")
   .min(4, "Le nom doit contenir au moins 4 caractères")
   .max(40, "Le nom ne peut pas dépasser 40 caractères")
   .regex(
@@ -36,72 +18,62 @@ export const nameSchema = z
     "Le nom ne peut contenir que des lettres, chiffres, espaces et le caractère '"
   );
 
-export const phoneSchema = z
+export const placeCategorySchema = z
   .string()
-  .regex(/^[0-9]{10}$/, "Le numéro de téléphone doit contenir 10 chiffres");
+  .min(1, "La catégorie du lieu est requise");
 
-export const emailSchema = z.string().email("L'email n'est pas valide");
-
-export const websiteSchema = z
-  .string()
-  .optional()
-  .refine((val) => {
-    if (!val || val.trim() === "") return true;
-
-    const urlToValidate = val.replace(/^https?:\/\//, "");
-    if (urlToValidate.length < 3) return false;
-    if (!urlToValidate.includes(".")) return false;
-
-    const domainRegex =
-      /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-    if (!domainRegex.test(urlToValidate)) return false;
-
-    try {
-      let url = val;
-      if (!url.startsWith("http://") && !url.startsWith("https://")) {
-        url = "https://" + url;
-      }
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
-  }, "L'URL du site web n'est pas valide");
-
-export const baseFormDataSchema = z.object({
-  name: nameSchema,
-  description: z.string().optional(),
-  phone: phoneSchema,
-  email: emailSchema,
-  website: websiteSchema,
-  placeCategory: z.string(),
-  location: locationSchema.optional().nullable(),
-  placeType: z.array(z.enum(["food", "art", "craft"])).optional(),
-  placeActive: z.boolean().optional(),
-  userType: z.enum(["creator", "organizer", "guest"]),
+export const locationSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  coordinates: z.tuple([z.number(), z.number()]),
+  type: z.literal("Point"),
 });
 
-export const addOrganizerSchema = baseFormDataSchema.extend({
-  placeCategory: z.string().min(1, "La catégorie du lieu est requise"),
+export const placeTypeSchema = z
+  .array(z.enum(["art", "food", "craft"]))
+  .min(1, "Le type de lieu est requis");
+
+const newPlaceSchema = z.object({
+  placeCategory: placeCategorySchema,
   location: locationSchema,
-  placeType: z.array(z.enum(["food", "art", "craft"])).optional(),
-  defaultSchedule: defaultScheduleSchema,
-  collaborators: z.array(z.object({ _id: z.string() })).optional(),
+  active: z.boolean(),
+  name: placeNameSchema,
 });
 
-export type AddOrganizerInput = z.infer<typeof addOrganizerSchema>;
-
-export const updatePlaceSchema = z.object({
-  name: nameSchema,
-  description: z.string().optional(),
-  phone: phoneSchema,
+const newOrganizerPlaceSchema = newPlaceSchema.extend({
   email: emailSchema,
-  website: websiteSchema,
-  placeCategory: z.string().min(1, "La catégorie du lieu est requise"),
-  location: locationSchema,
-  placeType: z.array(z.enum(["food", "art", "craft"])).optional(),
-  defaultSchedule: defaultScheduleSchema,
-  collaborators: z.array(z.object({ _id: z.string() })).optional(),
+  active: z.literal(true),
+  website: websiteSchema.optional(),
+  phone: phoneSchema,
+  placeType: placeTypeSchema,
+  description: descriptionSchema,
 });
 
-export type UpdatePlaceInput = z.infer<typeof updatePlaceSchema>;
+export const validateNewPlaceData = (
+  data: Partial<IPlace>,
+  userType: "organizer" | "creator" | "guest"
+): ValidationResult => {
+  const errors: Record<string, string> = {};
+  let placeSchema;
+  if (userType === "organizer") {
+    placeSchema = newOrganizerPlaceSchema;
+  } else {
+    placeSchema = newPlaceSchema;
+  }
+  const result = placeSchema.safeParse(data);
+  if (!result.success) {
+    result.error.errors.forEach((err) => {
+      const field = err.path.join(".");
+      errors[field] = err.message;
+    });
+  }
+
+  if (!data.location) {
+    errors.location = "L'adresse du lieu est obligatoire";
+  }
+
+  return {
+    errors,
+    isValid: Object.keys(errors).length === 0,
+  };
+};

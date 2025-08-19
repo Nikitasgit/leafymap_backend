@@ -8,36 +8,10 @@ import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
 import { generateToken, setTokenCookie } from "../utils/jwt";
 import mongoose from "mongoose";
-import {
-  findCreatorsQuerySchema,
-  getUserInPlacesAndEventsQuerySchema,
-  baseUserSchema,
-  creatorSchema,
-} from "../validations/userValidation";
-import { addOrganizerSchema } from "../validations/placeValidations";
-import SubCategory from "../models/SubCategory";
+import { validateNewUserData } from "../validations/userValidation";
+import { validateNewPlaceData } from "../validations/placeValidations";
 import { IPlace } from "types/models/place";
-import { PlaceType } from "types/models/place";
 import { Partnership } from "../models/Partnership";
-
-const getPlaceTypeFromCategory = async (
-  categoryId: string
-): Promise<PlaceType[]> => {
-  try {
-    const subCategory = await SubCategory.findById(categoryId).populate(
-      "categoryId"
-    );
-    if (subCategory && subCategory.categoryId) {
-      const categoryName = (subCategory.categoryId as any).name;
-      if (categoryName && ["food", "art", "craft"].includes(categoryName)) {
-        return [categoryName as PlaceType];
-      }
-    }
-  } catch (error) {
-    logger.error("Error getting place type from category:", error);
-  }
-  return ["art"];
-};
 
 const getUserById = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -174,7 +148,7 @@ const addCreator = async (req: CustomRequest, res: Response): Promise<void> => {
         description,
         user: user._id,
         location,
-        placeType: await getPlaceTypeFromCategory(category),
+        placeType,
         isCreatorPlace: true,
         placeCategory,
         defaultSchedule,
@@ -207,12 +181,12 @@ const addOrganizer = async (
   req: CustomRequest,
   res: Response
 ): Promise<void> => {
-  const parseResult = addOrganizerSchema.safeParse(req.body);
-  if (!parseResult.success) {
-    APIResponse(res, parseResult.error.errors, "Validation error", 400);
+  const validationResult = validateNewPlaceData(req.body, "organizer");
+  if (!validationResult.isValid) {
+    APIResponse(res, validationResult.errors, "Validation error", 400);
     return;
   }
-  const data = parseResult.data;
+  const data = req.body;
   try {
     const {
       name,
@@ -376,11 +350,7 @@ const updateCreator = async (
 
       place.name = name || place.name;
       place.active = placeActive || place.active;
-      if (category) {
-        place.placeType = await getPlaceTypeFromCategory(category);
-      } else {
-        place.placeType = place.placeType || ["art"];
-      }
+      place.placeType = place.placeType;
       place.placeCategory = new mongoose.Types.ObjectId(placeCategory);
       place.description = description || place.description;
       place.placeCategory = new mongoose.Types.ObjectId(placeCategory);
@@ -397,7 +367,6 @@ const updateCreator = async (
         location,
         isCreatorPlace: true,
         placeCategory,
-        placeType: await getPlaceTypeFromCategory(category),
         defaultSchedule,
       });
       await place.save();
@@ -422,12 +391,13 @@ const findCreators = async (
   req: CustomRequest,
   res: Response
 ): Promise<void> => {
-  const parseResult = findCreatorsQuerySchema.safeParse(req.query);
+  const parseResult = req.query;
+
   if (!parseResult.success) {
     APIResponse(res, null, "Validation error", 400);
     return;
   }
-  const query = parseResult.data;
+  const query = parseResult;
   try {
     const { name, limit = 10 } = query;
     const queryFilter: any = {};
@@ -460,12 +430,12 @@ const getUserInPlacesAndEvents = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const parseResult = getUserInPlacesAndEventsQuerySchema.safeParse(req.query);
+  const parseResult = req.query;
   if (!parseResult.success) {
     APIResponse(res, null, "Validation error", 400);
     return;
   }
-  const query = parseResult.data;
+  const query = parseResult;
   try {
     const { userId } = query;
 
@@ -580,29 +550,26 @@ const getUserInPlacesAndEvents = async (
 };
 
 const updateUser = async (req: CustomRequest, res: Response): Promise<void> => {
-  const user = await User.exists({ _id: req.decoded.id });
+  const validationResult = validateNewUserData(req.body);
 
-  if (!user) {
-    APIResponse(res, null, "User not found", 404);
+  if (!validationResult.isValid) {
+    APIResponse(res, validationResult.errors, "Validation error", 400);
     return;
   }
-
-  let parseResult;
-  if (req.decoded.userType === "creator") {
-    parseResult = creatorSchema.safeParse(req.body);
-  } else {
-    parseResult = baseUserSchema.safeParse(req.body);
-  }
-
-  if (!parseResult.success) {
-    APIResponse(res, null, "Validation error", 400);
-    return;
-  }
-
-  const data = parseResult.data;
 
   try {
-    await User.findByIdAndUpdate(req.decoded.id, data, { new: true });
+    const userUpdated = await User.findByIdAndUpdate(req.decoded.id, req.body, {
+      new: true,
+    });
+    if (!userUpdated) {
+      APIResponse(res, null, "User not found", 404);
+      return;
+    }
+    const newToken = generateToken({
+      id: userUpdated._id.toString(),
+      userType: userUpdated.userType,
+    });
+    setTokenCookie(res, newToken);
     APIResponse(res, null, "User updated successfully", 200);
   } catch (error) {
     logger.error("Error updating user:", error);

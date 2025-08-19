@@ -1792,3 +1792,31 @@
 [17-08-2025 13:12:50] - [[31merror[39m]: Error updating creator: Place validation failed: user: Path `user` is required.
 [17-08-2025 13:19:16] - [[31merror[39m]: Error updating creator: Place validation failed: user: Path `user` is required.
 [17-08-2025 13:19:19] - [[31merror[39m]: Error updating creator: Place validation failed: user: Path `user` is required.
+[19-08-2025 14:42:10] - [[31merror[39m]: Error updating user: Plan executor error during findAndModify :: caused by :: E11000 duplicate key error collection: SpotLight.users index: phone_1 dup key: { phone: "6974359531" }
+[19-08-2025 15:54:06] - [[31merror[39m]: Error in getCategories: Schema hasn't been registered for model "Category".
+Use mongoose.model(name, schema)
+[19-08-2025 15:54:49] - [[31merror[39m]: Error in getCategories: Schema hasn't been registered for model "Category".
+Use mongoose.model(name, schema)
+[19-08-2025 15:55:13] - [[31merror[39m]: Error in getCategories: Schema hasn't been registered for model "Category".
+Use mongoose.model(name, schema)
+[19-08-2025 15:59:58] - [[31merror[39m]: Error in getCategories: Schema hasn't been registered for model "Category".
+Use mongoose.model(name, schema)
+[19-08-2025 16:00:25] - [[31merror[39m]: Error in getCategories: Schema hasn't been registered for model "Category".
+Use mongoose.model(name, schema)
+[19-08-2025 16:02:06] - [[31merror[39m]: Error in getCategories: Schema hasn't been registered for model "Category".
+Use mongoose.model(name, schema)
+[19-08-2025 16:03:42] - [[31merror[39m]: Error in getCategories: Schema hasn't been registered for model "Category".
+Use mongoose.model(name, schema)
+[19-08-2025 16:07:41] - [[31merror[39m]: Error in getCategories: Schema hasn't been registered for model "Category".
+Use mongoose.model(name, schema)
+[19-08-2025 16:10:23] - [[31merror[39m]: Error in getCategories: Schema hasn't been registered for model "Category".
+Use mongoose.model(name, schema)
+[19-08-2025 16:10:23] - [[31merror[39m]: Error in getCategories: Schema hasn't been registered for model "Category".
+Use mongoose.model(name, schema)
+[19-08-2025 16:11:20] - [[31merror[39m]: Error in getCategories: Schema hasn't been registered for model "Category".
+Use mongoose.model(name, schema)
+[19-08-2025 16:13:55] - [[31merror[39m]: Error in getCategories: Schema hasn't been registered for model "Category".
+Use mongoose.model(name, schema)
+[19-08-2025 16:47:57] - [[31merror[39m]: Error creating place: Place validation failed: user: Path `user` is required., name: Path `name` is required.
+[19-08-2025 16:53:31] - [[31merror[39m]: Error creating place: Place validation failed: user: Path `user` is required., name: Path `name` is required.
+[19-08-2025 16:54:57] - [[31merror[39m]: Error creating place: Place validation failed: name: Path `name` is required.

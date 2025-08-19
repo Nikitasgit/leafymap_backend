@@ -1,8 +1,8 @@
-import mongoose, { Schema, model, Types, Document } from "mongoose";
-
+import { Schema, model, Types, Document } from "mongoose";
+import "../models/Category"; 
 export interface ISubCategory extends Document {
   name: string;
-  categoryId: Types.ObjectId;
+  category: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -12,7 +12,7 @@ const subcategorySchema = new Schema<ISubCategory>({
     type: String,
     required: true,
   },
-  categoryId: {
+  category: {
     type: Schema.Types.ObjectId,
     ref: "Category",
     required: true,
