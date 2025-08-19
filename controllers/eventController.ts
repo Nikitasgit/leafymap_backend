@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
 import { CustomRequest } from "../types/custom";
-import { generateSignedUrlFromFullUrl } from "../types/s3";
+import { generateSignedUrlFromFullUrl } from "../utils/s3";
 import { IEvent } from "types/models/event";
 import { IEventPeriod } from "types/models/event";
 

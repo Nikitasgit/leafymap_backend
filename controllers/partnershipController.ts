@@ -6,12 +6,13 @@ import { CustomRequest } from "../types/custom";
 import User from "../models/User";
 import { Partnership } from "../models/Partnership";
 import { IPartnership } from "../types/models/partnership";
-import { generateSignedUrlFromFullUrl } from "../types/s3";
+import { generateSignedUrlFromFullUrl } from "../utils/s3";
 import { PartnershipDTO } from "../types/api/partnership.dto";
 import { IUser } from "types/models";
 
 const createPartnerships = async (req: CustomRequest, res: Response) => {
   try {
+    const decoded = req.decoded!;
     const { placeId, eventId } = req.params;
     const { partnerships } = req.body;
 
@@ -28,7 +29,7 @@ const createPartnerships = async (req: CustomRequest, res: Response) => {
         const newPartnership = new Partnership({
           place: placeId,
           event: eventId,
-          initiator: req.decoded.id,
+          initiator: decoded.id,
           collaborator: partnership.collaborator._id,
           type: eventId ? "event" : "place",
         });
@@ -55,6 +56,7 @@ const createPartnerships = async (req: CustomRequest, res: Response) => {
 // collaborator can update status
 const updatePartnerships = async (req: CustomRequest, res: Response) => {
   try {
+    const decoded = req.decoded!;
     const { partnerships } = req.body;
 
     const updatePromises = partnerships.map(async (partnership: any) => {
@@ -63,9 +65,9 @@ const updatePartnerships = async (req: CustomRequest, res: Response) => {
         throw new Error(`Partnership ${partnership._id} not found`);
       }
       const isInitiator =
-        existingPartnership.initiator.toString() === req.decoded.id;
+        existingPartnership.initiator.toString() === decoded.id;
       const isCollaborator =
-        existingPartnership.collaborator.toString() === req.decoded.id;
+        existingPartnership.collaborator.toString() === decoded.id;
 
       let updateData: any = {};
 

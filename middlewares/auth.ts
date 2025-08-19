@@ -1,14 +1,7 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/User";
-import { CustomRequest } from "types/custom";
-
-export interface IDecodedToken {
-  id: string;
-  userType: string;
-  iat: number;
-  exp: number;
-}
+import { CustomRequest, IDecodedToken } from "types/custom";
 
 const auth = async (
   req: CustomRequest,
@@ -38,7 +31,7 @@ const auth = async (
       return;
     }
     const userExists = await User.exists({ _id: decoded.id });
-    
+
     if (!userExists) {
       res.status(401).json({
         success: false,

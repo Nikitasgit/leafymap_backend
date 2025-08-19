@@ -18,7 +18,7 @@ async function generateSignedUrlFromFullUrl(fullUrl: string): Promise<string> {
     Key: decodeURIComponent(key),
   });
 
-  const expiresIn = 60 * 10; // 10 minutes
+  const expiresIn = 60 * 10;
   const signedUrl = await getSignedUrl(s3, command, { expiresIn });
   return signedUrl;
 }

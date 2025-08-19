@@ -1,5 +1,4 @@
 import { BaseEntity, ContactInfo, Location } from "./common.dto";
-import { CollaboratorDTO } from "./collaborator.dto";
 import { UserDTO } from "./user.dto";
 
 export interface TimeSlotDTO {
@@ -44,7 +43,6 @@ export interface PlaceDTO extends BaseEntity, ContactInfo {
   placeType: PlaceTypeDTO[];
   defaultSchedule: DefaultScheduleDTO;
   customDates: CustomDateDTO[];
-  collaborators: CollaboratorDTO[];
 }
 
 export interface PlaceCategoryDTO {

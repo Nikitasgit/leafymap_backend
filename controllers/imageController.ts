@@ -6,7 +6,7 @@ import User from "../models/User";
 import Place from "../models/Place";
 import Event from "../models/Event";
 import mongoose from "mongoose";
-import { generateSignedUrlFromFullUrl } from "../types/s3";
+import { generateSignedUrlFromFullUrl } from "../utils/s3";
 
 export type EntityType = "user" | "place" | "event";
 
@@ -22,7 +22,8 @@ const uploadProfilePicture = async (
   res: Response
 ): Promise<void> => {
   try {
-    const user = await User.findById(req.decoded.id);
+    const decoded = req.decoded!;
+    const user = await User.findById(decoded.id);
     if (!user) {
       APIResponse(res, null, "User not found", 404);
       return;

@@ -9,6 +9,7 @@ const placeOwnership = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const decoded = req.decoded!;
     const placeId = req.params.placeId;
 
     if (!placeId) {
@@ -22,7 +23,7 @@ const placeOwnership = async (
       return;
     }
 
-    if (place.user.toString() !== req.decoded.id) {
+    if (place.user.toString() !== decoded.id) {
       APIResponse(
         res,
         null,

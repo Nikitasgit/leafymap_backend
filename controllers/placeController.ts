@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { parseJson } from "../helpers/userHelpers";
+import { parseJson } from "../utils/jsonHandlers";
 import Place from "../models/Place";
 import User from "../models/User";
 import Event from "../models/Event";
-import { generateSignedUrlFromFullUrl } from "../types/s3";
+import { generateSignedUrlFromFullUrl } from "../utils/s3";
 import mongoose from "mongoose";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
@@ -59,7 +59,8 @@ const createPlace = async (
   res: Response
 ): Promise<void> => {
   try {
-    if (!["creator", "organizer"].includes(req.decoded.userType)) {
+    const decoded = req.decoded!;
+    if (!["creator", "organizer"].includes(decoded.userType)) {
       APIResponse(
         res,
         null,
@@ -69,8 +70,8 @@ const createPlace = async (
       return;
     }
 
-    if (req.decoded.userType === "creator") {
-      const user = await User.findById(req.decoded.id).select("creatorName");
+    if (decoded.userType === "creator") {
+      const user = await User.findById(decoded.id).select("creatorName");
       if (!user) {
         APIResponse(res, null, "User not found", 404);
         return;
@@ -78,11 +79,11 @@ const createPlace = async (
       req.body.isCreatorPlace = true;
       req.body.name = user.creatorName;
     }
-    req.body.user = req.decoded.id;
+    req.body.user = decoded.id;
 
     const validationResult = validateNewPlaceData(
       req.body,
-      req.decoded.userType
+      decoded.userType as "creator" | "organizer" | "guest"
     );
 
     if (!validationResult.isValid) {
@@ -92,7 +93,7 @@ const createPlace = async (
 
     const place = await Place.create(req.body);
 
-    await User.findByIdAndUpdate(req.decoded.id, {
+    await User.findByIdAndUpdate(decoded.id, {
       $push: { places: place._id },
     });
 

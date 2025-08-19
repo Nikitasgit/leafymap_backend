@@ -2,16 +2,13 @@ import { Request, Response } from "express";
 import User from "../models/User";
 import Place from "../models/Place";
 import Event from "../models/Event";
-import { generateSignedUrlFromFullUrl } from "../types/s3";
+import { generateSignedUrlFromFullUrl } from "../utils/s3";
 import { CustomRequest } from "../types/custom";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
 import { generateToken, setTokenCookie } from "../utils/jwt";
-import mongoose from "mongoose";
-import { validateNewUserData } from "../validations/userValidation";
-import { validateNewPlaceData } from "../validations/placeValidations";
+import { validateNewUserData } from "../validations/userValidations";
 import { IPlace } from "types/models/place";
-import { Partnership } from "../models/Partnership";
 
 const getUserById = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -74,9 +71,11 @@ const findCreators = async (
   try {
     const { name, limit = 10 } = req.query;
     const queryFilter: any = {};
-    const user = await User.findById(req.decoded.id);
+    // We know decoded exists because this function is called after auth middleware
+    const decoded = req.decoded!;
+    const user = await User.findById(decoded.id);
     if (user?.userType === "creator") {
-      queryFilter._id = { $ne: req.decoded.id };
+      queryFilter._id = { $ne: decoded.id };
     }
     if (name) {
       queryFilter["creatorProfile.name"] = { $regex: name, $options: "i" };
@@ -231,7 +230,8 @@ const updateUser = async (req: CustomRequest, res: Response): Promise<void> => {
   }
 
   try {
-    const userUpdated = await User.findByIdAndUpdate(req.decoded.id, req.body, {
+    const decoded = req.decoded!;
+    const userUpdated = await User.findByIdAndUpdate(decoded.id, req.body, {
       new: true,
     });
     if (!userUpdated) {

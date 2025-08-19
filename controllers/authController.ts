@@ -126,7 +126,8 @@ const getAuthUser = async (
   res: Response
 ): Promise<void> => {
   try {
-    const user = await User.findById(req.decoded.id).select("email username");
+    const decoded = req.decoded!;
+    const user = await User.findById(decoded.id).select("email username");
     APIResponse(res, user, "User retrieved successfully", 200);
   } catch (error) {
     APIResponse(res, null, "Server error", 500);
@@ -138,7 +139,8 @@ const getCurrentUser = async (
   res: Response
 ): Promise<void> => {
   try {
-    const user = await User.findById(req.decoded.id)
+    const decoded = req.decoded!;
+    const user = await User.findById(decoded.id)
       .select("-password -createdAt -updatedAt -interests  -deleted -__v")
       .populate({
         path: "creatorProfile.categories",
