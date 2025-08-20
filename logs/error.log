@@ -1822,3 +1822,4 @@ Use mongoose.model(name, schema)
 [19-08-2025 16:54:57] - [[31merror[39m]: Error creating place: Place validation failed: name: Path `name` is required.
 [19-08-2025 18:26:06] - [[31merror[39m]: Error creating partnership: Cannot read properties of undefined (reading '_id')
 [19-08-2025 18:29:14] - [[31merror[39m]: Error creating partnership: Cannot read properties of undefined (reading '_id')
+[20-08-2025 16:51:50] - [[31merror[39m]: Error updating place: Cannot destructure property 'name' of 'validationResult.data' as it is undefined.

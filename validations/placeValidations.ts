@@ -49,17 +49,25 @@ const newOrganizerPlaceSchema = newPlaceSchema.extend({
   description: descriptionSchema,
 });
 
-export const validateNewPlaceData = (
+const updatePlaceSchema = newPlaceSchema.partial();
+const updateOrganizerPlaceSchema = newOrganizerPlaceSchema.partial();
+
+export const validatePlaceData = (
   data: Partial<IPlace>,
-  userType: "organizer" | "creator" | "guest"
+  userType: "organizer" | "creator" | "guest",
+  isUpdate: boolean = false
 ): ValidationResult => {
   const errors: Record<string, string> = {};
+
   let placeSchema;
-  if (userType === "organizer") {
-    placeSchema = newOrganizerPlaceSchema;
+  if (isUpdate) {
+    placeSchema =
+      userType === "organizer" ? updateOrganizerPlaceSchema : updatePlaceSchema;
   } else {
-    placeSchema = newPlaceSchema;
+    placeSchema =
+      userType === "organizer" ? newOrganizerPlaceSchema : newPlaceSchema;
   }
+
   const result = placeSchema.safeParse(data);
   if (!result.success) {
     result.error.errors.forEach((err) => {
@@ -68,7 +76,7 @@ export const validateNewPlaceData = (
     });
   }
 
-  if (!data.location) {
+  if (!isUpdate && !data.location) {
     errors.location = "L'adresse du lieu est obligatoire";
   }
 

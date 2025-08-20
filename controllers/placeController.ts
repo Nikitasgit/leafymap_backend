@@ -4,13 +4,11 @@ import Place from "../models/Place";
 import User from "../models/User";
 import Event from "../models/Event";
 import { generateSignedUrlFromFullUrl } from "../utils/s3";
-import mongoose from "mongoose";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
 import { enrichScheduleWithEvents } from "../utils/schedule";
 import { CustomRequest } from "../types/custom";
-import { validateNewPlaceData } from "../validations/placeValidations";
-import { IPlace } from "types/models/place";
+import { validatePlaceData } from "../validations/placeValidations";
 
 const updatePlace = async (
   req: CustomRequest,
@@ -18,34 +16,32 @@ const updatePlace = async (
 ): Promise<void> => {
   try {
     const placeId = req.placeId;
+    const decoded = req.decoded!;
 
-    const validationResult = req.body;
+    if (decoded.userType === "creator") {
+      const user = await User.findById(decoded.id).select(
+        "creatorName creatorCategories"
+      );
+      if (!user) {
+        APIResponse(res, null, "User not found", 404);
+        return;
+      }
+      req.body.isCreatorPlace = true;
+      req.body.name = user.creatorName;
+    }
 
-    const {
-      name,
-      description,
-      location,
-      phone,
-      email,
-      website,
-      placeCategory,
-      placeType,
-      defaultSchedule,
-    } = validationResult.data;
+    const validationResult = validatePlaceData(
+      req.body,
+      decoded.userType as "creator" | "organizer",
+      true
+    );
 
-    const updateData: Partial<IPlace> = {
-      name,
-      description,
-      location,
-      phone,
-      email,
-      website,
-      placeCategory: new mongoose.Types.ObjectId(placeCategory),
-      placeType,
-      defaultSchedule,
-    };
-
-    const place = await Place.findByIdAndUpdate(placeId, updateData);
+    if (!validationResult.isValid) {
+      APIResponse(res, validationResult.errors, "Validation failed", 400);
+      return;
+    }
+    
+    const place = await Place.findByIdAndUpdate(placeId, req.body);
 
     APIResponse(res, place, "Place updated successfully", 200);
   } catch (error) {
@@ -81,9 +77,9 @@ const createPlace = async (
     }
     req.body.user = decoded.id;
 
-    const validationResult = validateNewPlaceData(
+    const validationResult = validatePlaceData(
       req.body,
-      decoded.userType as "creator" | "organizer" | "guest"
+      decoded.userType as "creator" | "organizer"
     );
 
     if (!validationResult.isValid) {
