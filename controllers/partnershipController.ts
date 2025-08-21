@@ -99,10 +99,11 @@ const updatePartnerships = async (req: CustomRequest, res: Response) => {
 const getPartnerships = async (req: Request, res: Response) => {
   try {
     const { placeId, eventId } = req.params;
-
+    const type = req.query.type as "place" | "event";
     const partnerships = await Partnership.find({
-      $or: [{ place: placeId }, { event: eventId }],
-      type: eventId ? "event" : "place",
+      place: placeId,
+      event: eventId,
+      type,
     })
       .populate("collaborator", "creatorProfile image deleted")
       .select("collaborator status deleted")

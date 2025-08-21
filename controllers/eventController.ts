@@ -8,6 +8,8 @@ import { CustomRequest } from "../types/custom";
 import { generateSignedUrlFromFullUrl } from "../utils/s3";
 import { IEvent } from "types/models/event";
 import { IEventPeriod } from "types/models/event";
+import { validateEventData } from "../validations/eventValidations";
+import { format } from "date-fns";
 
 const createEvent = async (
   req: CustomRequest,
@@ -15,30 +17,16 @@ const createEvent = async (
 ): Promise<void> => {
   try {
     const placeId = req.placeId;
-
-    const { name, description, schedule } = req.body;
-
-    if (!name || !description || !schedule) {
-      APIResponse(
-        res,
-        null,
-        "Name, description, and schedule are required",
-        400
-      );
+    const validationResult = validateEventData(req.body);
+    if (!validationResult.isValid) {
+      APIResponse(res, validationResult.errors, "Validation failed", 400);
       return;
     }
+    req.body.place = new mongoose.Types.ObjectId(placeId);
+    req.body.status = "upcoming";
+    const event = await Event.create(req.body);
 
-    const eventData: any = {
-      name,
-      description,
-      schedule,
-      place: new mongoose.Types.ObjectId(placeId),
-      status: "upcoming",
-    };
-
-    const event = await Event.create(eventData);
-
-    APIResponse(res, event, "Event created successfully", 201);
+    APIResponse(res, event._id, "Event created successfully", 201);
   } catch (error) {
     if (error instanceof Error) {
       APIResponse(res, null, `Failed to create event: ${error.message}`, 500);
@@ -140,6 +128,8 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
       schedule: await Promise.all(
         event.schedule.map(async (period) => ({
           ...period,
+          startDate: format(period.startDate, "dd-MM-yyyy"),
+          endDate: period.endDate ? format(period.endDate, "dd-MM-yyyy") : "",
           timeSlots: await Promise.all(
             period.timeSlots.map(async (slot) => ({
               ...slot,
@@ -181,51 +171,13 @@ const updateEvent = async (
       APIResponse(res, null, "Event ID is required", 400);
       return;
     }
-
-    const { name, description, schedule, status } = req.body;
-
-    const transformedSchedule: IEventPeriod[] = schedule.map((period: any) => ({
-      startDate: new Date(period.startDate),
-      endDate: new Date(period.endDate),
-      timeSlots: (period.timeSlots || []).map((slot: any) => ({
-        title: slot.title || "",
-        startTime: slot.startTime || "",
-        endTime: slot.endTime || "",
-        collaborators: slot.collaborators.map((collaborator: any) => ({
-          _id: new mongoose.Types.ObjectId(collaborator._id),
-        })),
-      })),
-    }));
-
-    if (transformedSchedule.length === 0) {
-      APIResponse(res, null, "Schedule must contain at least one period", 400);
+    const validationResult = validateEventData(req.body);
+    if (!validationResult.isValid) {
+      APIResponse(res, validationResult.errors, "Validation failed", 400);
       return;
     }
 
-    // Validate that each period has valid dates
-    for (const period of transformedSchedule) {
-      if (!period.startDate || !period.endDate) {
-        APIResponse(
-          res,
-          null,
-          "Each schedule period must have valid dates",
-          400
-        );
-        return;
-      }
-    }
-
-    const updateData: Partial<IEvent> = {
-      name,
-      description,
-      schedule: transformedSchedule,
-    };
-
-    if (status) {
-      updateData.status = status;
-    }
-
-    const event = await Event.findByIdAndUpdate(eventId, updateData, {
+    const event = await Event.findByIdAndUpdate(eventId, req.body, {
       new: true,
     });
 
@@ -234,7 +186,7 @@ const updateEvent = async (
       return;
     }
 
-    APIResponse(res, event, "Event updated successfully", 200);
+    APIResponse(res, event._id, "Event updated successfully", 200);
   } catch (error) {
     if (error instanceof Error) {
       APIResponse(res, null, `Failed to update event: ${error.message}`, 500);

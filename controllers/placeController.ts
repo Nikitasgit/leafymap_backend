@@ -40,7 +40,7 @@ const updatePlace = async (
       APIResponse(res, validationResult.errors, "Validation failed", 400);
       return;
     }
-    
+
     const place = await Place.findByIdAndUpdate(placeId, req.body);
 
     APIResponse(res, place, "Place updated successfully", 200);
