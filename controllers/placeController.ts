@@ -113,14 +113,13 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
       .populate({
         path: "user",
         model: "User",
-        select: "creatorProfile.categories",
+        select: "creatorCategories",
         populate: {
-          path: "creatorProfile.categories",
+          path: "creatorCategories",
           model: "SubCategory",
         },
       })
       .lean();
-
     if (!place) {
       APIResponse(res, null, "Place not found", 404);
       return;

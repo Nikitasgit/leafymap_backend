@@ -17,7 +17,7 @@ const placeOwnership = async (
       return;
     }
 
-    const place = await Place.findById(placeId);
+    const place = await Place.findById(placeId).select("user");
     if (!place) {
       APIResponse(res, null, "Place not found", 404);
       return;

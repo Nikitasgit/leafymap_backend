@@ -1,13 +1,10 @@
 import { Request, Response } from "express";
 import Event from "../models/Event";
-import User from "../models/User";
 import mongoose from "mongoose";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
 import { CustomRequest } from "../types/custom";
 import { generateSignedUrlFromFullUrl } from "../utils/s3";
-import { IEvent } from "types/models/event";
-import { IEventPeriod } from "types/models/event";
 import { validateEventData } from "../validations/eventValidations";
 import { format } from "date-fns";
 
@@ -42,13 +39,13 @@ const getEventsByPlaceId = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { id } = req.params;
-    if (!id) {
+    const { placeId } = req.params;
+    if (!placeId) {
       APIResponse(res, null, "Place ID is required", 400);
       return;
     }
     const events = await Event.find({
-      place: new mongoose.Types.ObjectId(id),
+      place: new mongoose.Types.ObjectId(placeId),
     }).populate([
       {
         path: "schedule.timeSlots.collaborators.user",
@@ -106,14 +103,14 @@ const getEventsByPlaceId = async (
 
 const getEventById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
-    const event = await Event.findById(id)
+      const { eventId } = req.params;
+    const event = await Event.findById(eventId)
       .populate([{ path: "place", model: "Place", select: "_id" }])
       .populate([
         {
           path: "schedule.timeSlots.collaborators",
           model: "User",
-          select: "_id creatorProfile.name image",
+          select: "_id creatorName image",
         },
       ])
       .lean();
@@ -136,7 +133,7 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
               collaborators: await Promise.all(
                 slot.collaborators.map(async (collaborator: any) => ({
                   _id: collaborator._id,
-                  name: collaborator.creatorProfile.name,
+                  name: collaborator.creatorName,
                   image: collaborator.image
                     ? await generateSignedUrlFromFullUrl(collaborator.image)
                     : "",
