@@ -19,10 +19,10 @@ export interface IEvent extends Document {
   _id: Types.ObjectId;
   name: string;
   description: string;
+  status: "cancelled" | "full" | "available";
   schedule: IEventPeriod[];
   place: Types.ObjectId | Partial<IPlace>;
   image?: string;
-  status: "upcoming" | "ongoing" | "completed" | "cancelled";
   createdAt: Date;
   updatedAt: Date;
 }

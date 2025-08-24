@@ -71,7 +71,6 @@ const findCreators = async (
   try {
     const { name, limit = 10 } = req.query;
     const queryFilter: any = {};
-    // We know decoded exists because this function is called after auth middleware
     const decoded = req.decoded!;
     const user = await User.findById(decoded.id);
     if (user?.userType === "creator") {

@@ -8,7 +8,7 @@ export interface IDecodedToken {
   exp: number;
 }
 export interface CustomRequest extends Request {
-  file?: Express.Multer.File & { location?: string };
+  files?: S3File[] | { [fieldname: string]: S3File[] };
   placeId?: string;
   decoded?: IDecodedToken;
 }

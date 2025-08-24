@@ -42,8 +42,8 @@ export const eventSchema = new Schema<IEvent>(
     image: String,
     status: {
       type: String,
-      enum: ["upcoming", "ongoing", "completed", "cancelled"],
-      default: "upcoming",
+      enum: ["cancelled", "full", "available"],
+      default: "available",
     },
   },
   { timestamps: true }

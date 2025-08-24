@@ -20,7 +20,6 @@ const createEvent = async (
       return;
     }
     req.body.place = new mongoose.Types.ObjectId(placeId);
-    req.body.status = "upcoming";
     const event = await Event.create(req.body);
 
     APIResponse(res, event._id, "Event created successfully", 201);
@@ -46,55 +45,18 @@ const getEventsByPlaceId = async (
     }
     const events = await Event.find({
       place: new mongoose.Types.ObjectId(placeId),
-    }).populate([
-      {
-        path: "schedule.timeSlots.collaborators.user",
-        model: "User",
-        select: "_id username image",
-      },
-    ]);
+    })
+      .select("name image place description status schedule")
+      .populate({ path: "place", model: "Place", select: "_id name" })
+      .lean();
 
-    const eventsWithSignedUrls = await Promise.all(
-      events.map(async (event) => {
-        const eventObj = event.toObject();
-        if (eventObj.image) {
-          eventObj.image = await generateSignedUrlFromFullUrl(eventObj.image);
-        }
+    for (const event of events) {
+      if (event.image) {
+        event.image = await generateSignedUrlFromFullUrl(event.image);
+      }
+    }
 
-        // Process collaborators in timeSlots
-        if (eventObj.schedule) {
-          eventObj.schedule = await Promise.all(
-            eventObj.schedule.map(async (period: any) => {
-              if (period.timeSlots) {
-                period.timeSlots = await Promise.all(
-                  period.timeSlots.map(async (slot: any) => {
-                    if (slot.collaborators) {
-                      slot.collaborators = await Promise.all(
-                        slot.collaborators.map(async (collaborator: any) => {
-                          if (collaborator._id && collaborator._id.image) {
-                            collaborator._id.image =
-                              await generateSignedUrlFromFullUrl(
-                                collaborator._id.image
-                              );
-                          }
-                          return collaborator;
-                        })
-                      );
-                    }
-                    return slot;
-                  })
-                );
-              }
-              return period;
-            })
-          );
-        }
-
-        return eventObj;
-      })
-    );
-
-    APIResponse(res, eventsWithSignedUrls, "Events fetched successfully", 200);
+    APIResponse(res, events, "Events fetched successfully", 200);
   } catch (error) {
     APIResponse(res, null, "Failed to fetch events", 500);
     logger.error("Error fetching events:", error);
@@ -103,7 +65,7 @@ const getEventsByPlaceId = async (
 
 const getEventById = async (req: Request, res: Response): Promise<void> => {
   try {
-      const { eventId } = req.params;
+    const { eventId } = req.params;
     const event = await Event.findById(eventId)
       .populate([{ path: "place", model: "Place", select: "_id" }])
       .populate([

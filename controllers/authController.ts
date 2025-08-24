@@ -143,15 +143,8 @@ const getCurrentUser = async (
     const user = await User.findById(decoded.id)
       .select("-password -createdAt -updatedAt -interests  -deleted -__v")
       .populate({
-        path: "creatorProfile.categories",
+        path: "creatorCategories",
         model: "SubCategory",
-      })
-      .populate({
-        path: "creatorProfile.place",
-        populate: {
-          path: "placeCategory",
-          model: "PlaceCategory",
-        },
       })
       .populate({
         path: "places",
@@ -161,7 +154,12 @@ const getCurrentUser = async (
       APIResponse(res, null, "User not found", 404);
       return;
     }
-
+    const places = user.places;
+    for (const place of places) {
+      if ("image" in place && place.image) {
+        place.image = await generateSignedUrlFromFullUrl(place.image);
+      }
+    }
     let signedImageUrl = null;
     if (user.image) {
       try {

@@ -1,5 +1,6 @@
 import { Document, Types } from "mongoose";
 import { ISO_COUNTRIES_ALPHA2 } from "../../utils/constants/countries";
+import { IPlace } from "./place";
 
 export interface IAddress {
   number?: string;
@@ -33,7 +34,7 @@ export interface IUser extends Document {
   followers: Types.ObjectId[];
   creatorProfile?: ICreatorProfile;
   interests: Types.ObjectId[];
-  places: Types.ObjectId[];
+  places: (Types.ObjectId | IPlace)[];
   createdAt: Date;
   updatedAt: Date;
 }

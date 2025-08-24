@@ -8,7 +8,7 @@ import categorieRoutes from "./routes/categorieRoutes";
 import authRoutes from "./routes/authRoutes";
 import placeRoutes from "./routes/placeRoutes";
 import eventRoutes from "./routes/eventRoutes";
-import imageRoutes from "./routes/imageRoutes";
+import awsRoutes from "./routes/awsRoutes";
 import partnershipRoutes from "./routes/partnershipRoutes";
 import cookieParser from "cookie-parser";
 
@@ -33,7 +33,7 @@ app.use("/api/categories", categorieRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/places", placeRoutes);
 app.use("/api/events", eventRoutes);
-app.use("/api/images", imageRoutes);
+app.use("/api/aws", awsRoutes);
 app.use("/api/partnerships", partnershipRoutes);
 
 app.use(errorHandler);

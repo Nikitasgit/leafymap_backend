@@ -1,4 +1,8 @@
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  GetObjectCommand,
+  DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const s3 = new S3Client({
@@ -8,10 +12,12 @@ const s3 = new S3Client({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
   },
 });
-
+const bucketName = process.env.AWS_BUCKET_NAME as string;
 async function generateSignedUrlFromFullUrl(fullUrl: string): Promise<string> {
-  const bucketName = "linkal";
-  const key = fullUrl.replace("https://linkal.s3.eu-west-3.amazonaws.com/", "");
+  const key = fullUrl.replace(
+    `https://${bucketName}.s3.eu-west-3.amazonaws.com/`,
+    ""
+  );
 
   const command = new GetObjectCommand({
     Bucket: bucketName,
@@ -23,4 +29,26 @@ async function generateSignedUrlFromFullUrl(fullUrl: string): Promise<string> {
   return signedUrl;
 }
 
-export { generateSignedUrlFromFullUrl };
+async function deleteObjectFromS3(fullUrl: string): Promise<boolean> {
+  try {
+    const bucketName = process.env.AWS_BUCKET_NAME as string;
+    const cleanUrl = fullUrl.split("?")[0];
+    const key = cleanUrl.replace(
+      `https://${bucketName}.s3.eu-west-3.amazonaws.com/`,
+      ""
+    );
+
+    const command = new DeleteObjectCommand({
+      Bucket: bucketName,
+      Key: decodeURIComponent(key),
+    });
+
+    await s3.send(command);
+    return true;
+  } catch (error) {
+    console.error("Error deleting object from S3:", error);
+    return false;
+  }
+}
+
+export { generateSignedUrlFromFullUrl, deleteObjectFromS3 };
