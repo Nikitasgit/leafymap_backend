@@ -13,6 +13,7 @@ import {
 import { generateSignedUrlFromFullUrl } from "../utils/s3";
 import { z } from "zod";
 import { CustomRequest } from "types/custom";
+import { IImage } from "types/models/Image";
 
 const register = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -143,13 +144,20 @@ const getCurrentUser = async (
     const user = await User.findById(decoded.id)
       .select("-password -createdAt -updatedAt -interests  -deleted -__v")
       .populate({
+        path: "image",
+        model: "Image",
+        select: "url",
+      })
+      .populate({
         path: "creatorCategories",
         model: "SubCategory",
       })
       .populate({
         path: "places",
         model: "Place",
-      });
+      })
+      .lean();
+
     if (!user) {
       APIResponse(res, null, "User not found", 404);
       return;
@@ -160,24 +168,14 @@ const getCurrentUser = async (
         place.image = await generateSignedUrlFromFullUrl(place.image);
       }
     }
-    let signedImageUrl = null;
-    if (user.image) {
-      try {
-        signedImageUrl = await generateSignedUrlFromFullUrl(user.image);
-      } catch (error) {
-        logger.error("Error generating signed URL for user image:", error);
-      }
+    if (user.image && typeof user.image === "object" && "url" in user.image) {
+      user.image.url = await generateSignedUrlFromFullUrl(user.image.url);
     }
-
-    const userWithSignedImage = {
-      ...user.toObject(),
-      image: signedImageUrl || user.image,
-    };
 
     APIResponse(
       res,
       {
-        user: userWithSignedImage,
+        user,
       },
       "User retrieved successfully",
       200

@@ -1,6 +1,7 @@
 import { Document, Types } from "mongoose";
 import { ISO_COUNTRIES_ALPHA2 } from "../../utils/constants/countries";
 import { IPlace } from "./place";
+import { IImage } from "./Image";
 
 export interface IAddress {
   number?: string;
@@ -30,7 +31,7 @@ export interface IUser extends Document {
   address?: IAddress;
   description?: string;
   country?: (typeof ISO_COUNTRIES_ALPHA2)[number];
-  image?: string;
+  image?: Types.ObjectId | IImage | string;
   followers: Types.ObjectId[];
   creatorProfile?: ICreatorProfile;
   interests: Types.ObjectId[];

@@ -1832,3 +1832,12 @@ Use mongoose.model(name, schema)
 [23-08-2025 15:38:17] - [[31merror[39m]: Error uploading profile picture: You can only update profile pictures for your own places
 [23-08-2025 15:39:46] - [[31merror[39m]: Error uploading profile picture: You can only update profile pictures for your own places
 [24-08-2025 14:47:10] - [[31merror[39m]: Error creating event: Event validation failed: status: `upcoming` is not a valid enum value for path `status`.
+[27-08-2025 18:15:10] - [[31merror[39m]: Erreur lors de l'upload des images: Image validation failed: type: Path `type` is required., referenceType: Path `referenceType` is required., reference: Path `reference` is required.
+[27-08-2025 18:56:34] - [[31merror[39m]: Error in getCurrentUser: Cast to ObjectId failed for value "https://linkal.s3.eu-west-3.amazonaws.com/images-1756311599424-432163776.jpg" (type string) at path "_id" for model "Image"
+[27-08-2025 18:59:25] - [[31merror[39m]: Error getting partnerships by place id: Cannot read properties of undefined (reading 'replace')
+[27-08-2025 18:59:25] - [[31merror[39m]: Error getting partnerships by place id: Cannot read properties of undefined (reading 'replace')
+[27-08-2025 19:00:21] - [[31merror[39m]: Error getting partnerships by place id: Cannot read properties of undefined (reading 'replace')
+[27-08-2025 19:00:21] - [[31merror[39m]: Error getting partnerships by place id: Cannot read properties of undefined (reading 'replace')
+[28-08-2025 17:43:32] - [[31merror[39m]: Error updating user: Cast to ObjectId failed for value "" (type string) at path "image" because of "BSONError"
+[28-08-2025 18:19:34] - [[31merror[39m]: Error updating user: Cast to ObjectId failed for value "" (type string) at path "image" because of "BSONError"
+[28-08-2025 18:31:09] - [[31merror[39m]: Error updating user: Cast to ObjectId failed for value "" (type string) at path "image" because of "BSONError"

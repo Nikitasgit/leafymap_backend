@@ -1,96 +1,57 @@
-import { Response } from "express";
+import { Request, Response } from "express";
+import Image from "../models/Image";
 import { CustomRequest } from "../types/custom";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
+import { IImageAWS } from "types/models/Image";
 import { generateSignedUrlFromFullUrl, deleteObjectFromS3 } from "../utils/s3";
 import { S3File } from "../middlewares/uploadToS3";
 
-const uploadImages = async (
+export const uploadImages = async (
   req: CustomRequest,
   res: Response
 ): Promise<void> => {
   try {
+    const { reference, referenceType, type } = req.body;
     const files = Array.isArray(req.files) ? req.files : req.files?.images;
+
     if (!files || files.length === 0) {
-      APIResponse(res, null, "No images provided", 400);
+      APIResponse(res, null, "Aucune image fournie", 400);
       return;
     }
 
-    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
-    for (const file of files) {
-      if (!allowedTypes.includes(file.mimetype)) {
-        APIResponse(
-          res,
-          null,
-          `Invalid file type: ${file.originalname}. Only JPEG, PNG, GIF and WebP are allowed.`,
-          400
-        );
-        return;
-      }
-
-      if (file.size > maxSize) {
-        APIResponse(
-          res,
-          null,
-          `File too large: ${file.originalname}. Maximum size is 5MB.`,
-          400
-        );
-        return;
-      }
+    let filesToProcess = files;
+    const onlyOneImageTypes = ["profile", "cover"];
+    if (
+      onlyOneImageTypes.includes(type) &&
+      ["event", "place", "user"].includes(referenceType)
+    ) {
+      filesToProcess = files.slice(0, 1);
     }
 
     const imageResults = await Promise.all(
-      files.map(async (file: S3File) => {
-        const signedUrl = await generateSignedUrlFromFullUrl(file.location);
+      filesToProcess.map(async (file: S3File) => {
         return {
-          originalName: file.originalname,
           url: file.location,
-          signedUrl: signedUrl,
+          user: req.decoded!.id,
+          referenceType: referenceType,
+          reference: reference,
+          type: type,
+          originalName: file.originalname,
           size: file.size,
           mimetype: file.mimetype,
         };
       })
     );
 
-    APIResponse(
-      res,
-      {
-        images: imageResults,
-        count: imageResults.length,
-      },
-      "Images uploaded successfully",
-      200
-    );
-  } catch (error) {
-    logger.error("Error uploading images:", error);
-    if (error instanceof Error) {
-      APIResponse(res, null, `Failed to upload images: ${error.message}`, 500);
-    } else {
-      APIResponse(res, null, "Failed to upload images", 500);
-    }
-  }
-};
+    const createdImages = await Image.insertMany(imageResults);
 
-const deleteImages = async (
-  req: CustomRequest,
-  res: Response
-): Promise<void> => {
-  try {
-    const { imageUrls } = req.body;
-    if (!imageUrls || !Array.isArray(imageUrls) || imageUrls.length === 0) {
-      APIResponse(res, null, "No image URLs provided", 400);
-      return;
-    }
-
-    const deleteResults = await Promise.allSettled(
-      imageUrls.map(async (imageUrl) => {
-        const success = await deleteObjectFromS3(imageUrl);
+    const imagesWithSignedUrl = await Promise.all(
+      createdImages.map(async (image) => {
+        const signedUrl = await generateSignedUrlFromFullUrl(image.url);
         return {
-          url: imageUrl,
-          deleted: success,
+          ...image.toObject(),
+          signedUrl,
         };
       })
     );
@@ -98,20 +59,65 @@ const deleteImages = async (
     APIResponse(
       res,
       {
-        results: deleteResults,
-        totalRequested: imageUrls.length,
+        images: imagesWithSignedUrl,
+        count: imagesWithSignedUrl.length,
       },
-      `Images deletion completed. ${deleteResults.length} deleted, ${deleteResults.length} failed.`,
+      "Images uploadées et créées avec succès",
       200
     );
   } catch (error) {
-    logger.error("Error deleting images:", error);
-    if (error instanceof Error) {
-      APIResponse(res, null, `Failed to delete images: ${error.message}`, 500);
-    } else {
-      APIResponse(res, null, "Failed to delete images", 500);
-    }
+    logger.error("Erreur lors de l'upload et création des images:", error);
+    APIResponse(res, null, "Erreur serveur lors de l'upload des images", 500);
   }
 };
 
-export { uploadImages, deleteImages };
+export const deleteImages = async (
+  req: CustomRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const imagesToDelete = await Image.find({ _id: { $in: req.images } });
+    const deletedFromDB = await Image.deleteMany({ _id: { $in: req.images } });
+
+    const s3DeleteResults = await Promise.allSettled(
+      imagesToDelete.map(async (image) => {
+        const success = await deleteObjectFromS3(image.url);
+        return {
+          imageId: image._id,
+          url: image.url,
+          deletedFromS3: success,
+        };
+      })
+    );
+
+    const successfulS3Deletions = s3DeleteResults.filter(
+      (result) => result.status === "fulfilled" && result.value.deletedFromS3
+    ).length;
+
+    const failedS3Deletions = s3DeleteResults.length - successfulS3Deletions;
+
+    APIResponse(
+      res,
+      {
+        deletedFromDB: deletedFromDB.deletedCount,
+        deletedFromS3: successfulS3Deletions,
+        failedS3Deletions: failedS3Deletions,
+        s3DeleteResults: s3DeleteResults.map((result) =>
+          result.status === "fulfilled"
+            ? result.value
+            : { error: result.reason }
+        ),
+      },
+      `Images supprimées avec succès. ${deletedFromDB.deletedCount} supprimées de la BDD, ${successfulS3Deletions} supprimées de S3`,
+      200
+    );
+  } catch (error) {
+    logger.error("Erreur lors de la suppression des images:", error);
+    APIResponse(
+      res,
+      null,
+      "Erreur serveur lors de la suppression des images",
+      500
+    );
+  }
+};

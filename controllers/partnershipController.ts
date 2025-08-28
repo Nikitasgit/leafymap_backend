@@ -9,6 +9,7 @@ import { IPartnership } from "../types/models/partnership";
 import { generateSignedUrlFromFullUrl } from "../utils/s3";
 import { PartnershipDTO } from "../types/api/partnership.dto";
 import { IUser } from "types/models";
+import { IImage } from "types/models/Image";
 
 const createPartnerships = async (req: CustomRequest, res: Response) => {
   try {
@@ -106,6 +107,11 @@ const getPartnerships = async (req: Request, res: Response) => {
       type,
     })
       .populate("collaborator", "creatorProfile image deleted")
+      .populate({
+        path: "collaborator.image",
+        model: "Image",
+        select: "url",
+      })
       .select("collaborator status deleted")
       .lean();
 
@@ -122,7 +128,9 @@ const getPartnerships = async (req: Request, res: Response) => {
             name: collaborator.creatorProfile?.name,
             categories: collaborator.creatorProfile?.categories,
             image: collaborator.image
-              ? await generateSignedUrlFromFullUrl(collaborator.image)
+              ? await generateSignedUrlFromFullUrl(
+                  (collaborator.image as IImage).url
+                )
               : "",
             deleted: collaborator.deleted,
           },

@@ -11,6 +11,7 @@ import eventRoutes from "./routes/eventRoutes";
 import awsRoutes from "./routes/awsRoutes";
 import partnershipRoutes from "./routes/partnershipRoutes";
 import cookieParser from "cookie-parser";
+import imageRoutes from "./routes/imageRoutes";
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/places", placeRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/aws", awsRoutes);
+app.use("/api/images", imageRoutes);
 app.use("/api/partnerships", partnershipRoutes);
 
 app.use(errorHandler);

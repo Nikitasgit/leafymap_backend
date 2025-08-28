@@ -9,6 +9,7 @@ import logger from "../utils/logger";
 import { generateToken, setTokenCookie } from "../utils/jwt";
 import { validateNewUserData } from "../validations/userValidations";
 import { IPlace } from "types/models/place";
+import { IImage } from "types/models/Image";
 
 const getUserById = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -20,11 +21,9 @@ const getUserById = async (req: Request, res: Response): Promise<void> => {
         model: "SubCategory",
       })
       .populate({
-        path: "creatorProfile.place",
-        populate: {
-          path: "placeCategory",
-          model: "PlaceCategory",
-        },
+        path: "image",
+        model: "Image",
+        select: "url",
       })
       .populate({
         path: "places",
@@ -45,9 +44,10 @@ const getUserById = async (req: Request, res: Response): Promise<void> => {
         })
       );
     }
-    if (user?.image) {
-      const signedUrl = await generateSignedUrlFromFullUrl(user.image);
-      user.image = signedUrl;
+    if (user.image && typeof user.image !== "string") {
+      user.image = await generateSignedUrlFromFullUrl(
+        (user.image as IImage).url
+      );
     }
 
     if (user?.userType === "creator" && user?.creatorProfile?.place) {
@@ -64,32 +64,31 @@ const getUserById = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-const findCreators = async (
-  req: CustomRequest,
-  res: Response
-): Promise<void> => {
+const findCreators = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, limit = 10 } = req.query;
     const queryFilter: any = {};
-    const decoded = req.decoded!;
-    const user = await User.findById(decoded.id);
-    if (user?.userType === "creator") {
-      queryFilter._id = { $ne: decoded.id };
-    }
     if (name) {
-      queryFilter["creatorProfile.name"] = { $regex: name, $options: "i" };
+      queryFilter["creatorName"] = { $regex: name, $options: "i" };
     }
 
     const users = await User.find(queryFilter)
-      .select("creatorProfile.name image")
-      .limit(parseInt(limit as string));
+      .select("-password -createdAt -updatedAt -interests  -deleted -__v")
+      .populate({
+        path: "image",
+        model: "Image",
+        select: "url",
+      })
+      .limit(parseInt(limit as string))
+      .lean();
 
     for (let user of users) {
-      if (user?.image) {
-        user.image = await generateSignedUrlFromFullUrl(user.image);
+      if (user.image && typeof user.image !== "string") {
+        user.image = await generateSignedUrlFromFullUrl(
+          (user.image as IImage).url
+        );
       }
     }
-
     APIResponse(res, users, "Users fetched successfully", 200);
   } catch (err) {
     logger.error("Error finding users:", err);
@@ -181,10 +180,11 @@ const getUserInPlacesAndEvents = async (
       }
     });
 
-    if (user?.image) {
-      user.image = await generateSignedUrlFromFullUrl(user.image);
+    if (user.image && typeof user.image !== "string") {
+      user.image = await generateSignedUrlFromFullUrl(
+        (user.image as IImage).url
+      );
     }
-
     await Promise.all(
       Array.from(placeEventsMap.values()).map(async (placeData) => {
         if (placeData.place?.image) {
@@ -230,7 +230,14 @@ const updateUser = async (req: CustomRequest, res: Response): Promise<void> => {
 
   try {
     const decoded = req.decoded!;
-    const userUpdated = await User.findByIdAndUpdate(decoded.id, req.body, {
+
+    // Nettoyer les données - convertir null/"" en undefined pour supprimer le champ
+    const cleanedData = { ...req.body };
+    if (cleanedData.image === null || cleanedData.image === "") {
+      cleanedData.image = undefined; // MongoDB ignore les champs undefined
+    }
+
+    const userUpdated = await User.findByIdAndUpdate(decoded.id, cleanedData, {
       new: true,
     });
     if (!userUpdated) {

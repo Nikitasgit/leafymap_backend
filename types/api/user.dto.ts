@@ -1,4 +1,5 @@
 import { BaseEntity } from "./common.dto";
+import { ImageDTO } from "./image.dto";
 import { PlaceDTO } from "./place.dto";
 
 export interface UserDTO extends BaseEntity {
@@ -17,7 +18,7 @@ export interface UserDTO extends BaseEntity {
   };
   description?: string;
   country?: string;
-  image?: string;
+  image?: string | Partial<ImageDTO>;
   followers: string[] | Partial<UserDTO>[];
   creatorProfile?: {
     categories: string[];
