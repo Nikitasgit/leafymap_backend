@@ -1,9 +1,8 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import Image from "../models/Image";
 import { CustomRequest } from "../types/custom";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
-import { IImageAWS } from "types/models/Image";
 import { generateSignedUrlFromFullUrl, deleteObjectFromS3 } from "../utils/s3";
 import { S3File } from "../middlewares/uploadToS3";
 
@@ -14,7 +13,6 @@ export const uploadImages = async (
   try {
     const { reference, referenceType, type } = req.body;
     const files = Array.isArray(req.files) ? req.files : req.files?.images;
-
     if (!files || files.length === 0) {
       APIResponse(res, null, "Aucune image fournie", 400);
       return;

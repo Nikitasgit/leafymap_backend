@@ -8,17 +8,21 @@ import { generateToken, setTokenCookie } from "../utils/jwt";
 import {
   validateRegisterData,
   validateLoginData,
-  getValidationErrors,
 } from "../validations/authValidations";
 import { generateSignedUrlFromFullUrl } from "../utils/s3";
-import { z } from "zod";
 import { CustomRequest } from "types/custom";
-import { IImage } from "types/models/Image";
+import { IPlace } from "types/models";
 
 const register = async (req: Request, res: Response): Promise<void> => {
   try {
     const validatedData = validateRegisterData(req.body);
-    const { email, password, username } = validatedData;
+
+    if (!validatedData.isValid) {
+      APIResponse(res, validatedData.errors, "Validation failed", 400);
+      return;
+    }
+
+    const { email, password, username } = req.body;
 
     const emailExists = await User.findOne({ email });
     if (emailExists) {
@@ -35,13 +39,11 @@ const register = async (req: Request, res: Response): Promise<void> => {
 
     APIResponse(res, null, "User registered", 201);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const validationErrors = getValidationErrors(error);
-      const errorMessage = Object.values(validationErrors).join(", ");
-      APIResponse(res, null, errorMessage, 400);
-      return;
+    if (error instanceof Error) {
+      APIResponse(res, null, `Failed to register: ${error.message}`, 500);
+    } else {
+      APIResponse(res, null, "Failed to register", 500);
     }
-    APIResponse(res, null, "Server error", 500);
     logger.error("Error in register:", error);
   }
 };
@@ -49,14 +51,18 @@ const register = async (req: Request, res: Response): Promise<void> => {
 const signIn = async (req: Request, res: Response): Promise<void> => {
   try {
     const validatedData = validateLoginData(req.body);
-    const { identifier, password } = validatedData;
+    if (!validatedData.isValid) {
+      APIResponse(res, validatedData.errors, "Validation failed", 400);
+      return;
+    }
+    const { identifier, password } = req.body;
 
     const user = await User.findOne({
       $or: [{ email: identifier }, { username: identifier }],
     });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      APIResponse(res, null, "Invalid credentials", 401);
+      APIResponse(res, null, "Les identifiants sont incorrects", 401);
       return;
     }
     const userWithoutPassword = await User.findById(user._id).select(
@@ -69,13 +75,11 @@ const signIn = async (req: Request, res: Response): Promise<void> => {
     setTokenCookie(res, token);
     APIResponse(res, { user: userWithoutPassword }, "Logged in", 200);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const validationErrors = getValidationErrors(error);
-      const errorMessage = Object.values(validationErrors).join(", ");
-      APIResponse(res, null, errorMessage, 400);
-      return;
+    if (error instanceof Error) {
+      APIResponse(res, null, `Failed to sign in: ${error.message}`, 500);
+    } else {
+      APIResponse(res, null, "Failed to sign in", 500);
     }
-    APIResponse(res, null, "Server error", 500);
     logger.error("Error in signIn:", error);
   }
 };
@@ -155,6 +159,11 @@ const getCurrentUser = async (
       .populate({
         path: "places",
         model: "Place",
+        populate: {
+          path: "image",
+          model: "Image",
+          select: "url",
+        },
       })
       .lean();
 
@@ -162,12 +171,22 @@ const getCurrentUser = async (
       APIResponse(res, null, "User not found", 404);
       return;
     }
-    const places = user.places;
-    for (const place of places) {
-      if ("image" in place && place.image) {
-        place.image = await generateSignedUrlFromFullUrl(place.image);
-      }
+    if (user.places) {
+      await Promise.all(
+        (user.places as IPlace[]).map(async (place) => {
+          if (
+            place.image &&
+            typeof place.image === "object" &&
+            "url" in place.image
+          ) {
+            place.image.url = await generateSignedUrlFromFullUrl(
+              place.image.url
+            );
+          }
+        })
+      );
     }
+
     if (user.image && typeof user.image === "object" && "url" in user.image) {
       user.image.url = await generateSignedUrlFromFullUrl(user.image.url);
     }

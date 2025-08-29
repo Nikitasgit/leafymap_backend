@@ -31,7 +31,7 @@ export interface IUser extends Document {
   address?: IAddress;
   description?: string;
   country?: (typeof ISO_COUNTRIES_ALPHA2)[number];
-  image?: Types.ObjectId | IImage | string;
+  image?: Types.ObjectId | Pick<IImage, "url">;
   followers: Types.ObjectId[];
   creatorProfile?: ICreatorProfile;
   interests: Types.ObjectId[];

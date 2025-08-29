@@ -1,5 +1,6 @@
 import { Document, Types } from "mongoose";
 import { ICollaborator } from "./collaborator";
+import { IImage } from "./Image";
 
 export interface IPlaceTimeSlot {
   startTime: string;
@@ -43,8 +44,7 @@ export interface IPlace extends Document {
   phone?: string;
   email?: string;
   website?: string;
-  image?: string;
-  images?: string[];
+  image?: Types.ObjectId | Pick<IImage, "url">;
   active: boolean;
   deleted: boolean;
   isCreatorPlace: boolean;

@@ -12,7 +12,7 @@ export const eventNameSchema = z
     "Le nom ne peut contenir que des lettres, chiffres, espaces et le caractère '"
   );
 
-const eventSchema = z.object({
+const newEventSchema = z.object({
   name: eventNameSchema,
   description: descriptionSchema,
   image: z.string().optional(),
@@ -42,9 +42,20 @@ const eventSchema = z.object({
     .min(1, "Le programme doit contenir au moins une date"),
 });
 
-export const validateEventData = (data: Partial<IEvent>): ValidationResult => {
+const updateEventSchema = newEventSchema.partial();
+
+export const validateEventData = (
+  data: Partial<IEvent>,
+  isUpdate: boolean = false
+): ValidationResult => {
   const errors: Record<string, string> = {};
 
+  let eventSchema;
+  if (isUpdate) {
+    eventSchema = updateEventSchema;
+  } else {
+    eventSchema = newEventSchema;
+  }
   const result = eventSchema.safeParse(data);
 
   if (result && !result.success) {

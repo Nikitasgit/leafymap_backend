@@ -1,5 +1,6 @@
 import { Document, Types } from "mongoose";
 import { IPlace } from "./place";
+import { IImage } from "./Image";
 
 export interface IEventTimeSlot {
   _id: Types.ObjectId;
@@ -22,7 +23,7 @@ export interface IEvent extends Document {
   status: "cancelled" | "full" | "available";
   schedule: IEventPeriod[];
   place: Types.ObjectId | Partial<IPlace>;
-  image?: string;
+  image?: Types.ObjectId | Partial<IImage>;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -14,6 +14,10 @@ const s3 = new S3Client({
 });
 const bucketName = process.env.AWS_BUCKET_NAME as string;
 async function generateSignedUrlFromFullUrl(fullUrl: string): Promise<string> {
+  if (!fullUrl || typeof fullUrl !== "string") {
+    throw new Error("Invalid URL provided to generateSignedUrlFromFullUrl");
+  }
+
   const key = fullUrl.replace(
     `https://${bucketName}.s3.eu-west-3.amazonaws.com/`,
     ""

@@ -106,11 +106,15 @@ const getPartnerships = async (req: Request, res: Response) => {
       event: eventId,
       type,
     })
-      .populate("collaborator", "creatorProfile image deleted")
       .populate({
-        path: "collaborator.image",
-        model: "Image",
-        select: "url",
+        path: "collaborator",
+        select: "creatorName creatorCategories image deleted",
+        model: "User",
+        populate: {
+          path: "image",
+          model: "Image",
+          select: "url",
+        },
       })
       .select("collaborator status deleted")
       .lean();
@@ -121,17 +125,30 @@ const getPartnerships = async (req: Request, res: Response) => {
         if (collaborator.deleted) {
           return null;
         }
+        let imageUrl = "";
+        console.log(collaborator.image);
+        if (collaborator.image && (collaborator.image as IImage).url) {
+          try {
+            imageUrl = await generateSignedUrlFromFullUrl(
+              (collaborator.image as IImage).url
+            );
+            console.log(imageUrl);
+          } catch (error) {
+            logger.error(
+              "Error generating signed URL for collaborator image:",
+              error
+            );
+            imageUrl = "";
+          }
+        }
+
         return {
           ...partnership,
           collaborator: {
             _id: collaborator._id,
-            name: collaborator.creatorProfile?.name,
-            categories: collaborator.creatorProfile?.categories,
-            image: collaborator.image
-              ? await generateSignedUrlFromFullUrl(
-                  (collaborator.image as IImage).url
-                )
-              : "",
+            name: collaborator.creatorName,
+            categories: collaborator.creatorCategories,
+            image: imageUrl,
             deleted: collaborator.deleted,
           },
         };

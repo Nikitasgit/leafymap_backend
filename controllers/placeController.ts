@@ -111,6 +111,11 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
         model: "PlaceCategory",
       })
       .populate({
+        path: "image",
+        model: "Image",
+        select: "url",
+      })
+      .populate({
         path: "user",
         model: "User",
         select: "creatorCategories",
@@ -146,8 +151,12 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
       place.defaultSchedule = enrichedSchedule;
     }
 
-    if (place.image) {
-      place.image = await generateSignedUrlFromFullUrl(place.image);
+    if (
+      place.image &&
+      typeof place.image === "object" &&
+      "url" in place.image
+    ) {
+      place.image.url = await generateSignedUrlFromFullUrl(place.image.url);
     }
 
     APIResponse(res, place, "Place fetched successfully", 200);
@@ -308,13 +317,22 @@ const searchPlaces = async (req: Request, res: Response): Promise<void> => {
         model: "PlaceCategory",
         select: "name",
       })
+      .populate({
+        path: "image",
+        model: "Image",
+        select: "url",
+      })
       .limit(queryLimit)
       .lean();
 
     const placesWithSignedUrls = await Promise.all(
       places.map(async (place) => {
-        if (place.image) {
-          place.image = await generateSignedUrlFromFullUrl(place.image);
+        if (
+          place.image &&
+          typeof place.image === "object" &&
+          "url" in place.image
+        ) {
+          place.image.url = await generateSignedUrlFromFullUrl(place.image.url);
         }
         return place;
       })

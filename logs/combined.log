@@ -1841,3 +1841,14 @@ Use mongoose.model(name, schema)
 [28-08-2025 17:43:32] - [[31merror[39m]: Error updating user: Cast to ObjectId failed for value "" (type string) at path "image" because of "BSONError"
 [28-08-2025 18:19:34] - [[31merror[39m]: Error updating user: Cast to ObjectId failed for value "" (type string) at path "image" because of "BSONError"
 [28-08-2025 18:31:09] - [[31merror[39m]: Error updating user: Cast to ObjectId failed for value "" (type string) at path "image" because of "BSONError"
+[29-08-2025 11:50:53] - [[31merror[39m]: Error in getCurrentUser: Cannot use 'in' operator to search for 'url' in null
+[29-08-2025 11:50:53] - [[31merror[39m]: Error in getCurrentUser: Cannot use 'in' operator to search for 'url' in null
+[29-08-2025 11:50:58] - [[31merror[39m]: Error in getCurrentUser: Cannot use 'in' operator to search for 'url' in null
+[29-08-2025 11:50:58] - [[31merror[39m]: Error in getCurrentUser: Cannot use 'in' operator to search for 'url' in null
+[29-08-2025 14:49:00] - [[31merror[39m]: Error fetching events: Cast to ObjectId failed for value "" (type string) at path "_id" for model "Image"
+[29-08-2025 14:49:00] - [[31merror[39m]: Error fetching events: Cast to ObjectId failed for value "" (type string) at path "_id" for model "Image"
+[29-08-2025 14:50:45] - [[31merror[39m]: Error fetching events: Cast to ObjectId failed for value "" (type string) at path "_id" for model "Image"
+[29-08-2025 14:56:02] - [[31merror[39m]: Error fetching events: Cast to ObjectId failed for value "" (type string) at path "_id" for model "Image"
+[29-08-2025 15:48:33] - [[31merror[39m]: Error fetching events: Cannot use 'in' operator to search for 'url' in null
+[29-08-2025 15:50:21] - [[31merror[39m]: Error getting partnerships by place id: Cannot read properties of undefined (reading 'replace')
+[29-08-2025 15:50:21] - [[31merror[39m]: Error getting partnerships by place id: Cannot read properties of undefined (reading 'replace')

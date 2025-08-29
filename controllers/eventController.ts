@@ -14,7 +14,7 @@ const createEvent = async (
 ): Promise<void> => {
   try {
     const placeId = req.placeId;
-    const validationResult = validateEventData(req.body);
+    const validationResult = validateEventData(req.body, false);
     if (!validationResult.isValid) {
       APIResponse(res, validationResult.errors, "Validation failed", 400);
       return;
@@ -47,12 +47,18 @@ const getEventsByPlaceId = async (
       place: new mongoose.Types.ObjectId(placeId),
     })
       .select("name image place description status schedule")
+      .populate({ path: "image", model: "Image", select: "_id url" })
       .populate({ path: "place", model: "Place", select: "_id name" })
       .lean();
 
     for (const event of events) {
-      if (event.image) {
-        event.image = await generateSignedUrlFromFullUrl(event.image);
+      if (
+        event.image &&
+        typeof event.image === "object" &&
+        "url" in event.image &&
+        event.image.url
+      ) {
+        event.image.url = await generateSignedUrlFromFullUrl(event.image.url);
       }
     }
 
@@ -67,14 +73,18 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { eventId } = req.params;
     const event = await Event.findById(eventId)
-      .populate([{ path: "place", model: "Place", select: "_id" }])
-      .populate([
-        {
-          path: "schedule.timeSlots.collaborators",
-          model: "User",
-          select: "_id creatorName image",
+      .populate({ path: "place", model: "Place", select: "_id" })
+      .populate({ path: "image", model: "Image", select: "_id url" })
+      .populate({
+        path: "schedule.timeSlots.collaborators",
+        model: "User",
+        select: "_id creatorName image",
+        populate: {
+          path: "image",
+          model: "Image",
+          select: "_id url",
         },
-      ])
+      })
       .lean();
 
     if (!event) {
@@ -96,9 +106,14 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
                 slot.collaborators.map(async (collaborator: any) => ({
                   _id: collaborator._id,
                   name: collaborator.creatorName,
-                  image: collaborator.image
-                    ? await generateSignedUrlFromFullUrl(collaborator.image)
-                    : "",
+                  image:
+                    collaborator.image.url &&
+                    typeof collaborator.image === "object" &&
+                    "url" in collaborator.image
+                      ? await generateSignedUrlFromFullUrl(
+                          collaborator.image.url
+                        )
+                      : "",
                 }))
               ),
             }))
@@ -107,9 +122,13 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
       ),
     };
 
-    if (updatedEvent.image) {
-      updatedEvent.image = await generateSignedUrlFromFullUrl(
-        updatedEvent.image
+    if (
+      typeof updatedEvent.image === "object" &&
+      "url" in updatedEvent.image &&
+      updatedEvent.image.url
+    ) {
+      updatedEvent.image.url = await generateSignedUrlFromFullUrl(
+        updatedEvent.image.url
       );
     }
 
@@ -130,7 +149,7 @@ const updateEvent = async (
       APIResponse(res, null, "Event ID is required", 400);
       return;
     }
-    const validationResult = validateEventData(req.body);
+    const validationResult = validateEventData(req.body, true);
     if (!validationResult.isValid) {
       APIResponse(res, validationResult.errors, "Validation failed", 400);
       return;

@@ -17,7 +17,7 @@ const getUserById = async (req: Request, res: Response): Promise<void> => {
     const user = await User.findById(userId)
       .select("-password -createdAt -updatedAt -interests  -deleted -__v")
       .populate({
-        path: "creatorProfile.categories",
+        path: "creatorCategories",
         model: "SubCategory",
       })
       .populate({
@@ -28,6 +28,11 @@ const getUserById = async (req: Request, res: Response): Promise<void> => {
       .populate({
         path: "places",
         model: "Place",
+        populate: {
+          path: "image",
+          model: "Image",
+          select: "url",
+        },
       });
 
     if (!user) {
@@ -38,16 +43,20 @@ const getUserById = async (req: Request, res: Response): Promise<void> => {
     if (user?.places) {
       await Promise.all(
         (user.places as unknown as IPlace[]).map(async (place) => {
-          if (place.image) {
-            place.image = await generateSignedUrlFromFullUrl(place.image);
+          if (
+            place.image &&
+            typeof place.image === "object" &&
+            "url" in place.image
+          ) {
+            place.image.url = await generateSignedUrlFromFullUrl(
+              place.image.url
+            );
           }
         })
       );
     }
-    if (user.image && typeof user.image !== "string") {
-      user.image = await generateSignedUrlFromFullUrl(
-        (user.image as IImage).url
-      );
+    if (user.image && typeof user.image === "object" && "url" in user.image) {
+      user.image.url = await generateSignedUrlFromFullUrl(user.image.url);
     }
 
     if (user?.userType === "creator" && user?.creatorProfile?.place) {
@@ -83,10 +92,8 @@ const findCreators = async (req: Request, res: Response): Promise<void> => {
       .lean();
 
     for (let user of users) {
-      if (user.image && typeof user.image !== "string") {
-        user.image = await generateSignedUrlFromFullUrl(
-          (user.image as IImage).url
-        );
+      if (user.image && typeof user.image === "object" && "url" in user.image) {
+        user.image.url = await generateSignedUrlFromFullUrl(user.image.url);
       }
     }
     APIResponse(res, users, "Users fetched successfully", 200);
@@ -115,18 +122,26 @@ const getUserInPlacesAndEvents = async (
     }
 
     const user = await User.findById(userId)
-      .select(
-        "_id creatorProfile.name image creatorProfile.categories creatorProfile.place"
-      )
+      .select("_id creatorName image creatorCategories places")
       .populate({
-        path: "creatorProfile.categories",
+        path: "creatorCategories",
         model: "SubCategory",
         select: "name",
       })
       .populate({
-        path: "creatorProfile.place",
+        path: "image",
+        model: "Image",
+        select: "url",
+      })
+      .populate({
+        path: "places",
         model: "Place",
         select: "location",
+        populate: {
+          path: "image",
+          model: "Image",
+          select: "url",
+        },
       });
 
     if (!user) {
@@ -180,10 +195,8 @@ const getUserInPlacesAndEvents = async (
       }
     });
 
-    if (user.image && typeof user.image !== "string") {
-      user.image = await generateSignedUrlFromFullUrl(
-        (user.image as IImage).url
-      );
+    if (user.image && typeof user.image === "object" && "url" in user.image) {
+      user.image.url = await generateSignedUrlFromFullUrl(user.image.url);
     }
     await Promise.all(
       Array.from(placeEventsMap.values()).map(async (placeData) => {
@@ -230,14 +243,7 @@ const updateUser = async (req: CustomRequest, res: Response): Promise<void> => {
 
   try {
     const decoded = req.decoded!;
-
-    // Nettoyer les données - convertir null/"" en undefined pour supprimer le champ
-    const cleanedData = { ...req.body };
-    if (cleanedData.image === null || cleanedData.image === "") {
-      cleanedData.image = undefined; // MongoDB ignore les champs undefined
-    }
-
-    const userUpdated = await User.findByIdAndUpdate(decoded.id, cleanedData, {
+    const userUpdated = await User.findByIdAndUpdate(decoded.id, req.body, {
       new: true,
     });
     if (!userUpdated) {

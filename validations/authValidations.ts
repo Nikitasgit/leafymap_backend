@@ -1,6 +1,7 @@
 import { z } from "zod";
+import { emailSchema, ValidationResult } from "./commonValidations";
+import { LoginFormData, RegisterFormData } from "types/api/auth.dto";
 
-// Schéma de validation pour l'inscription
 export const registerSchema = z.object({
   username: z
     .string()
@@ -10,10 +11,7 @@ export const registerSchema = z.object({
       /^[a-zA-Z0-9_-]+$/,
       "Le nom d'utilisateur ne peut contenir que des lettres, chiffres, tirets et underscores"
     ),
-  email: z
-    .string()
-    .email("Veuillez entrer une adresse email valide")
-    .min(1, "L'email est requis"),
+  email: emailSchema,
   password: z
     .string()
     .min(10, "Le mot de passe doit contenir au moins 10 caractères")
@@ -24,32 +22,56 @@ export const registerSchema = z.object({
     ),
 });
 
-// Schéma de validation pour la connexion
+const identifierSchema = z
+  .string()
+  .min(1, "L'identifiant est requis")
+  .refine(
+    (val) => {
+      const emailResult = emailSchema.safeParse(val);
+      if (emailResult.success) return true;
+
+      const usernameRegex = /^[a-zA-Z0-9_-]{3,30}$/;
+      return usernameRegex.test(val);
+    },
+    {
+      message:
+        "L'identifiant doit être un email valide ou un nom d'utilisateur valide (3-30 caractères, lettres, chiffres, tirets et underscores uniquement)",
+    }
+  );
+
 export const loginSchema = z.object({
-  identifier: z.string().min(1, "L'email ou nom d'utilisateur est requis"),
+  identifier: identifierSchema,
   password: z.string().min(1, "Le mot de passe est requis"),
 });
 
-// Types TypeScript dérivés des schémas
-export type RegisterFormData = z.infer<typeof registerSchema>;
-export type LoginFormData = z.infer<typeof loginSchema>;
-
-// Fonction utilitaire pour valider les données d'inscription
-export const validateRegisterData = (data: unknown): RegisterFormData => {
-  return registerSchema.parse(data);
-};
-
-// Fonction utilitaire pour valider les données de connexion
-export const validateLoginData = (data: unknown): LoginFormData => {
-  return loginSchema.parse(data);
-};
-
-// Fonction pour obtenir les erreurs de validation formatées
-export const getValidationErrors = (error: z.ZodError) => {
+export const validateRegisterData = (
+  data: RegisterFormData
+): ValidationResult => {
   const errors: Record<string, string> = {};
-  error.errors.forEach((err) => {
-    const field = err.path.join(".");
-    errors[field] = err.message;
-  });
-  return errors;
+  const result = registerSchema.safeParse(data);
+  if (result && !result.success) {
+    result.error.errors.forEach((err) => {
+      const field = err.path.join(".");
+      errors[field] = err.message;
+    });
+  }
+  return {
+    errors,
+    isValid: Object.keys(errors).length === 0,
+  };
+};
+
+export const validateLoginData = (data: LoginFormData): ValidationResult => {
+  const errors: Record<string, string> = {};
+  const result = loginSchema.safeParse(data);
+  if (result && !result.success) {
+    result.error.errors.forEach((err) => {
+      const field = err.path.join(".");
+      errors[field] = err.message;
+    });
+  }
+  return {
+    errors,
+    isValid: Object.keys(errors).length === 0,
+  };
 };

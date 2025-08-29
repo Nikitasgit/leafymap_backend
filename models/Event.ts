@@ -39,7 +39,11 @@ export const eventSchema = new Schema<IEvent>(
       ref: "Place",
       required: [true, "Please add a place"],
     },
-    image: String,
+    image: {
+      type: Schema.Types.ObjectId,
+      ref: "Image",
+      required: false,
+    },
     status: {
       type: String,
       enum: ["cancelled", "full", "available"],
