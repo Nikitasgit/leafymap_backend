@@ -9,7 +9,6 @@ import logger from "../utils/logger";
 import { generateToken, setTokenCookie } from "../utils/jwt";
 import { validateNewUserData } from "../validations/userValidations";
 import { IPlace } from "types/models/place";
-import { IImage } from "types/models/Image";
 
 const getUserById = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -82,11 +81,16 @@ const findCreators = async (req: Request, res: Response): Promise<void> => {
     }
 
     const users = await User.find(queryFilter)
-      .select("-password -createdAt -updatedAt -interests  -deleted -__v")
+      .select("-password -createdAt -updatedAt -interests -deleted -__v")
       .populate({
         path: "image",
         model: "Image",
         select: "url",
+      })
+      .populate({
+        path: "creatorCategories",
+        model: "SubCategory",
+        select: "name",
       })
       .limit(parseInt(limit as string))
       .lean();

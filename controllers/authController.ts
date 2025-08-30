@@ -153,10 +153,6 @@ const getCurrentUser = async (
         select: "url",
       })
       .populate({
-        path: "creatorCategories",
-        model: "SubCategory",
-      })
-      .populate({
         path: "places",
         model: "Place",
         populate: {
