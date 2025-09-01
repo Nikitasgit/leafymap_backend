@@ -23,24 +23,14 @@ export interface WeekSchedule {
   sunday: DaySchedule;
 }
 
-/**
- * Check if a given date matches a specific day of the week
- * @param date - The date to check
- * @param dayOfWeek - The day of the week (0-6, where 0 is Sunday)
- * @returns boolean - True if the date matches the day of the week
- */
 export const isSameDayOfWeek = (date: Date, dayOfWeek: number): boolean => {
   return date.getDay() === dayOfWeek;
 };
 
-/**
- * Get the current week's Monday and Sunday dates
- * @returns object with monday and sunday dates
- */
 export const getCurrentWeekBounds = (): { monday: Date; sunday: Date } => {
   const today = new Date();
   const dayOfWeek = today.getDay();
-  const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Sunday is 0, so we need to go back 6 days
+  const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
 
   const monday = new Date(today);
   monday.setDate(today.getDate() - daysFromMonday);
@@ -53,21 +43,11 @@ export const getCurrentWeekBounds = (): { monday: Date; sunday: Date } => {
   return { monday, sunday };
 };
 
-/**
- * Check if a date falls within the current week (Monday to Sunday)
- * @param date - The date to check
- * @returns boolean - True if the date is within the current week
- */
 export const isWithinCurrentWeek = (date: Date): boolean => {
   const { monday, sunday } = getCurrentWeekBounds();
   return date >= monday && date <= sunday;
 };
 
-/**
- * Get the day name from a date
- * @param date - The date
- * @returns string - The day name (monday, tuesday, etc.)
- */
 export const getDayNameFromDate = (date: Date): keyof WeekSchedule => {
   const dayNames: (keyof WeekSchedule)[] = [
     "sunday",
@@ -81,11 +61,6 @@ export const getDayNameFromDate = (date: Date): keyof WeekSchedule => {
   return dayNames[date.getDay()];
 };
 
-/**
- * Check if an event's schedule overlaps with the current week
- * @param eventSchedule - Array of event periods with startDate and endDate
- * @returns boolean - True if any period overlaps with current week
- */
 export const eventOverlapsWithCurrentWeek = (
   eventSchedule: Array<{ startDate: Date; endDate: Date }>
 ): boolean => {
@@ -95,16 +70,10 @@ export const eventOverlapsWithCurrentWeek = (
     const periodStart = new Date(period.startDate);
     const periodEnd = new Date(period.endDate);
 
-    // Check if the period overlaps with the current week
     return periodStart <= sunday && periodEnd >= monday;
   });
 };
 
-/**
- * Get all dates from an event's schedule that fall within the current week
- * @param eventSchedule - Array of event periods with startDate and endDate
- * @returns Date[] - Array of dates that fall within the current week
- */
 export const getEventDatesInCurrentWeek = (
   eventSchedule: Array<{ startDate: Date; endDate: Date }>
 ): Date[] => {
@@ -115,7 +84,6 @@ export const getEventDatesInCurrentWeek = (
     const periodStart = new Date(period.startDate);
     const periodEnd = new Date(period.endDate);
 
-    // If period overlaps with current week, add all dates in the overlap
     if (periodStart <= sunday && periodEnd >= monday) {
       const startDate = periodStart > monday ? periodStart : monday;
       const endDate = periodEnd < sunday ? periodEnd : sunday;
@@ -131,12 +99,6 @@ export const getEventDatesInCurrentWeek = (
   return dates;
 };
 
-/**
- * Enrich a place's schedule with events for the current week
- * @param defaultSchedule - The place's default schedule
- * @param events - Array of events with schedule and other properties
- * @returns WeekSchedule - The enriched schedule with events
- */
 export const enrichScheduleWithEvents = (
   defaultSchedule: WeekSchedule,
   events: Array<{
@@ -147,7 +109,6 @@ export const enrichScheduleWithEvents = (
 ): WeekSchedule => {
   const enrichedSchedule = { ...defaultSchedule };
 
-  // Initialize events by day
   const eventsByDay: Record<keyof WeekSchedule, ScheduleEvent[]> = {
     monday: [],
     tuesday: [],
@@ -158,17 +119,11 @@ export const enrichScheduleWithEvents = (
     sunday: [],
   };
 
-  // Process each event
   events.forEach((event) => {
-    // Check if event overlaps with current week
     if (eventOverlapsWithCurrentWeek(event.schedule)) {
-      // Get all dates from this event that fall within current week
       const eventDates = getEventDatesInCurrentWeek(event.schedule);
-
-      // Add event to each day it occurs
       eventDates.forEach((date) => {
         const dayName = getDayNameFromDate(date);
-        // Check if event is not already added to this day
         const eventExists = eventsByDay[dayName].some(
           (e) => e.id === event._id.toString()
         );
@@ -182,7 +137,6 @@ export const enrichScheduleWithEvents = (
     }
   });
 
-  // Add events to each day's schedule
   Object.keys(enrichedSchedule).forEach((day) => {
     const dayKey = day as keyof WeekSchedule;
     enrichedSchedule[dayKey] = {

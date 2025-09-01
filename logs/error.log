@@ -1852,3 +1852,5 @@ Use mongoose.model(name, schema)
 [29-08-2025 15:48:33] - [[31merror[39m]: Error fetching events: Cannot use 'in' operator to search for 'url' in null
 [29-08-2025 15:50:21] - [[31merror[39m]: Error getting partnerships by place id: Cannot read properties of undefined (reading 'replace')
 [29-08-2025 15:50:21] - [[31merror[39m]: Error getting partnerships by place id: Cannot read properties of undefined (reading 'replace')
+[01-09-2025 17:28:57] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "find-creators" (type string) at path "_id" for model "User"
+[01-09-2025 19:05:18] - [[31merror[39m]: Error getting partnerships by user id: Cast to ObjectId failed for value "68b1caac9fba736b97c674ca " (type string) at path "collaborator" for model "Partnership"

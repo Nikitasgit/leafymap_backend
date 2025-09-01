@@ -1,6 +1,7 @@
 import { Document, Types } from "mongoose";
 import { ICollaborator } from "./collaborator";
 import { IImage } from "./Image";
+import { IUser } from "./user";
 
 export interface IPlaceTimeSlot {
   startTime: string;
@@ -39,7 +40,7 @@ export interface ILocation {
 export interface IPlace extends Document {
   name: string;
   description?: string;
-  user: Types.ObjectId;
+  user: Types.ObjectId | Pick<IUser, "description">;
   location: ILocation;
   phone?: string;
   email?: string;

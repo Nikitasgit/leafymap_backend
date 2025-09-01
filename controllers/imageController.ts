@@ -53,6 +53,7 @@ export const uploadImages = async (
         };
       })
     );
+    console.log(imagesWithSignedUrl);
 
     APIResponse(
       res,

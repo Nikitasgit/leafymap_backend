@@ -3,7 +3,7 @@ import auth from "../middlewares/auth";
 import imagesOwnership from "../middlewares/imagesOwnership";
 import { uploadImages, deleteImages } from "../controllers/imageController";
 import imageUploadAuthorization from "../middlewares/imageUploadAuthorization";
-import upload, { handleMulterError } from "../middlewares/uploadToS3";
+import upload, { handleUploadError } from "../middlewares/uploadToS3";
 
 const router: Router = express.Router();
 
@@ -11,7 +11,7 @@ router.post(
   "/",
   auth,
   upload.array("images", 10),
-  handleMulterError,
+  handleUploadError,
   imageUploadAuthorization,
   uploadImages
 );

@@ -2,9 +2,15 @@ import multer from "multer";
 import multerS3 from "multer-s3";
 import { S3Client } from "@aws-sdk/client-s3";
 import path from "path";
+import { Request, Response, NextFunction } from "express";
+import { APIResponse } from "../utils/response";
 
 export interface S3File extends Express.Multer.File {
   location: string;
+}
+
+interface MulterError extends Error {
+  code?: string;
 }
 
 const s3 = new S3Client({
@@ -48,21 +54,34 @@ const upload = multer({
   },
 });
 
-export const handleMulterError = (err: any, req: any, res: any, next: any) => {
-  if (err instanceof multer.MulterError) {
+export const handleUploadError = (
+  err: MulterError,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (err) {
+    console.log("ERREUR MULTER UPLOAD:", err);
     if (err.code === "LIMIT_FILE_SIZE") {
-      return res.status(400).json({
-        error:
-          "La taille du fichier est trop grande. La taille maximale est de 5MB.",
-      });
+      APIResponse(
+        res,
+        null,
+        "La taille du fichier est trop grande. Maximum 5MB autorisé.",
+        400
+      );
+      return;
     }
-    return res.status(400).json({
-      error: `Erreur d'upload: ${err.message}`,
-    });
-  } else if (err) {
-    return res.status(400).json({
-      error: err.message,
-    });
+    if (err.message.includes("Invalid file type")) {
+      APIResponse(
+        res,
+        null,
+        "Type de fichier non autorisé. Seuls JPEG, PNG, GIF et WebP sont acceptés.",
+        400
+      );
+      return;
+    }
+    APIResponse(res, null, "Erreur lors de l'upload du fichier", 400);
+    return;
   }
   next();
 };

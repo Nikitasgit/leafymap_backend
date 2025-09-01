@@ -5,7 +5,6 @@ import {
   signOut,
   verifyToken,
   getCurrentUser,
-  getAuthUser,
 } from "../controllers/authController";
 import auth from "../middlewares/auth";
 
@@ -16,6 +15,5 @@ router.post("/signin", signIn);
 router.post("/signout", signOut);
 router.get("/verify", verifyToken);
 router.get("/me", auth, getCurrentUser);
-router.get("/auth-user", auth, getAuthUser);
 
 export default router;

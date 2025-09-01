@@ -3,10 +3,11 @@ import { IUser } from "./user";
 import { IEvent } from "./event";
 import { IPlace } from "./place";
 
+type Populated<T> = T | Types.ObjectId;
 export interface IPartnership {
   _id: Types.ObjectId;
   type: "place" | "event";
-  place: Types.ObjectId | Partial<IPlace>;
+  place: Populated<IPlace>;
   event?: Types.ObjectId | Partial<IEvent>;
   initiator: Types.ObjectId | Partial<IUser>;
   collaborator: Types.ObjectId | Partial<IUser>;

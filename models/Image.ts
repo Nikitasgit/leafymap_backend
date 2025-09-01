@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import { generateSignedUrlFromFullUrl } from "../utils/s3";
 
 const imageSchema = new Schema(
   {
@@ -28,5 +29,35 @@ const imageSchema = new Schema(
   },
   { timestamps: true }
 );
+
+imageSchema.virtual("signedUrl").get(function () {
+  return this.url;
+});
+
+imageSchema.post(
+  ["find", "findOne", "findOneAndUpdate"],
+  async function (docs) {
+    if (!docs) return;
+
+    const processDoc = async (doc: any) => {
+      if (doc && doc.url) {
+        try {
+          doc.url = await generateSignedUrlFromFullUrl(doc.url);
+        } catch (error) {
+          console.error("Error signing image URL:", error);
+          doc.url = doc.url;
+        }
+      }
+    };
+    if (Array.isArray(docs)) {
+      await Promise.all(docs.map(processDoc));
+    } else {
+      await processDoc(docs);
+    }
+  }
+);
+
+imageSchema.set("toJSON", { virtuals: true });
+imageSchema.set("toObject", { virtuals: true });
 
 export default model("Image", imageSchema);

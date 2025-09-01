@@ -9,9 +9,7 @@ import {
   validateRegisterData,
   validateLoginData,
 } from "../validations/authValidations";
-import { generateSignedUrlFromFullUrl } from "../utils/s3";
 import { CustomRequest } from "types/custom";
-import { IPlace } from "types/models";
 
 const register = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -126,19 +124,7 @@ const verifyToken = async (req: Request, res: Response): Promise<void> => {
     logger.error("Error in verifyToken:", error);
   }
 };
-const getAuthUser = async (
-  req: CustomRequest,
-  res: Response
-): Promise<void> => {
-  try {
-    const decoded = req.decoded!;
-    const user = await User.findById(decoded.id).select("email username");
-    APIResponse(res, user, "User retrieved successfully", 200);
-  } catch (error) {
-    APIResponse(res, null, "Server error", 500);
-    logger.error("Error in getAuthUser:", error);
-  }
-};
+
 const getCurrentUser = async (
   req: CustomRequest,
   res: Response
@@ -150,7 +136,6 @@ const getCurrentUser = async (
       .populate({
         path: "image",
         model: "Image",
-        select: "url",
       })
       .populate({
         path: "places",
@@ -162,29 +147,9 @@ const getCurrentUser = async (
         },
       })
       .lean();
-
     if (!user) {
       APIResponse(res, null, "User not found", 404);
       return;
-    }
-    if (user.places) {
-      await Promise.all(
-        (user.places as IPlace[]).map(async (place) => {
-          if (
-            place.image &&
-            typeof place.image === "object" &&
-            "url" in place.image
-          ) {
-            place.image.url = await generateSignedUrlFromFullUrl(
-              place.image.url
-            );
-          }
-        })
-      );
-    }
-
-    if (user.image && typeof user.image === "object" && "url" in user.image) {
-      user.image.url = await generateSignedUrlFromFullUrl(user.image.url);
     }
 
     APIResponse(
@@ -201,4 +166,4 @@ const getCurrentUser = async (
   }
 };
 
-export { register, signIn, signOut, verifyToken, getAuthUser, getCurrentUser };
+export { register, signIn, signOut, verifyToken, getCurrentUser };

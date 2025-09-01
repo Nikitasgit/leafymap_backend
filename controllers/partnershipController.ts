@@ -1,15 +1,11 @@
 import { Request, Response } from "express";
-import mongoose from "mongoose";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
 import { CustomRequest } from "../types/custom";
-import User from "../models/User";
 import { Partnership } from "../models/Partnership";
 import { IPartnership } from "../types/models/partnership";
-import { generateSignedUrlFromFullUrl } from "../utils/s3";
 import { PartnershipDTO } from "../types/api/partnership.dto";
 import { IUser } from "types/models";
-import { IImage } from "types/models/Image";
 
 const createPartnerships = async (req: CustomRequest, res: Response) => {
   try {
@@ -125,22 +121,6 @@ const getPartnerships = async (req: Request, res: Response) => {
         if (collaborator.deleted) {
           return null;
         }
-        let imageUrl = "";
-        console.log(collaborator.image);
-        if (collaborator.image && (collaborator.image as IImage).url) {
-          try {
-            imageUrl = await generateSignedUrlFromFullUrl(
-              (collaborator.image as IImage).url
-            );
-            console.log(imageUrl);
-          } catch (error) {
-            logger.error(
-              "Error generating signed URL for collaborator image:",
-              error
-            );
-            imageUrl = "";
-          }
-        }
 
         return {
           ...partnership,
@@ -148,7 +128,7 @@ const getPartnerships = async (req: Request, res: Response) => {
             _id: collaborator._id,
             name: collaborator.creatorName,
             categories: collaborator.creatorCategories,
-            image: imageUrl,
+            image: collaborator.image,
             deleted: collaborator.deleted,
           },
         };
@@ -158,7 +138,7 @@ const getPartnerships = async (req: Request, res: Response) => {
     APIResponse(
       res,
       transformedPartnerships,
-      "Partnerships retrieved successfully",
+      "Partnerships rieved successfully",
       200
     );
   } catch (error) {
@@ -170,15 +150,34 @@ const getPartnerships = async (req: Request, res: Response) => {
 const getPartnershipsByUserId = async (req: CustomRequest, res: Response) => {
   try {
     const { userId } = req.params;
-    const partnerships = await Partnership.find({
-      $or: [{ initiator: userId }, { collaborator: userId }],
-    })
+    const { asCollaborator } = req.query;
+    const isCollaborator = asCollaborator === "true";
+    const query = isCollaborator
+      ? { collaborator: userId }
+      : { initiator: userId };
+
+    const partnerships = await Partnership.find({ ...query, deleted: false })
       .populate("initiator", "firstName lastName email")
       .populate("collaborator", "firstName lastName email")
-      .populate("place", "name address")
-      .populate("event", "title description");
+      .populate("place", "name address image")
+      .populate("event", "title description image")
+      .lean();
+    const eventPartnerships = partnerships.filter(
+      (partnership) => partnership.type === "event"
+    );
+    const placePartnerships = partnerships.filter(
+      (partnership) => partnership.type === "place"
+    );
 
-    APIResponse(res, partnerships, "Partnerships retrieved successfully", 200);
+    APIResponse(
+      res,
+      {
+        eventPartnerships,
+        placePartnerships,
+      },
+      "Partnerships retrieved successfully",
+      200
+    );
   } catch (error) {
     logger.error("Error getting partnerships by user id:", error);
     APIResponse(res, null, "Failed to get partnerships by user id", 500);

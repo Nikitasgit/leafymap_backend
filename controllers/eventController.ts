@@ -4,7 +4,6 @@ import mongoose from "mongoose";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
 import { CustomRequest } from "../types/custom";
-import { generateSignedUrlFromFullUrl } from "../utils/s3";
 import { validateEventData } from "../validations/eventValidations";
 import { format } from "date-fns";
 
@@ -51,17 +50,6 @@ const getEventsByPlaceId = async (
       .populate({ path: "place", model: "Place", select: "_id name" })
       .lean();
 
-    for (const event of events) {
-      if (
-        event.image &&
-        typeof event.image === "object" &&
-        "url" in event.image &&
-        event.image.url
-      ) {
-        event.image.url = await generateSignedUrlFromFullUrl(event.image.url);
-      }
-    }
-
     APIResponse(res, events, "Events fetched successfully", 200);
   } catch (error) {
     APIResponse(res, null, "Failed to fetch events", 500);
@@ -82,7 +70,6 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
         populate: {
           path: "image",
           model: "Image",
-          select: "_id url",
         },
       })
       .lean();
@@ -94,43 +81,19 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
 
     const updatedEvent = {
       ...event,
-      schedule: await Promise.all(
-        event.schedule.map(async (period) => ({
-          ...period,
-          startDate: format(period.startDate, "dd-MM-yyyy"),
-          endDate: period.endDate ? format(period.endDate, "dd-MM-yyyy") : "",
-          timeSlots: await Promise.all(
-            period.timeSlots.map(async (slot) => ({
-              ...slot,
-              collaborators: await Promise.all(
-                slot.collaborators.map(async (collaborator: any) => ({
-                  _id: collaborator._id,
-                  name: collaborator.creatorName,
-                  image:
-                    collaborator.image.url &&
-                    typeof collaborator.image === "object" &&
-                    "url" in collaborator.image
-                      ? await generateSignedUrlFromFullUrl(
-                          collaborator.image.url
-                        )
-                      : "",
-                }))
-              ),
-            }))
-          ),
-        }))
-      ),
+      schedule: event.schedule.map((period) => ({
+        ...period,
+        startDate: format(period.startDate, "dd-MM-yyyy"),
+        endDate: period.endDate ? format(period.endDate, "dd-MM-yyyy") : "",
+        timeSlots: period.timeSlots.map((slot) => ({
+          ...slot,
+          collaborators: slot.collaborators.map((collaborator: any) => ({
+            name: collaborator.creatorName,
+            image: collaborator.image.url,
+          })),
+        })),
+      })),
     };
-
-    if (
-      typeof updatedEvent.image === "object" &&
-      "url" in updatedEvent.image &&
-      updatedEvent.image.url
-    ) {
-      updatedEvent.image.url = await generateSignedUrlFromFullUrl(
-        updatedEvent.image.url
-      );
-    }
 
     APIResponse(res, updatedEvent, "Event fetched successfully", 200);
   } catch (error) {

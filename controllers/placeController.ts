@@ -118,7 +118,7 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
       .populate({
         path: "user",
         model: "User",
-        select: "creatorCategories",
+        select: "creatorCategories description",
         populate: {
           path: "creatorCategories",
           model: "SubCategory",
@@ -130,23 +130,28 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    if (
+      place.isCreatorPlace &&
+      typeof place.user === "object" &&
+      "description" in place.user
+    ) {
+      place.description = place.user.description;
+    }
+
     if (enrichSchedule === "true") {
       const events = await Event.find({
         place: placeId,
-        status: { $in: ["upcoming", "ongoing"] },
-      }).select("name schedule");
+        status: { $ne: "cancelled" },
+      })
+        .select("name schedule")
+        .lean();
 
-      const formattedEvents = events.map((event) => ({
-        _id: event._id.toString(),
-        name: event.name,
-        schedule: event.schedule.map((period) => ({
-          startDate: period.startDate,
-          endDate: period.endDate,
-        })),
-      }));
       const enrichedSchedule = enrichScheduleWithEvents(
         place.defaultSchedule,
-        formattedEvents
+        events.map((event) => ({
+          ...event,
+          _id: event._id.toString(),
+        }))
       );
       place.defaultSchedule = enrichedSchedule;
     }
@@ -158,7 +163,6 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
     ) {
       place.image.url = await generateSignedUrlFromFullUrl(place.image.url);
     }
-
     APIResponse(res, place, "Place fetched successfully", 200);
   } catch (error) {
     logger.error("Error fetching place:", error);

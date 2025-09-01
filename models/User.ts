@@ -36,7 +36,7 @@ const userSchema = new Schema<IUser>(
     address: addressSchema,
     description: { type: String, maxlength: 300 },
     country: { type: String, enum: ISO_COUNTRIES_ALPHA2 },
-    image: { type: Types.ObjectId, ref: "Image", select: "url" },
+    image: { type: Types.ObjectId, ref: "Image" },
     followers: [{ type: Types.ObjectId, ref: "User" }],
     creatorProfile: creatorProfileSchema,
     interests: [{ type: Types.ObjectId, ref: "SubCategory" }],
