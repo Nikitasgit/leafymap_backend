@@ -159,8 +159,24 @@ const getPartnershipsByUserId = async (req: CustomRequest, res: Response) => {
     const partnerships = await Partnership.find({ ...query, deleted: false })
       .populate("initiator", "firstName lastName email")
       .populate("collaborator", "firstName lastName email")
-      .populate("place", "name address image")
-      .populate("event", "title description image")
+      .populate({
+        path: "place",
+        select: "name address image location",
+        populate: {
+          path: "image",
+          model: "Image",
+          select: "url",
+        },
+      })
+      .populate({
+        path: "event",
+        select: "title description image",
+        populate: {
+          path: "image",
+          model: "Image",
+          select: "url",
+        },
+      })
       .lean();
     const eventPartnerships = partnerships.filter(
       (partnership) => partnership.type === "event"
