@@ -3,7 +3,7 @@ import auth from "../middlewares/auth";
 import imagesOwnership from "../middlewares/imagesOwnership";
 import { uploadImages, deleteImages } from "../controllers/imageController";
 import imageUploadAuthorization from "../middlewares/imageUploadAuthorization";
-import upload, { handleUploadError } from "../middlewares/uploadToS3";
+import upload, { handleUploadError } from "../middlewares/memoryUpload";
 
 const router: Router = express.Router();
 

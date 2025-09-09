@@ -9,11 +9,6 @@ const addressSchema = new Schema<IAddress>({
   extra: { type: String },
 });
 
-const creatorProfileSchema = new Schema<ICreatorProfile>({
-  categories: [{ type: Types.ObjectId, ref: "SubCategory" }],
-  place: { type: Types.ObjectId, ref: "Place" },
-  name: { type: String, required: true },
-});
 
 const userSchema = new Schema<IUser>(
   {
@@ -38,7 +33,6 @@ const userSchema = new Schema<IUser>(
     country: { type: String, enum: ISO_COUNTRIES_ALPHA2 },
     image: { type: Types.ObjectId, ref: "Image" },
     followers: [{ type: Types.ObjectId, ref: "User" }],
-    creatorProfile: creatorProfileSchema,
     interests: [{ type: Types.ObjectId, ref: "SubCategory" }],
     places: [{ type: Types.ObjectId, ref: "Place" }],
   },

@@ -4,7 +4,7 @@ import { CustomRequest } from "../types/custom";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
 import { generateSignedUrlFromFullUrl, deleteObjectFromS3 } from "../utils/s3";
-import { S3File } from "../middlewares/uploadToS3";
+import { processImageToMultipleSizes } from "../middlewares/imageProcessing";
 
 export const uploadImages = async (
   req: CustomRequest,
@@ -28,9 +28,15 @@ export const uploadImages = async (
     }
 
     const imageResults = await Promise.all(
-      filesToProcess.map(async (file: S3File) => {
+      filesToProcess.map(async (file: Express.Multer.File) => {
+        const processedUrls = await processImageToMultipleSizes(
+          file.buffer,
+          file.originalname,
+          file.mimetype
+        );
+
         return {
-          url: file.location,
+          urls: processedUrls,
           user: req.decoded!.id,
           referenceType: referenceType,
           reference: reference,
@@ -44,22 +50,25 @@ export const uploadImages = async (
 
     const createdImages = await Image.insertMany(imageResults);
 
-    const imagesWithSignedUrl = await Promise.all(
+    const imagesWithSignedUrls = await Promise.all(
       createdImages.map(async (image) => {
-        const signedUrl = await generateSignedUrlFromFullUrl(image.url);
+        const signedUrls = {
+          original: await generateSignedUrlFromFullUrl(image.urls.original),
+          thumbnail: await generateSignedUrlFromFullUrl(image.urls.thumbnail),
+          medium: await generateSignedUrlFromFullUrl(image.urls.medium),
+        };
         return {
           ...image.toObject(),
-          signedUrl,
+          signedUrls,
         };
       })
     );
 
-
     APIResponse(
       res,
       {
-        images: imagesWithSignedUrl,
-        count: imagesWithSignedUrl.length,
+        images: imagesWithSignedUrls,
+        count: imagesWithSignedUrls.length,
       },
       "Images uploadées et créées avec succès",
       200
@@ -80,11 +89,47 @@ export const deleteImages = async (
 
     const s3DeleteResults = await Promise.allSettled(
       imagesToDelete.map(async (image) => {
-        const success = await deleteObjectFromS3(image.url);
+        if (!image.urls) {
+          return {
+            imageId: image._id,
+            urls: null,
+            deletedFromS3: false,
+            deletionDetails: {
+              original: false,
+              thumbnail: false,
+              medium: false,
+            },
+            error: "No URLs found for image",
+          };
+        }
+        const deleteResults = await Promise.allSettled([
+          deleteObjectFromS3(image.urls.original),
+          deleteObjectFromS3(image.urls.thumbnail),
+          deleteObjectFromS3(image.urls.medium),
+        ]);
+
+        const successfulDeletions = deleteResults.filter(
+          (result) => result.status === "fulfilled" && result.value
+        ).length;
+
         return {
           imageId: image._id,
-          url: image.url,
-          deletedFromS3: success,
+          urls: image.urls,
+          deletedFromS3: successfulDeletions === 3,
+          deletionDetails: {
+            original:
+              deleteResults[0].status === "fulfilled"
+                ? deleteResults[0].value
+                : false,
+            thumbnail:
+              deleteResults[1].status === "fulfilled"
+                ? deleteResults[1].value
+                : false,
+            medium:
+              deleteResults[2].status === "fulfilled"
+                ? deleteResults[2].value
+                : false,
+          },
         };
       })
     );

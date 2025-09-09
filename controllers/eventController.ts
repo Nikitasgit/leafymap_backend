@@ -46,7 +46,7 @@ const getEventsByPlaceId = async (
       place: new mongoose.Types.ObjectId(placeId),
     })
       .select("name image place description status schedule")
-      .populate({ path: "image", model: "Image", select: "_id url" })
+      .populate({ path: "image", model: "Image", select: "_id urls" })
       .populate({ path: "place", model: "Place", select: "_id name" })
       .lean();
 
@@ -62,7 +62,7 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
     const { eventId } = req.params;
     const event = await Event.findById(eventId)
       .populate({ path: "place", model: "Place", select: "_id" })
-      .populate({ path: "image", model: "Image", select: "_id url" })
+      .populate({ path: "image", model: "Image", select: "_id urls" })
       .populate({
         path: "schedule.timeSlots.collaborators",
         model: "User",
@@ -89,7 +89,7 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
           ...slot,
           collaborators: slot.collaborators.map((collaborator: any) => ({
             name: collaborator.creatorName,
-            image: collaborator.image.url,
+            image: collaborator.image.urls.thumbnail,
           })),
         })),
       })),

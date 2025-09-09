@@ -18,7 +18,7 @@ const getUserById = async (req: Request, res: Response): Promise<void> => {
       .populate({
         path: "image",
         model: "Image",
-        select: "url",
+        select: "urls",
       })
       .populate({
         path: "places",
@@ -26,7 +26,7 @@ const getUserById = async (req: Request, res: Response): Promise<void> => {
         populate: {
           path: "image",
           model: "Image",
-          select: "url",
+          select: "urls",
         },
       });
 
@@ -51,11 +51,13 @@ const getUsers = async (req: Request, res: Response): Promise<void> => {
     }
 
     const users = await User.find(queryFilter)
-      .select("-password -createdAt -updatedAt -interests -deleted -__v -email -username -userType -phone -website -description -country -address")
+      .select(
+        "-password -createdAt -updatedAt -interests -deleted -__v -email -username -userType -phone -website -description -country -address"
+      )
       .populate({
         path: "image",
         model: "Image",
-        select: "url",
+        select: "urls",
       })
       .populate({
         path: "creatorCategories",

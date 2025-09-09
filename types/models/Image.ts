@@ -1,7 +1,13 @@
 import { Document } from "mongoose";
 
+export interface IImageUrls {
+  original: string;
+  thumbnail: string;
+  medium: string;
+}
+
 export interface IImage extends Document {
-  url: string;
+  urls: IImageUrls;
   user: string;
   reference: string;
   referenceType: string;
@@ -13,8 +19,8 @@ export interface IImage extends Document {
 
 export interface IImageAWS {
   originalName: string;
-  url: string;
-  signedUrl: string;
+  urls: IImageUrls;
+  signedUrls: IImageUrls;
   size: number;
   mimetype: string;
 }

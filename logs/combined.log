@@ -1854,3 +1854,14 @@ Use mongoose.model(name, schema)
 [29-08-2025 15:50:21] - [[31merror[39m]: Error getting partnerships by place id: Cannot read properties of undefined (reading 'replace')
 [01-09-2025 17:28:57] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "find-creators" (type string) at path "_id" for model "User"
 [01-09-2025 19:05:18] - [[31merror[39m]: Error getting partnerships by user id: Cast to ObjectId failed for value "68b1caac9fba736b97c674ca " (type string) at path "collaborator" for model "Partnership"
+[05-09-2025 09:51:51] - [[31merror[39m]: Error in verifyToken: invalid signature
+[05-09-2025 09:52:04] - [[31merror[39m]: Error in verifyToken: invalid signature
+[05-09-2025 09:52:08] - [[31merror[39m]: Error in verifyToken: invalid signature
+[05-09-2025 09:52:09] - [[31merror[39m]: Error in verifyToken: invalid signature
+[05-09-2025 09:52:09] - [[31merror[39m]: Error in verifyToken: invalid signature
+[05-09-2025 09:52:14] - [[31merror[39m]: Error in verifyToken: invalid signature
+[05-09-2025 09:52:16] - [[31merror[39m]: Error in verifyToken: invalid signature
+[05-09-2025 09:52:26] - [[31merror[39m]: Error in verifyToken: invalid signature
+[05-09-2025 09:54:09] - [[31merror[39m]: Error in verifyToken: invalid algorithm
+[09-09-2025 17:25:02] - [[31merror[39m]: Erreur lors de l'upload et création des images: Erreur lors du traitement de l'image
+[09-09-2025 17:26:44] - [[31merror[39m]: Erreur lors de l'upload et création des images: Erreur lors du traitement de l'image

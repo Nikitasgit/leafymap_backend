@@ -18,8 +18,9 @@ async function generateSignedUrlFromFullUrl(fullUrl: string): Promise<string> {
     throw new Error("Invalid URL provided to generateSignedUrlFromFullUrl");
   }
 
+  const region = process.env.AWS_REGION;
   const key = fullUrl.replace(
-    `https://${bucketName}.s3.eu-west-3.amazonaws.com/`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/`,
     ""
   );
 
@@ -36,9 +37,10 @@ async function generateSignedUrlFromFullUrl(fullUrl: string): Promise<string> {
 async function deleteObjectFromS3(fullUrl: string): Promise<boolean> {
   try {
     const bucketName = process.env.AWS_BUCKET_NAME as string;
+    const region = process.env.AWS_REGION;
     const cleanUrl = fullUrl.split("?")[0];
     const key = cleanUrl.replace(
-      `https://${bucketName}.s3.eu-west-3.amazonaws.com/`,
+      `https://${bucketName}.s3.${region}.amazonaws.com/`,
       ""
     );
 

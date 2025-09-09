@@ -143,7 +143,7 @@ const getCurrentUser = async (
         populate: {
           path: "image",
           model: "Image",
-          select: "url",
+          select: "urls",
         },
       })
       .lean();

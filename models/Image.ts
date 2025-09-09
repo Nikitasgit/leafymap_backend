@@ -3,7 +3,11 @@ import { generateSignedUrlFromFullUrl } from "../utils/s3";
 
 const imageSchema = new Schema(
   {
-    url: { type: String, required: true },
+    urls: {
+      original: { type: String, required: true },
+      thumbnail: { type: String, required: true },
+      medium: { type: String, required: true },
+    },
     user: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -30,8 +34,8 @@ const imageSchema = new Schema(
   { timestamps: true }
 );
 
-imageSchema.virtual("signedUrl").get(function () {
-  return this.url;
+imageSchema.virtual("signedUrls").get(function () {
+  return this.urls;
 });
 
 imageSchema.post(
@@ -40,12 +44,17 @@ imageSchema.post(
     if (!docs) return;
 
     const processDoc = async (doc: any) => {
-      if (doc && doc.url) {
+      if (doc && doc.urls) {
         try {
-          doc.url = await generateSignedUrlFromFullUrl(doc.url);
+          doc.urls.original = await generateSignedUrlFromFullUrl(
+            doc.urls.original
+          );
+          doc.urls.thumbnail = await generateSignedUrlFromFullUrl(
+            doc.urls.thumbnail
+          );
+          doc.urls.medium = await generateSignedUrlFromFullUrl(doc.urls.medium);
         } catch (error) {
-          console.error("Error signing image URL:", error);
-          doc.url = doc.url;
+          console.error("Error signing image URLs:", error);
         }
       }
     };

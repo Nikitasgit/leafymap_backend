@@ -113,7 +113,7 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
       .populate({
         path: "image",
         model: "Image",
-        select: "url",
+        select: "urls",
       })
       .populate({
         path: "user",
@@ -156,13 +156,6 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
       place.defaultSchedule = enrichedSchedule;
     }
 
-    if (
-      place.image &&
-      typeof place.image === "object" &&
-      "url" in place.image
-    ) {
-      place.image.url = await generateSignedUrlFromFullUrl(place.image.url);
-    }
     APIResponse(res, place, "Place fetched successfully", 200);
   } catch (error) {
     logger.error("Error fetching place:", error);
@@ -324,25 +317,12 @@ const searchPlaces = async (req: Request, res: Response): Promise<void> => {
       .populate({
         path: "image",
         model: "Image",
-        select: "url",
+        select: "urls",
       })
       .limit(queryLimit)
       .lean();
 
-    const placesWithSignedUrls = await Promise.all(
-      places.map(async (place) => {
-        if (
-          place.image &&
-          typeof place.image === "object" &&
-          "url" in place.image
-        ) {
-          place.image.url = await generateSignedUrlFromFullUrl(place.image.url);
-        }
-        return place;
-      })
-    );
-
-    APIResponse(res, placesWithSignedUrls, "Places searched successfully", 200);
+    APIResponse(res, places, "Places searched successfully", 200);
   } catch (error) {
     logger.error("Error searching places:", error);
     APIResponse(res, null, "Failed to search places", 500);

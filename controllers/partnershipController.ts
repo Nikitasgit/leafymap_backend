@@ -165,35 +165,21 @@ const getPartnershipsByUserId = async (req: CustomRequest, res: Response) => {
         populate: {
           path: "image",
           model: "Image",
-          select: "url",
+          select: "urls",
         },
       })
       .populate({
         path: "event",
-        select: "title description image",
+        select: "name description image schedule",
         populate: {
           path: "image",
           model: "Image",
-          select: "url",
+          select: "urls",
         },
       })
       .lean();
-    const eventPartnerships = partnerships.filter(
-      (partnership) => partnership.type === "event"
-    );
-    const placePartnerships = partnerships.filter(
-      (partnership) => partnership.type === "place"
-    );
 
-    APIResponse(
-      res,
-      {
-        eventPartnerships,
-        placePartnerships,
-      },
-      "Partnerships retrieved successfully",
-      200
-    );
+    APIResponse(res, partnerships, "Partnerships retrieved successfully", 200);
   } catch (error) {
     logger.error("Error getting partnerships by user id:", error);
     APIResponse(res, null, "Failed to get partnerships by user id", 500);
