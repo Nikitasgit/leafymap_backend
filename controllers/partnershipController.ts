@@ -5,7 +5,8 @@ import { CustomRequest } from "../types/custom";
 import { Partnership } from "../models/Partnership";
 import { IPartnership } from "../types/models/partnership";
 import { PartnershipDTO } from "../types/api/partnership.dto";
-import { IUser } from "types/models";
+import { IEvent, IUser } from "types/models";
+import { getEventStatusFromSchedule } from "../utils/eventDates";
 
 const createPartnerships = async (req: CustomRequest, res: Response) => {
   try {
@@ -150,36 +151,68 @@ const getPartnerships = async (req: Request, res: Response) => {
 const getPartnershipsByUserId = async (req: CustomRequest, res: Response) => {
   try {
     const { userId } = req.params;
-    const { asCollaborator } = req.query;
+    const { asCollaborator, includeCancelledEvents, includePastEvents } =
+      req.query;
+
     const isCollaborator = asCollaborator === "true";
     const query = isCollaborator
       ? { collaborator: userId }
       : { initiator: userId };
+
+    let eventPopulateQuery: any = {
+      path: "event",
+      select: "name description image schedule status",
+      populate: {
+        path: "image",
+        model: "Image",
+        select: "urls",
+      },
+    };
+
+    if (includeCancelledEvents !== "true") {
+      eventPopulateQuery.match = { status: { $ne: "cancelled" } };
+    }
 
     const partnerships = await Partnership.find({ ...query, deleted: false })
       .populate("initiator", "firstName lastName email")
       .populate("collaborator", "firstName lastName email")
       .populate({
         path: "place",
-        select: "name address image location",
+        select: "name address image location active deleted",
+        match: {
+          deleted: { $ne: true },
+          active: { $ne: false },
+        },
         populate: {
           path: "image",
           model: "Image",
           select: "urls",
         },
       })
-      .populate({
-        path: "event",
-        select: "name description image schedule",
-        populate: {
-          path: "image",
-          model: "Image",
-          select: "urls",
-        },
-      })
+      .populate(eventPopulateQuery)
       .lean();
 
-    APIResponse(res, partnerships, "Partnerships retrieved successfully", 200);
+    let filteredPartnerships = partnerships;
+
+    if (includePastEvents !== "true") {
+      filteredPartnerships = partnerships.filter((partnership) => {
+        if (!partnership.event) {
+          return true;
+        }
+        const event = partnership.event as unknown as IEvent;
+        const eventStatusResult = getEventStatusFromSchedule(event.schedule);
+        return (
+          eventStatusResult === "ongoing" || eventStatusResult === "upcoming"
+        );
+      });
+    }
+
+    APIResponse(
+      res,
+      filteredPartnerships,
+      "Partnerships retrieved successfully",
+      200
+    );
   } catch (error) {
     logger.error("Error getting partnerships by user id:", error);
     APIResponse(res, null, "Failed to get partnerships by user id", 500);

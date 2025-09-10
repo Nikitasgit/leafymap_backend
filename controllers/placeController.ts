@@ -215,75 +215,15 @@ const getPlacesInView = async (req: Request, res: Response): Promise<void> => {
       query.placeCategory = { $in: placeCategories };
     }
 
-    let places;
-    if (startDate || endDate) {
-      const aggregationPipeline = [
-        { $match: query },
-        {
-          $lookup: {
-            from: "events",
-            localField: "_id",
-            foreignField: "placeId",
-            as: "events",
-          },
-        },
-        {
-          $match: {
-            events: {
-              $elemMatch: {
-                status: { $in: ["upcoming", "ongoing"] },
-                schedule: {
-                  $elemMatch: {
-                    $and: [
-                      ...(startDate
-                        ? [{ endDate: { $gte: new Date(startDate) } }]
-                        : []),
-                      ...(endDate
-                        ? [{ startDate: { $lte: new Date(endDate) } }]
-                        : []),
-                    ],
-                  },
-                },
-              },
-            },
-          },
-        },
-        {
-          $project: {
-            location: 1,
-            placeCategory: 1,
-            isCreatorPlace: 1,
-            name: 1,
-          },
-        },
-        {
-          $lookup: {
-            from: "placecategories",
-            localField: "placeCategory",
-            foreignField: "_id",
-            as: "placeCategory",
-          },
-        },
-        {
-          $unwind: {
-            path: "$placeCategory",
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        { $limit: queryLimit },
-      ];
+    const places = await Place.find(query)
+      .select("location placeCategory isCreatorPlace name")
+      .populate({
+        path: "placeCategory",
+        model: "PlaceCategory",
+      })
+      .limit(queryLimit)
+      .lean();
 
-      places = await Place.aggregate(aggregationPipeline);
-    } else {
-      places = await Place.find(query)
-        .select("location placeCategory isCreatorPlace name")
-        .populate({
-          path: "placeCategory",
-          model: "PlaceCategory",
-        })
-        .limit(queryLimit)
-        .lean();
-    }
     APIResponse(res, places, "Places fetched successfully", 200);
   } catch (error) {
     logger.error("Error fetching places in view:", error);
