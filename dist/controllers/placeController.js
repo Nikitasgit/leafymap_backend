@@ -4,12 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.searchPlaces = exports.getPlacesInView = exports.getPlaceById = exports.createPlace = exports.updatePlace = void 0;
-const userHelpers_1 = require("../helpers/userHelpers");
+const jsonHandlers_1 = require("../utils/jsonHandlers");
 const Place_1 = __importDefault(require("../models/Place"));
 const User_1 = __importDefault(require("../models/User"));
 const Event_1 = __importDefault(require("../models/Event"));
-const s3_1 = require("../types/s3");
-const mongoose_1 = __importDefault(require("mongoose"));
 const response_1 = require("../utils/response");
 const logger_1 = __importDefault(require("../utils/logger"));
 const schedule_1 = require("../utils/schedule");
@@ -17,20 +15,22 @@ const placeValidations_1 = require("../validations/placeValidations");
 const updatePlace = async (req, res) => {
     try {
         const placeId = req.placeId;
-        const validationResult = req.body;
-        const { name, description, location, phone, email, website, placeCategory, placeType, defaultSchedule, } = validationResult.data;
-        const updateData = {
-            name,
-            description,
-            location,
-            phone,
-            email,
-            website,
-            placeCategory: new mongoose_1.default.Types.ObjectId(placeCategory),
-            placeType,
-            defaultSchedule,
-        };
-        const place = await Place_1.default.findByIdAndUpdate(placeId, updateData);
+        const decoded = req.decoded;
+        if (decoded.userType === "creator") {
+            const user = await User_1.default.findById(decoded.id).select("creatorName creatorCategories");
+            if (!user) {
+                (0, response_1.APIResponse)(res, null, "User not found", 404);
+                return;
+            }
+            req.body.isCreatorPlace = true;
+            req.body.name = user.creatorName;
+        }
+        const validationResult = (0, placeValidations_1.validatePlaceData)(req.body, decoded.userType, true);
+        if (!validationResult.isValid) {
+            (0, response_1.APIResponse)(res, validationResult.errors, "Validation failed", 400);
+            return;
+        }
+        const place = await Place_1.default.findByIdAndUpdate(placeId, req.body);
         (0, response_1.APIResponse)(res, place, "Place updated successfully", 200);
     }
     catch (error) {
@@ -41,23 +41,31 @@ const updatePlace = async (req, res) => {
 exports.updatePlace = updatePlace;
 const createPlace = async (req, res) => {
     try {
-        if (req.decoded.userType === "guest") {
+        const decoded = req.decoded;
+        if (!["creator", "organizer"].includes(decoded.userType)) {
             (0, response_1.APIResponse)(res, null, "Only creators and organizers can create places", 403);
             return;
         }
-        const validationResult = (0, placeValidations_1.validateNewPlaceData)(req.body, req.decoded.userType);
+        if (decoded.userType === "creator") {
+            const user = await User_1.default.findById(decoded.id).select("creatorName");
+            if (!user) {
+                (0, response_1.APIResponse)(res, null, "User not found", 404);
+                return;
+            }
+            req.body.isCreatorPlace = true;
+            req.body.name = user.creatorName;
+        }
+        req.body.user = decoded.id;
+        const validationResult = (0, placeValidations_1.validatePlaceData)(req.body, decoded.userType);
         if (!validationResult.isValid) {
             (0, response_1.APIResponse)(res, validationResult.errors, "Validation failed", 400);
             return;
         }
-        if (req.decoded.userType === "creator") {
-            req.body.isCreatorPlace = true;
-        }
         const place = await Place_1.default.create(req.body);
-        await User_1.default.findByIdAndUpdate(req.decoded.id, {
+        await User_1.default.findByIdAndUpdate(decoded.id, {
             $push: { places: place._id },
         });
-        (0, response_1.APIResponse)(res, place, "Place created successfully", 201);
+        (0, response_1.APIResponse)(res, place._id, "Place created successfully", 201);
     }
     catch (error) {
         logger_1.default.error("Error creating place:", error);
@@ -75,11 +83,16 @@ const getPlaceById = async (req, res) => {
             model: "PlaceCategory",
         })
             .populate({
+            path: "image",
+            model: "Image",
+            select: "urls",
+        })
+            .populate({
             path: "user",
             model: "User",
-            select: "creatorProfile.categories",
+            select: "creatorCategories description",
             populate: {
-                path: "creatorProfile.categories",
+                path: "creatorCategories",
                 model: "SubCategory",
             },
         })
@@ -88,24 +101,23 @@ const getPlaceById = async (req, res) => {
             (0, response_1.APIResponse)(res, null, "Place not found", 404);
             return;
         }
+        if (place.isCreatorPlace &&
+            typeof place.user === "object" &&
+            "description" in place.user) {
+            place.description = place.user.description;
+        }
         if (enrichSchedule === "true") {
             const events = await Event_1.default.find({
                 place: placeId,
-                status: { $in: ["upcoming", "ongoing"] },
-            }).select("name schedule");
-            const formattedEvents = events.map((event) => ({
+                status: { $ne: "cancelled" },
+            })
+                .select("name schedule")
+                .lean();
+            const enrichedSchedule = (0, schedule_1.enrichScheduleWithEvents)(place.defaultSchedule, events.map((event) => ({
+                ...event,
                 _id: event._id.toString(),
-                name: event.name,
-                schedule: event.schedule.map((period) => ({
-                    startDate: period.startDate,
-                    endDate: period.endDate,
-                })),
-            }));
-            const enrichedSchedule = (0, schedule_1.enrichScheduleWithEvents)(place.defaultSchedule, formattedEvents);
+            })));
             place.defaultSchedule = enrichedSchedule;
-        }
-        if (place.image) {
-            place.image = await (0, s3_1.generateSignedUrlFromFullUrl)(place.image);
         }
         (0, response_1.APIResponse)(res, place, "Place fetched successfully", 200);
     }
@@ -135,7 +147,7 @@ const getPlacesInView = async (req, res) => {
         }
         const maxLimit = 100;
         const queryLimit = Math.min(parseInt(limit || "20"), maxLimit);
-        const { placeType, placeCategories, startDate, endDate } = (0, userHelpers_1.parseJson)(filters, {
+        const { placeType, placeCategories, startDate, endDate } = (0, jsonHandlers_1.parseJson)(filters, {
             placeType: "all",
             placeCategories: [],
             startDate: null,
@@ -160,75 +172,14 @@ const getPlacesInView = async (req, res) => {
         if (placeCategories && placeCategories.length > 0) {
             query.placeCategory = { $in: placeCategories };
         }
-        let places;
-        if (startDate || endDate) {
-            const aggregationPipeline = [
-                { $match: query },
-                {
-                    $lookup: {
-                        from: "events",
-                        localField: "_id",
-                        foreignField: "placeId",
-                        as: "events",
-                    },
-                },
-                {
-                    $match: {
-                        events: {
-                            $elemMatch: {
-                                status: { $in: ["upcoming", "ongoing"] },
-                                schedule: {
-                                    $elemMatch: {
-                                        $and: [
-                                            ...(startDate
-                                                ? [{ endDate: { $gte: new Date(startDate) } }]
-                                                : []),
-                                            ...(endDate
-                                                ? [{ startDate: { $lte: new Date(endDate) } }]
-                                                : []),
-                                        ],
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-                {
-                    $project: {
-                        location: 1,
-                        placeCategory: 1,
-                        isCreatorPlace: 1,
-                        name: 1,
-                    },
-                },
-                {
-                    $lookup: {
-                        from: "placecategories",
-                        localField: "placeCategory",
-                        foreignField: "_id",
-                        as: "placeCategory",
-                    },
-                },
-                {
-                    $unwind: {
-                        path: "$placeCategory",
-                        preserveNullAndEmptyArrays: true,
-                    },
-                },
-                { $limit: queryLimit },
-            ];
-            places = await Place_1.default.aggregate(aggregationPipeline);
-        }
-        else {
-            places = await Place_1.default.find(query)
-                .select("location placeCategory isCreatorPlace name")
-                .populate({
-                path: "placeCategory",
-                model: "PlaceCategory",
-            })
-                .limit(queryLimit)
-                .lean();
-        }
+        const places = await Place_1.default.find(query)
+            .select("location placeCategory isCreatorPlace name")
+            .populate({
+            path: "placeCategory",
+            model: "PlaceCategory",
+        })
+            .limit(queryLimit)
+            .lean();
         (0, response_1.APIResponse)(res, places, "Places fetched successfully", 200);
     }
     catch (error) {
@@ -257,15 +208,14 @@ const searchPlaces = async (req, res) => {
             model: "PlaceCategory",
             select: "name",
         })
+            .populate({
+            path: "image",
+            model: "Image",
+            select: "urls",
+        })
             .limit(queryLimit)
             .lean();
-        const placesWithSignedUrls = await Promise.all(places.map(async (place) => {
-            if (place.image) {
-                place.image = await (0, s3_1.generateSignedUrlFromFullUrl)(place.image);
-            }
-            return place;
-        }));
-        (0, response_1.APIResponse)(res, placesWithSignedUrls, "Places searched successfully", 200);
+        (0, response_1.APIResponse)(res, places, "Places searched successfully", 200);
     }
     catch (error) {
         logger_1.default.error("Error searching places:", error);

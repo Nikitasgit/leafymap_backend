@@ -12,5 +12,4 @@ router.post("/signin", authController_1.signIn);
 router.post("/signout", authController_1.signOut);
 router.get("/verify", authController_1.verifyToken);
 router.get("/me", auth_1.default, authController_1.getCurrentUser);
-router.get("/auth-user", auth_1.default, authController_1.getAuthUser);
 exports.default = router;

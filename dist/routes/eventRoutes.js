@@ -6,5 +6,5 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const eventController_1 = require("../controllers/eventController");
 const router = express_1.default.Router();
-router.get("/:id", eventController_1.getEventById);
+router.get("/:eventId", eventController_1.getEventById);
 exports.default = router;

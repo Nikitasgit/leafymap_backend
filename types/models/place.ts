@@ -1,7 +1,6 @@
 import { Document, Types } from "mongoose";
-import { ICollaborator } from "./collaborator";
-import { IImage } from "./Image";
 import { IUser } from "./user";
+import { IImage } from "./Image";
 
 export interface IPlaceTimeSlot {
   startTime: string;
@@ -45,7 +44,7 @@ export interface IPlace extends Document {
   phone?: string;
   email?: string;
   website?: string;
-  image?: Types.ObjectId | Pick<IImage, "url">;
+  image?: Types.ObjectId | Pick<IImage, "urls">;
   active: boolean;
   deleted: boolean;
   isCreatorPlace: boolean;
@@ -54,7 +53,6 @@ export interface IPlace extends Document {
   placeType: PlaceType[];
   defaultSchedule: IDefaultSchedule;
   customDates: ICustomDate[];
-  collaborators: ICollaborator[];
   createdAt: Date;
   updatedAt: Date;
 }

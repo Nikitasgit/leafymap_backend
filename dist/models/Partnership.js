@@ -34,11 +34,6 @@ const partnershipSchema = new mongoose_1.default.Schema({
         required: true,
         default: "place",
     },
-    timeSlots: {
-        type: [mongoose_1.default.Schema.Types.ObjectId],
-        ref: "EventTimeSlot",
-        required: false,
-    },
     deleted: { type: Boolean, default: false },
 });
 exports.Partnership = mongoose_1.default.model("Partnership", partnershipSchema);

@@ -6,7 +6,7 @@ export interface TimeSlot {
   endTime: string;
 }
 
-export type PlaceType = "food" | "art" | "craft";
+export type ApiPlaceType = "food" | "art" | "craft";
 
 export interface DaySchedule {
   open: boolean;
@@ -40,7 +40,7 @@ export interface Place extends BaseEntity, ContactInfo {
   isCreatorPlace: boolean;
   rating: number;
   placeCategory: string;
-  placeType: PlaceType[];
+  placeType: ApiPlaceType[];
   defaultSchedule: DefaultSchedule;
   customSchedule: CustomSchedule[];
 }
@@ -66,5 +66,5 @@ interface PlaceCategory {
   _id: string;
   name: string;
   description: string;
-  types: PlaceType[];
+  types: ApiPlaceType[];
 }

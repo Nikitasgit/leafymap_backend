@@ -1,4 +1,4 @@
-// Database model interfaces - these represent the actual database schemas
+
 export * from "./user";
 export * from "./place";
 export * from "./event";

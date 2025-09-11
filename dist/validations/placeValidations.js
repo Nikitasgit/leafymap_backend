@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateNewPlaceData = exports.placeTypeSchema = exports.locationSchema = exports.placeCategorySchema = exports.placeNameSchema = void 0;
+exports.validatePlaceData = exports.placeTypeSchema = exports.locationSchema = exports.placeCategorySchema = exports.placeNameSchema = void 0;
 const zod_1 = require("zod");
 const commonValidations_1 = require("./commonValidations");
 exports.placeNameSchema = zod_1.z
@@ -25,24 +25,28 @@ const newPlaceSchema = zod_1.z.object({
     placeCategory: exports.placeCategorySchema,
     location: exports.locationSchema,
     active: zod_1.z.boolean(),
+    name: exports.placeNameSchema,
 });
 const newOrganizerPlaceSchema = newPlaceSchema.extend({
     email: commonValidations_1.emailSchema,
     active: zod_1.z.literal(true),
-    name: exports.placeNameSchema,
     website: commonValidations_1.websiteSchema.optional(),
     phone: commonValidations_1.phoneSchema,
     placeType: exports.placeTypeSchema,
     description: commonValidations_1.descriptionSchema,
 });
-const validateNewPlaceData = (data, userType) => {
+const updatePlaceSchema = newPlaceSchema.partial();
+const updateOrganizerPlaceSchema = newOrganizerPlaceSchema.partial();
+const validatePlaceData = (data, userType, isUpdate = false) => {
     const errors = {};
     let placeSchema;
-    if (userType === "organizer") {
-        placeSchema = newOrganizerPlaceSchema;
+    if (isUpdate) {
+        placeSchema =
+            userType === "organizer" ? updateOrganizerPlaceSchema : updatePlaceSchema;
     }
     else {
-        placeSchema = newPlaceSchema;
+        placeSchema =
+            userType === "organizer" ? newOrganizerPlaceSchema : newPlaceSchema;
     }
     const result = placeSchema.safeParse(data);
     if (!result.success) {
@@ -51,7 +55,7 @@ const validateNewPlaceData = (data, userType) => {
             errors[field] = err.message;
         });
     }
-    if (!data.location) {
+    if (!isUpdate && !data.location) {
         errors.location = "L'adresse du lieu est obligatoire";
     }
     return {
@@ -59,4 +63,4 @@ const validateNewPlaceData = (data, userType) => {
         isValid: Object.keys(errors).length === 0,
     };
 };
-exports.validateNewPlaceData = validateNewPlaceData;
+exports.validatePlaceData = validatePlaceData;

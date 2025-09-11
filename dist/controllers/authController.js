@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCurrentUser = exports.getAuthUser = exports.verifyToken = exports.signOut = exports.signIn = exports.register = void 0;
+exports.getCurrentUser = exports.verifyToken = exports.signOut = exports.signIn = exports.register = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const User_1 = __importDefault(require("../models/User"));
@@ -11,12 +11,14 @@ const response_1 = require("../utils/response");
 const logger_1 = __importDefault(require("../utils/logger"));
 const jwt_1 = require("../utils/jwt");
 const authValidations_1 = require("../validations/authValidations");
-const s3_1 = require("../utils/s3");
-const zod_1 = require("zod");
 const register = async (req, res) => {
     try {
         const validatedData = (0, authValidations_1.validateRegisterData)(req.body);
-        const { email, password, username } = validatedData;
+        if (!validatedData.isValid) {
+            (0, response_1.APIResponse)(res, validatedData.errors, "Validation failed", 400);
+            return;
+        }
+        const { email, password, username } = req.body;
         const emailExists = await User_1.default.findOne({ email });
         if (emailExists) {
             (0, response_1.APIResponse)(res, null, "Email already exists", 400);
@@ -32,13 +34,12 @@ const register = async (req, res) => {
         (0, response_1.APIResponse)(res, null, "User registered", 201);
     }
     catch (error) {
-        if (error instanceof zod_1.z.ZodError) {
-            const validationErrors = (0, authValidations_1.getValidationErrors)(error);
-            const errorMessage = Object.values(validationErrors).join(", ");
-            (0, response_1.APIResponse)(res, null, errorMessage, 400);
-            return;
+        if (error instanceof Error) {
+            (0, response_1.APIResponse)(res, null, `Failed to register: ${error.message}`, 500);
         }
-        (0, response_1.APIResponse)(res, null, "Server error", 500);
+        else {
+            (0, response_1.APIResponse)(res, null, "Failed to register", 500);
+        }
         logger_1.default.error("Error in register:", error);
     }
 };
@@ -46,12 +47,16 @@ exports.register = register;
 const signIn = async (req, res) => {
     try {
         const validatedData = (0, authValidations_1.validateLoginData)(req.body);
-        const { identifier, password } = validatedData;
+        if (!validatedData.isValid) {
+            (0, response_1.APIResponse)(res, validatedData.errors, "Validation failed", 400);
+            return;
+        }
+        const { identifier, password } = req.body;
         const user = await User_1.default.findOne({
             $or: [{ email: identifier }, { username: identifier }],
         });
         if (!user || !(await bcrypt_1.default.compare(password, user.password))) {
-            (0, response_1.APIResponse)(res, null, "Invalid credentials", 401);
+            (0, response_1.APIResponse)(res, null, "Les identifiants sont incorrects", 401);
             return;
         }
         const userWithoutPassword = await User_1.default.findById(user._id).select("email username");
@@ -63,13 +68,12 @@ const signIn = async (req, res) => {
         (0, response_1.APIResponse)(res, { user: userWithoutPassword }, "Logged in", 200);
     }
     catch (error) {
-        if (error instanceof zod_1.z.ZodError) {
-            const validationErrors = (0, authValidations_1.getValidationErrors)(error);
-            const errorMessage = Object.values(validationErrors).join(", ");
-            (0, response_1.APIResponse)(res, null, errorMessage, 400);
-            return;
+        if (error instanceof Error) {
+            (0, response_1.APIResponse)(res, null, `Failed to sign in: ${error.message}`, 500);
         }
-        (0, response_1.APIResponse)(res, null, "Server error", 500);
+        else {
+            (0, response_1.APIResponse)(res, null, "Failed to sign in", 500);
+        }
         logger_1.default.error("Error in signIn:", error);
     }
 };
@@ -109,55 +113,31 @@ const verifyToken = async (req, res) => {
     }
 };
 exports.verifyToken = verifyToken;
-const getAuthUser = async (req, res) => {
-    try {
-        const user = await User_1.default.findById(req.decoded.id).select("email username");
-        (0, response_1.APIResponse)(res, user, "User retrieved successfully", 200);
-    }
-    catch (error) {
-        (0, response_1.APIResponse)(res, null, "Server error", 500);
-        logger_1.default.error("Error in getAuthUser:", error);
-    }
-};
-exports.getAuthUser = getAuthUser;
 const getCurrentUser = async (req, res) => {
     try {
-        const user = await User_1.default.findById(req.decoded.id)
+        const decoded = req.decoded;
+        const user = await User_1.default.findById(decoded.id)
             .select("-password -createdAt -updatedAt -interests  -deleted -__v")
             .populate({
-            path: "creatorProfile.categories",
-            model: "SubCategory",
-        })
-            .populate({
-            path: "creatorProfile.place",
-            populate: {
-                path: "placeCategory",
-                model: "PlaceCategory",
-            },
+            path: "image",
+            model: "Image",
         })
             .populate({
             path: "places",
             model: "Place",
-        });
+            populate: {
+                path: "image",
+                model: "Image",
+                select: "urls",
+            },
+        })
+            .lean();
         if (!user) {
             (0, response_1.APIResponse)(res, null, "User not found", 404);
             return;
         }
-        let signedImageUrl = null;
-        if (user.image) {
-            try {
-                signedImageUrl = await (0, s3_1.generateSignedUrlFromFullUrl)(user.image);
-            }
-            catch (error) {
-                logger_1.default.error("Error generating signed URL for user image:", error);
-            }
-        }
-        const userWithSignedImage = {
-            ...user.toObject(),
-            image: signedImageUrl || user.image,
-        };
         (0, response_1.APIResponse)(res, {
-            user: userWithSignedImage,
+            user,
         }, "User retrieved successfully", 200);
     }
     catch (error) {

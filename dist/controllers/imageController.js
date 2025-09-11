@@ -3,94 +3,72 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uploadProfilePicture = void 0;
+exports.deleteImages = exports.uploadImages = void 0;
+const Image_1 = __importDefault(require("../models/Image"));
 const response_1 = require("../utils/response");
 const logger_1 = __importDefault(require("../utils/logger"));
-const User_1 = __importDefault(require("../models/User"));
-const Place_1 = __importDefault(require("../models/Place"));
-const Event_1 = __importDefault(require("../models/Event"));
-const mongoose_1 = __importDefault(require("mongoose"));
-const s3_1 = require("../types/s3");
-const uploadProfilePicture = async (req, res) => {
+const s3_1 = require("../utils/s3");
+const imageProcessing_1 = require("../middlewares/imageProcessing");
+const services_1 = require("../services");
+const uploadImages = async (req, res) => {
+    var _a;
     try {
-        const user = await User_1.default.findById(req.decoded.id);
-        if (!user) {
-            (0, response_1.APIResponse)(res, null, "User not found", 404);
+        const { reference, referenceType, type } = req.body;
+        const files = Array.isArray(req.files) ? req.files : (_a = req.files) === null || _a === void 0 ? void 0 : _a.images;
+        if (!files || files.length === 0) {
+            (0, response_1.APIResponse)(res, null, "Aucune image fournie", 400);
             return;
         }
-        const { entityType, entityId } = req.body;
-        if (!["user", "place", "event"].includes(entityType)) {
-            (0, response_1.APIResponse)(res, null, "Invalid entity type", 400);
-            return;
+        let filesToProcess = files;
+        const onlyOneImageTypes = ["profile", "cover"];
+        if (onlyOneImageTypes.includes(type) &&
+            ["event", "place", "user"].includes(referenceType)) {
+            filesToProcess = files.slice(0, 1);
         }
-        if (entityType !== "user" && !entityId) {
-            (0, response_1.APIResponse)(res, null, `${entityType} ID is required`, 400);
-            return;
-        }
-        if (!req.file || !req.file.location) {
-            (0, response_1.APIResponse)(res, null, "No image file provided or invalid file", 400);
-            return;
-        }
-        const imageUrl = req.file.location;
-        switch (entityType) {
-            case "user":
-                await handleUserProfilePicture(user._id, imageUrl);
-                break;
-            case "place":
-                await handlePlaceProfilePicture(user._id, entityId, imageUrl);
-                break;
-            case "event":
-                await handleEventProfilePicture(user._id, entityId, imageUrl);
-                break;
-        }
-        const signedImageUrl = await (0, s3_1.generateSignedUrlFromFullUrl)(imageUrl);
-        (0, response_1.APIResponse)(res, { imageUrl: signedImageUrl }, "Profile picture uploaded successfully", 200);
+        const imageResults = await Promise.all(filesToProcess.map(async (file) => {
+            const processedUrls = await (0, imageProcessing_1.processImageToMultipleSizes)(file.buffer, file.originalname, file.mimetype);
+            return {
+                urls: processedUrls,
+                user: req.decoded.id,
+                referenceType: referenceType,
+                reference: reference,
+                type: type,
+                originalName: file.originalname,
+                size: file.size,
+                mimetype: file.mimetype,
+            };
+        }));
+        const createdImages = await Image_1.default.insertMany(imageResults);
+        const imagesWithSignedUrls = await Promise.all(createdImages.map(async (image) => {
+            const signedUrls = {
+                original: await (0, s3_1.generateSignedUrlFromFullUrl)(image.urls.original),
+                thumbnail: await (0, s3_1.generateSignedUrlFromFullUrl)(image.urls.thumbnail),
+                medium: await (0, s3_1.generateSignedUrlFromFullUrl)(image.urls.medium),
+            };
+            return {
+                ...image.toObject(),
+                signedUrls,
+            };
+        }));
+        (0, response_1.APIResponse)(res, {
+            images: imagesWithSignedUrls,
+            count: imagesWithSignedUrls.length,
+        }, "Images uploadées et créées avec succès", 200);
     }
     catch (error) {
-        logger_1.default.error("Error uploading profile picture:", error);
-        if (error instanceof Error) {
-            (0, response_1.APIResponse)(res, null, `Failed to upload profile picture: ${error.message}`, 500);
-        }
-        else {
-            (0, response_1.APIResponse)(res, null, "Failed to upload profile picture", 500);
-        }
+        logger_1.default.error("Erreur lors de l'upload et création des images:", error);
+        (0, response_1.APIResponse)(res, null, "Erreur serveur lors de l'upload des images", 500);
     }
 };
-exports.uploadProfilePicture = uploadProfilePicture;
-const handleUserProfilePicture = async (userId, imageUrl) => {
-    const user = await User_1.default.findById(userId);
-    if (!user) {
-        throw new Error("User not found");
+exports.uploadImages = uploadImages;
+const deleteImages = async (req, res) => {
+    try {
+        await services_1.ImageService.deleteImages(req.images);
+        (0, response_1.APIResponse)(res, null, "Images supprimées avec succès", 200);
     }
-    user.image = imageUrl;
-    await user.save();
+    catch (error) {
+        logger_1.default.error("Erreur lors de la suppression des images:", error);
+        (0, response_1.APIResponse)(res, null, "Erreur serveur lors de la suppression des images", 500);
+    }
 };
-const handlePlaceProfilePicture = async (userId, placeId, imageUrl) => {
-    if (!mongoose_1.default.Types.ObjectId.isValid(placeId)) {
-        throw new Error("Invalid Place ID format");
-    }
-    const place = await Place_1.default.findById(placeId);
-    if (!place) {
-        throw new Error("Place not found");
-    }
-    if (place.user.toString() !== userId) {
-        throw new Error("You can only update profile pictures for your own places");
-    }
-    place.image = imageUrl;
-    await place.save();
-};
-const handleEventProfilePicture = async (userId, eventId, imageUrl) => {
-    if (!mongoose_1.default.Types.ObjectId.isValid(eventId)) {
-        throw new Error("Invalid Event ID format");
-    }
-    const event = await Event_1.default.findById(eventId);
-    if (!event) {
-        throw new Error("Event not found");
-    }
-    const place = await Place_1.default.findById(event.place);
-    if (!place || place.user.toString() !== userId) {
-        throw new Error("You can only update profile pictures for events in your places");
-    }
-    event.image = imageUrl;
-    await event.save();
-};
+exports.deleteImages = deleteImages;

@@ -37,11 +37,16 @@ exports.eventSchema = new mongoose_1.Schema({
         ref: "Place",
         required: [true, "Please add a place"],
     },
-    image: String,
+    image: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: "Image",
+        required: false,
+    },
     status: {
         type: String,
-        enum: ["upcoming", "ongoing", "completed", "cancelled"],
-        default: "upcoming",
+        enum: ["cancelled", "full", "available"],
+        default: "available",
     },
+    deleted: { type: Boolean, default: false },
 }, { timestamps: true });
 exports.default = (0, mongoose_1.model)("Event", exports.eventSchema);

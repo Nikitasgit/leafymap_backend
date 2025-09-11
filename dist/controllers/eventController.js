@@ -8,24 +8,19 @@ const Event_1 = __importDefault(require("../models/Event"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const response_1 = require("../utils/response");
 const logger_1 = __importDefault(require("../utils/logger"));
-const s3_1 = require("../types/s3");
+const eventValidations_1 = require("../validations/eventValidations");
+const date_fns_1 = require("date-fns");
 const createEvent = async (req, res) => {
     try {
         const placeId = req.placeId;
-        const { name, description, schedule } = req.body;
-        if (!name || !description || !schedule) {
-            (0, response_1.APIResponse)(res, null, "Name, description, and schedule are required", 400);
+        const validationResult = (0, eventValidations_1.validateEventData)(req.body, false);
+        if (!validationResult.isValid) {
+            (0, response_1.APIResponse)(res, validationResult.errors, "Validation failed", 400);
             return;
         }
-        const eventData = {
-            name,
-            description,
-            schedule,
-            place: new mongoose_1.default.Types.ObjectId(placeId),
-            status: "upcoming",
-        };
-        const event = await Event_1.default.create(eventData);
-        (0, response_1.APIResponse)(res, event, "Event created successfully", 201);
+        req.body.place = new mongoose_1.default.Types.ObjectId(placeId);
+        const event = await Event_1.default.create(req.body);
+        (0, response_1.APIResponse)(res, event._id, "Event created successfully", 201);
     }
     catch (error) {
         if (error instanceof Error) {
@@ -40,48 +35,19 @@ const createEvent = async (req, res) => {
 exports.createEvent = createEvent;
 const getEventsByPlaceId = async (req, res) => {
     try {
-        const { id } = req.params;
-        if (!id) {
+        const { placeId } = req.params;
+        if (!placeId) {
             (0, response_1.APIResponse)(res, null, "Place ID is required", 400);
             return;
         }
         const events = await Event_1.default.find({
-            place: new mongoose_1.default.Types.ObjectId(id),
-        }).populate([
-            {
-                path: "schedule.timeSlots.collaborators.user",
-                model: "User",
-                select: "_id username image",
-            },
-        ]);
-        const eventsWithSignedUrls = await Promise.all(events.map(async (event) => {
-            const eventObj = event.toObject();
-            if (eventObj.image) {
-                eventObj.image = await (0, s3_1.generateSignedUrlFromFullUrl)(eventObj.image);
-            }
-            // Process collaborators in timeSlots
-            if (eventObj.schedule) {
-                eventObj.schedule = await Promise.all(eventObj.schedule.map(async (period) => {
-                    if (period.timeSlots) {
-                        period.timeSlots = await Promise.all(period.timeSlots.map(async (slot) => {
-                            if (slot.collaborators) {
-                                slot.collaborators = await Promise.all(slot.collaborators.map(async (collaborator) => {
-                                    if (collaborator._id && collaborator._id.image) {
-                                        collaborator._id.image =
-                                            await (0, s3_1.generateSignedUrlFromFullUrl)(collaborator._id.image);
-                                    }
-                                    return collaborator;
-                                }));
-                            }
-                            return slot;
-                        }));
-                    }
-                    return period;
-                }));
-            }
-            return eventObj;
-        }));
-        (0, response_1.APIResponse)(res, eventsWithSignedUrls, "Events fetched successfully", 200);
+            place: new mongoose_1.default.Types.ObjectId(placeId),
+        })
+            .select("name image place description status schedule")
+            .populate({ path: "image", model: "Image", select: "_id urls" })
+            .populate({ path: "place", model: "Place", select: "_id name" })
+            .lean();
+        (0, response_1.APIResponse)(res, events, "Events fetched successfully", 200);
     }
     catch (error) {
         (0, response_1.APIResponse)(res, null, "Failed to fetch events", 500);
@@ -91,16 +57,19 @@ const getEventsByPlaceId = async (req, res) => {
 exports.getEventsByPlaceId = getEventsByPlaceId;
 const getEventById = async (req, res) => {
     try {
-        const { id } = req.params;
-        const event = await Event_1.default.findById(id)
-            .populate([{ path: "place", model: "Place", select: "_id" }])
-            .populate([
-            {
-                path: "schedule.timeSlots.collaborators",
-                model: "User",
-                select: "_id creatorProfile.name image",
+        const { eventId } = req.params;
+        const event = await Event_1.default.findById(eventId)
+            .populate({ path: "place", model: "Place", select: "_id" })
+            .populate({ path: "image", model: "Image", select: "_id urls" })
+            .populate({
+            path: "schedule.timeSlots.collaborators",
+            model: "User",
+            select: "_id creatorName image",
+            populate: {
+                path: "image",
+                model: "Image",
             },
-        ])
+        })
             .lean();
         if (!event) {
             (0, response_1.APIResponse)(res, null, "Event not found", 404);
@@ -108,23 +77,19 @@ const getEventById = async (req, res) => {
         }
         const updatedEvent = {
             ...event,
-            schedule: await Promise.all(event.schedule.map(async (period) => ({
+            schedule: event.schedule.map((period) => ({
                 ...period,
-                timeSlots: await Promise.all(period.timeSlots.map(async (slot) => ({
+                startDate: (0, date_fns_1.format)(period.startDate, "dd-MM-yyyy"),
+                endDate: period.endDate ? (0, date_fns_1.format)(period.endDate, "dd-MM-yyyy") : "",
+                timeSlots: period.timeSlots.map((slot) => ({
                     ...slot,
-                    collaborators: await Promise.all(slot.collaborators.map(async (collaborator) => ({
-                        _id: collaborator._id,
-                        name: collaborator.creatorProfile.name,
-                        image: collaborator.image
-                            ? await (0, s3_1.generateSignedUrlFromFullUrl)(collaborator.image)
-                            : "",
-                    }))),
-                }))),
-            }))),
+                    collaborators: slot.collaborators.map((collaborator) => ({
+                        name: collaborator.creatorName,
+                        image: collaborator.image.urls.thumbnail,
+                    })),
+                })),
+            })),
         };
-        if (updatedEvent.image) {
-            updatedEvent.image = await (0, s3_1.generateSignedUrlFromFullUrl)(updatedEvent.image);
-        }
         (0, response_1.APIResponse)(res, updatedEvent, "Event fetched successfully", 200);
     }
     catch (error) {
@@ -140,46 +105,19 @@ const updateEvent = async (req, res) => {
             (0, response_1.APIResponse)(res, null, "Event ID is required", 400);
             return;
         }
-        const { name, description, schedule, status } = req.body;
-        const transformedSchedule = schedule.map((period) => ({
-            startDate: new Date(period.startDate),
-            endDate: new Date(period.endDate),
-            timeSlots: (period.timeSlots || []).map((slot) => ({
-                title: slot.title || "",
-                startTime: slot.startTime || "",
-                endTime: slot.endTime || "",
-                collaborators: slot.collaborators.map((collaborator) => ({
-                    _id: new mongoose_1.default.Types.ObjectId(collaborator._id),
-                })),
-            })),
-        }));
-        if (transformedSchedule.length === 0) {
-            (0, response_1.APIResponse)(res, null, "Schedule must contain at least one period", 400);
+        const validationResult = (0, eventValidations_1.validateEventData)(req.body, true);
+        if (!validationResult.isValid) {
+            (0, response_1.APIResponse)(res, validationResult.errors, "Validation failed", 400);
             return;
         }
-        // Validate that each period has valid dates
-        for (const period of transformedSchedule) {
-            if (!period.startDate || !period.endDate) {
-                (0, response_1.APIResponse)(res, null, "Each schedule period must have valid dates", 400);
-                return;
-            }
-        }
-        const updateData = {
-            name,
-            description,
-            schedule: transformedSchedule,
-        };
-        if (status) {
-            updateData.status = status;
-        }
-        const event = await Event_1.default.findByIdAndUpdate(eventId, updateData, {
+        const event = await Event_1.default.findByIdAndUpdate(eventId, req.body, {
             new: true,
         });
         if (!event) {
             (0, response_1.APIResponse)(res, null, "Event not found", 404);
             return;
         }
-        (0, response_1.APIResponse)(res, event, "Event updated successfully", 200);
+        (0, response_1.APIResponse)(res, event._id, "Event updated successfully", 200);
     }
     catch (error) {
         if (error instanceof Error) {

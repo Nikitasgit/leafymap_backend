@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
+require("../models/Category");
 const subcategorySchema = new mongoose_1.Schema({
     name: {
         type: String,

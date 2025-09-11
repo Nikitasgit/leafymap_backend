@@ -8,11 +8,6 @@ const addressSchema = new mongoose_1.Schema({
     code: { type: String, required: true },
     extra: { type: String },
 });
-const creatorProfileSchema = new mongoose_1.Schema({
-    categories: [{ type: mongoose_1.Types.ObjectId, ref: "SubCategory" }],
-    place: { type: mongoose_1.Types.ObjectId, ref: "Place" },
-    name: { type: String, required: true },
-});
 const userSchema = new mongoose_1.Schema({
     firstname: { type: String },
     lastname: { type: String },
@@ -33,9 +28,8 @@ const userSchema = new mongoose_1.Schema({
     address: addressSchema,
     description: { type: String, maxlength: 300 },
     country: { type: String, enum: countries_1.ISO_COUNTRIES_ALPHA2 },
-    image: { type: String },
+    image: { type: mongoose_1.Types.ObjectId, ref: "Image" },
     followers: [{ type: mongoose_1.Types.ObjectId, ref: "User" }],
-    creatorProfile: creatorProfileSchema,
     interests: [{ type: mongoose_1.Types.ObjectId, ref: "SubCategory" }],
     places: [{ type: mongoose_1.Types.ObjectId, ref: "Place" }],
 }, { timestamps: true });
