@@ -7,6 +7,7 @@ import { IPartnership } from "../types/models/partnership";
 import { PartnershipDTO } from "../types/api/partnership.dto";
 import { IEvent, IUser } from "types/models";
 import { getEventStatusFromSchedule } from "../utils/eventDates";
+import mongoose from "mongoose";
 
 const createPartnerships = async (req: CustomRequest, res: Response) => {
   try {
@@ -156,8 +157,8 @@ const getPartnershipsByUserId = async (req: CustomRequest, res: Response) => {
 
     const isCollaborator = asCollaborator === "true";
     const query = isCollaborator
-      ? { collaborator: userId }
-      : { initiator: userId };
+      ? { collaborator: new mongoose.Types.ObjectId(userId) }
+      : { initiator: new mongoose.Types.ObjectId(userId) };
 
     let eventPopulateQuery: any = {
       path: "event",
@@ -178,24 +179,46 @@ const getPartnershipsByUserId = async (req: CustomRequest, res: Response) => {
       .populate("collaborator", "firstName lastName email")
       .populate({
         path: "place",
-        select: "name address image location active deleted",
         match: {
           deleted: { $ne: true },
           active: { $ne: false },
         },
+        select: "name address image location active deleted",
         populate: {
           path: "image",
           model: "Image",
           select: "urls",
         },
       })
-      .populate(eventPopulateQuery)
+      .populate({
+        path: "event",
+        match:
+          includeCancelledEvents !== "true"
+            ? { status: { $ne: "cancelled" } }
+            : {},
+        select: "name description image schedule status",
+        populate: {
+          path: "image",
+          model: "Image",
+          select: "urls",
+        },
+      })
       .lean();
 
-    let filteredPartnerships = partnerships;
+    const validPartnerships = partnerships.filter((partnership) => {
+      if (partnership.place === null) {
+        return false;
+      }
+      if (partnership.type === "event" && partnership.event === null) {
+        return false;
+      }
 
+      return true;
+    });
+
+    let filteredPartnerships = validPartnerships;
     if (includePastEvents !== "true") {
-      filteredPartnerships = partnerships.filter((partnership) => {
+      filteredPartnerships = filteredPartnerships.filter((partnership) => {
         if (!partnership.event) {
           return true;
         }

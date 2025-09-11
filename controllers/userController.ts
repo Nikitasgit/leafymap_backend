@@ -10,6 +10,7 @@ const getUserById = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.params.userId;
     const user = await User.findById(userId)
+      .where("deleted", false)
       .select("-password -createdAt -updatedAt -interests  -deleted -__v")
       .populate({
         path: "creatorCategories",
@@ -51,6 +52,7 @@ const getUsers = async (req: Request, res: Response): Promise<void> => {
     }
 
     const users = await User.find(queryFilter)
+      .where("deleted", false)
       .select(
         "-password -createdAt -updatedAt -interests -deleted -__v -email -username -userType -phone -website -description -country -address"
       )
@@ -103,4 +105,36 @@ const updateUser = async (req: CustomRequest, res: Response): Promise<void> => {
   }
 };
 
-export { getUserById, getUsers, updateUser };
+const deleteAccount = async (
+  req: CustomRequest,   
+  res: Response
+): Promise<void> => {
+  try {
+    const decoded = req.decoded!;
+    const userId = decoded.id;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { deleted: true },
+      { new: true }
+    );
+
+    if (!user) {
+      APIResponse(res, null, "User not found", 404);
+      return;
+    }
+
+    // Optionnel: Supprimer aussi les données associées
+    // await Place.updateMany({ user: userId }, { deleted: true });
+    // await Event.updateMany({ user: userId }, { deleted: true });
+    // etc.
+
+    logger.info(`User account deleted: ${userId}`);
+    APIResponse(res, null, "Account deleted successfully", 200);
+  } catch (error) {
+    logger.error("Error deleting account:", error);
+    APIResponse(res, null, "Server error", 500);
+  }
+};
+
+export { getUserById, getUsers, updateUser, deleteAccount };

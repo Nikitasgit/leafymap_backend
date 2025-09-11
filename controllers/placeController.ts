@@ -239,7 +239,6 @@ const searchPlaces = async (req: Request, res: Response): Promise<void> => {
       APIResponse(res, [], "Search query must be at least 2 characters", 200);
       return;
     }
-
     const maxLimit = 20;
     const queryLimit = Math.min(parseInt(limit as string), maxLimit);
 

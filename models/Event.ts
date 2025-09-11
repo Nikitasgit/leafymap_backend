@@ -49,6 +49,7 @@ export const eventSchema = new Schema<IEvent>(
       enum: ["cancelled", "full", "available"],
       default: "available",
     },
+    deleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
