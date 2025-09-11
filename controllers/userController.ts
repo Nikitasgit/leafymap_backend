@@ -1,10 +1,15 @@
 import { Request, Response } from "express";
 import User from "../models/User";
+import Place from "../models/Place";
+import Event from "../models/Event";
+import { Partnership } from "../models/Partnership";
+import Image from "../models/Image";
 import { CustomRequest } from "../types/custom";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
 import { generateToken, setTokenCookie } from "../utils/jwt";
 import { validateNewUserData } from "../validations/userValidations";
+import { ImageService } from "../services";
 
 const getUserById = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -106,31 +111,77 @@ const updateUser = async (req: CustomRequest, res: Response): Promise<void> => {
 };
 
 const deleteAccount = async (
-  req: CustomRequest,   
+  req: CustomRequest,
   res: Response
 ): Promise<void> => {
   try {
     const decoded = req.decoded!;
     const userId = decoded.id;
 
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { deleted: true },
-      { new: true }
-    );
-
+    const user = await User.findById(userId);
     if (!user) {
       APIResponse(res, null, "User not found", 404);
       return;
     }
 
-    // Optionnel: Supprimer aussi les données associées
-    // await Place.updateMany({ user: userId }, { deleted: true });
-    // await Event.updateMany({ user: userId }, { deleted: true });
-    // etc.
+    const userImages = await Image.find({
+      $or: [{ user: userId }, { reference: userId, referenceType: "User" }],
+    });
 
-    logger.info(`User account deleted: ${userId}`);
-    APIResponse(res, null, "Account deleted successfully", 200);
+    const userPlaces = await Place.find({ user: userId });
+    const placeIds = userPlaces.map((place) => place._id);
+
+    const placeImages = await Image.find({
+      reference: { $in: placeIds },
+      referenceType: "Place",
+    });
+    const eventImages = await Image.find({
+      reference: { $in: placeIds },
+      referenceType: "Event",
+    });
+    const allImagesToDelete = [...userImages, ...placeImages, ...eventImages];
+    const imageIds = allImagesToDelete.map((img) => img._id);
+    await ImageService.deleteImages(imageIds);
+
+    const eventsUpdated = await Event.updateMany(
+      { "schedule.timeSlots.collaborators": userId },
+      { $pull: { "schedule.$[].timeSlots.$[].collaborators": userId } }
+    );
+
+    logger.info(
+      `Removed user from collaborators in ${eventsUpdated.modifiedCount} events`
+    );
+
+    if (placeIds.length > 0) {
+      await Event.deleteMany({ place: { $in: placeIds } });
+      logger.info(
+        `Deleted events for ${placeIds.length} places of user ${userId}`
+      );
+    }
+
+    const partnershipsDeleted = await Partnership.deleteMany({
+      $or: [{ initiator: userId }, { collaborator: userId }],
+    });
+    logger.info(
+      `Deleted ${partnershipsDeleted.deletedCount} partnerships for user ${userId}`
+    );
+
+    if (placeIds.length > 0) {
+      await Place.deleteMany({ _id: { $in: placeIds } });
+      logger.info(`Deleted ${placeIds.length} places for user ${userId}`);
+    }
+
+    await User.findByIdAndDelete(userId);
+    logger.info(`User account permanently deleted: ${userId}`);
+    
+    res.clearCookie("token");
+
+    APIResponse(
+      res,
+      { imagesToDelete: imageIds },
+      "Account and all associated data deleted successfully. Images need to be deleted from AWS.",
+      200
+    );
   } catch (error) {
     logger.error("Error deleting account:", error);
     APIResponse(res, null, "Server error", 500);

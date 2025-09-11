@@ -51,8 +51,6 @@ const createPartnerships = async (req: CustomRequest, res: Response) => {
   }
 };
 
-// organizer can update deleted field
-// collaborator can update status
 const updatePartnerships = async (req: CustomRequest, res: Response) => {
   try {
     const decoded = req.decoded!;
