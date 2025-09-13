@@ -130,13 +130,15 @@ const deleteAccount = async (
 
     const userPlaces = await Place.find({ user: userId });
     const placeIds = userPlaces.map((place) => place._id);
+    const userEvents = await Event.find({ place: { $in: placeIds } });
+    const eventIds = userEvents.map((event) => event._id);
 
     const placeImages = await Image.find({
       reference: { $in: placeIds },
       referenceType: "Place",
     });
     const eventImages = await Image.find({
-      reference: { $in: placeIds },
+      reference: { $in: eventIds },
       referenceType: "Event",
     });
     const allImagesToDelete = [...userImages, ...placeImages, ...eventImages];
@@ -173,7 +175,7 @@ const deleteAccount = async (
 
     await User.findByIdAndDelete(userId);
     logger.info(`User account permanently deleted: ${userId}`);
-    
+
     res.clearCookie("token");
 
     APIResponse(

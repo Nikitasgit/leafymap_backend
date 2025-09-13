@@ -1934,3 +1934,9 @@ Use mongoose.model(name, schema)
 [11-09-2025 15:34:11] - [[32minfo[39m]: Removed user from collaborators in 0 events
 [11-09-2025 15:34:11] - [[32minfo[39m]: Deleted 0 partnerships for user 68c2cfc7a8348c46147f483c
 [11-09-2025 15:34:11] - [[32minfo[39m]: User account permanently deleted: 68c2cfc7a8348c46147f483c
+[13-09-2025 13:35:25] - [[32minfo[39m]: Image 68c54a3c0be8341c38e93c46: 3/3 files deleted from S3
+[13-09-2025 13:35:25] - [[32minfo[39m]: Successfully deleted 1 images from database and S3
+[13-09-2025 14:33:38] - [[32minfo[39m]: Image 68c564514162a291b366f3f4: 3/3 files deleted from S3
+[13-09-2025 14:33:38] - [[32minfo[39m]: Successfully deleted 1 images from database and S3
+[13-09-2025 15:38:07] - [[32minfo[39m]: Image 68c573a845f05adab6369bff: 3/3 files deleted from S3
+[13-09-2025 15:38:07] - [[32minfo[39m]: Successfully deleted 1 images from database and S3

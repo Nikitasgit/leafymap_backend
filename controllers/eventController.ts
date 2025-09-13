@@ -6,6 +6,8 @@ import logger from "../utils/logger";
 import { CustomRequest } from "../types/custom";
 import { validateEventData } from "../validations/eventValidations";
 import { format } from "date-fns";
+import { Partnership } from "../models/Partnership";
+import Image from "../models/Image";
 
 const createEvent = async (
   req: CustomRequest,
@@ -138,4 +140,38 @@ const updateEvent = async (
   }
 };
 
-export { updateEvent, createEvent, getEventsByPlaceId, getEventById };
+const deleteEvent = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { eventId } = req.params;
+    if (!eventId) {
+      APIResponse(res, null, "Event ID is required", 400);
+      return;
+    }
+
+    await Event.findByIdAndDelete(eventId);
+
+    await Image.deleteMany({
+      reference: eventId,
+      referenceType: "Event",
+    });
+
+    await Partnership.deleteMany({ event: eventId });
+
+    APIResponse(res, null, "Event deleted successfully", 200);
+  } catch (error) {
+    if (error instanceof Error) {
+      APIResponse(res, null, `Failed to delete event: ${error.message}`, 500);
+    } else {
+      APIResponse(res, null, "Failed to delete event", 500);
+    }
+    logger.error("Error deleting event:", error);
+  }
+};
+
+export {
+  updateEvent,
+  createEvent,
+  getEventsByPlaceId,
+  getEventById,
+  deleteEvent,
+};

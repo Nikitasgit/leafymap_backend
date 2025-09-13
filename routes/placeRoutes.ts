@@ -7,12 +7,14 @@ import {
   getPlaceById,
   getPlacesInView,
   searchPlaces,
+  deletePlace,
 } from "../controllers/placeController";
 import {
   getEventById,
   getEventsByPlaceId,
   updateEvent,
   createEvent,
+  deleteEvent,
 } from "../controllers/eventController";
 import eventOwnership from "../middlewares/eventOwnership";
 
@@ -20,6 +22,7 @@ const router: Router = express.Router();
 
 router.post("/", auth, createPlace);
 router.put("/:placeId", auth, placeOwnership, updatePlace);
+router.delete("/:placeId", auth, placeOwnership, deletePlace);
 router.get("/search", searchPlaces);
 router.get("/in-view", getPlacesInView);
 router.get("/:placeId", getPlaceById);
@@ -35,5 +38,6 @@ router.put(
   eventOwnership,
   updateEvent
 );
+router.delete("/:placeId/events/:eventId", auth, placeOwnership, eventOwnership, deleteEvent);
 
 export default router;

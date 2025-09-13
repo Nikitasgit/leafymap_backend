@@ -3,12 +3,14 @@ import { parseJson } from "../utils/jsonHandlers";
 import Place from "../models/Place";
 import User from "../models/User";
 import Event from "../models/Event";
-import { generateSignedUrlFromFullUrl } from "../utils/s3";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
 import { enrichScheduleWithEvents } from "../utils/schedule";
 import { CustomRequest } from "../types/custom";
 import { validatePlaceData } from "../validations/placeValidations";
+import { ImageService } from "../services";
+import Image from "../models/Image";
+import { Partnership } from "../models/Partnership";
 
 const updatePlace = async (
   req: CustomRequest,
@@ -65,13 +67,18 @@ const createPlace = async (
       );
       return;
     }
-
+    const user = await User.findById(decoded.id).select("creatorName places");
+    if (!user) {
+      APIResponse(res, null, "User not found", 404);
+      return;
+    }
+    if (user.places.length === 1 && decoded.userType === "creator") {
+      APIResponse(res, null, "Creator already have a place", 400);
+    }
+    if (user.places.length === 3 && decoded.userType === "organizer") {
+      APIResponse(res, null, "Organizer already have 3 places", 400);
+    }
     if (decoded.userType === "creator") {
-      const user = await User.findById(decoded.id).select("creatorName");
-      if (!user) {
-        APIResponse(res, null, "User not found", 404);
-        return;
-      }
       req.body.isCreatorPlace = true;
       req.body.name = user.creatorName;
     }
@@ -268,10 +275,54 @@ const searchPlaces = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+const deletePlace = async (
+  req: CustomRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const placeId = req.placeId;
+    const decoded = req.decoded!;
+
+    const placeEvents = await Event.find({ place: placeId });
+    const eventIds = placeEvents.map((event) => event._id);
+
+    const eventsImages = await Image.find({
+      reference: { $in: eventIds },
+      referenceType: "Event",
+    });
+    const placeImages = await Image.find({
+      reference: placeId,
+      referenceType: "Place",
+    });
+
+    const allImagesToDelete = [...eventsImages, ...placeImages];
+    const imageIds = allImagesToDelete.map((img) => img._id);
+
+    await ImageService.deleteImages(imageIds);
+    await Place.findByIdAndDelete(placeId);
+    await Event.deleteMany({ place: placeId });
+    await Partnership.deleteMany({ place: placeId });
+    await User.findByIdAndUpdate(decoded.id, {
+      $pull: { places: placeId },
+    });
+
+    APIResponse(
+      res,
+      null,
+      "Place and associated events deleted successfully",
+      200
+    );
+  } catch (error) {
+    logger.error("Error deleting place:", error);
+    APIResponse(res, null, "Failed to delete place", 500);
+  }
+};
+
 export {
   updatePlace,
   createPlace,
   getPlaceById,
   getPlacesInView,
   searchPlaces,
+  deletePlace,
 };
