@@ -20,7 +20,10 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: [
+      "http://localhost:3000",
+      "https://project-frontend-zi3n.vercel.app",
+    ],
     credentials: true,
   })
 );
