@@ -10,7 +10,7 @@ const storage = multer_1.default.memoryStorage();
 const upload = (0, multer_1.default)({
     storage: storage,
     limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB
+        fileSize: 10 * 1024 * 1024, // 10MB
     },
     fileFilter: (req, file, cb) => {
         const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
@@ -25,7 +25,7 @@ const upload = (0, multer_1.default)({
 const handleUploadError = (err, req, res, next) => {
     if (err) {
         if (err.code === "LIMIT_FILE_SIZE") {
-            (0, response_1.APIResponse)(res, null, "La taille du fichier est trop grande. Maximum 5MB autorisé.", 400);
+            (0, response_1.APIResponse)(res, null, "La taille du fichier est trop grande. Maximum 10MB autorisé.", 400);
             return;
         }
         if (err.message.includes("Invalid file type")) {
