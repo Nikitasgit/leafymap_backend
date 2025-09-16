@@ -1,6 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
-import cors from "cors";
 import connectDB from "./config/db";
 import errorHandler from "./utils/errorHandler";
 import userRoutes from "./routes/userRoutes";
@@ -11,6 +10,9 @@ import eventRoutes from "./routes/eventRoutes";
 import partnershipRoutes from "./routes/partnershipRoutes";
 import cookieParser from "cookie-parser";
 import imageRoutes from "./routes/imageRoutes";
+import cors from "cors";
+import xss from "xss-clean";
+import helmet from "helmet";
 
 dotenv.config();
 
@@ -31,9 +33,30 @@ app.use(
   })
 );
 
+const allowedOrigins = [
+  "https://spotlight-project.vercel.app",
+  "https://api.server.innovastay.fr",
+];
+
+const corsOptions = {
+  origin: (origin: string | undefined, callback: Function) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
+app.use(helmet());
+app.use(xss());
 
 app.use("/api/users", userRoutes);
 app.use("/api/categories", categorieRoutes);
