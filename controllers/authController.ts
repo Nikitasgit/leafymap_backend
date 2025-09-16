@@ -84,8 +84,16 @@ const signIn = async (req: Request, res: Response): Promise<void> => {
 
 const signOut = async (_req: Request, res: Response): Promise<void> => {
   res
-    .clearCookie("token")
-    .clearCookie("userType")
+    .clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    })
+    .clearCookie("userType", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    })
     .json({ message: "Logged out" });
 };
 
