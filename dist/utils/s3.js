@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteObjectFromS3 = exports.generateSignedUrlFromFullUrl = void 0;
+exports.generateSignedUrlFromFullUrl = generateSignedUrlFromFullUrl;
+exports.deleteObjectFromS3 = deleteObjectFromS3;
 const client_s3_1 = require("@aws-sdk/client-s3");
 const s3_request_presigner_1 = require("@aws-sdk/s3-request-presigner");
 const s3 = new client_s3_1.S3Client({
@@ -25,7 +26,6 @@ async function generateSignedUrlFromFullUrl(fullUrl) {
     const signedUrl = await (0, s3_request_presigner_1.getSignedUrl)(s3, command, { expiresIn });
     return signedUrl;
 }
-exports.generateSignedUrlFromFullUrl = generateSignedUrlFromFullUrl;
 async function deleteObjectFromS3(fullUrl) {
     try {
         const bucketName = process.env.AWS_BUCKET_NAME;
@@ -44,4 +44,3 @@ async function deleteObjectFromS3(fullUrl) {
         return false;
     }
 }
-exports.deleteObjectFromS3 = deleteObjectFromS3;

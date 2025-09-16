@@ -3,13 +3,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getEventById = exports.getEventsByPlaceId = exports.createEvent = exports.updateEvent = void 0;
+exports.deleteEvent = exports.getEventById = exports.getEventsByPlaceId = exports.createEvent = exports.updateEvent = void 0;
 const Event_1 = __importDefault(require("../models/Event"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const response_1 = require("../utils/response");
 const logger_1 = __importDefault(require("../utils/logger"));
 const eventValidations_1 = require("../validations/eventValidations");
 const date_fns_1 = require("date-fns");
+const Partnership_1 = require("../models/Partnership");
+const Image_1 = __importDefault(require("../models/Image"));
 const createEvent = async (req, res) => {
     try {
         const placeId = req.placeId;
@@ -130,3 +132,29 @@ const updateEvent = async (req, res) => {
     }
 };
 exports.updateEvent = updateEvent;
+const deleteEvent = async (req, res) => {
+    try {
+        const { eventId } = req.params;
+        if (!eventId) {
+            (0, response_1.APIResponse)(res, null, "Event ID is required", 400);
+            return;
+        }
+        await Event_1.default.findByIdAndDelete(eventId);
+        await Image_1.default.deleteMany({
+            reference: eventId,
+            referenceType: "Event",
+        });
+        await Partnership_1.Partnership.deleteMany({ event: eventId });
+        (0, response_1.APIResponse)(res, null, "Event deleted successfully", 200);
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            (0, response_1.APIResponse)(res, null, `Failed to delete event: ${error.message}`, 500);
+        }
+        else {
+            (0, response_1.APIResponse)(res, null, "Failed to delete event", 500);
+        }
+        logger_1.default.error("Error deleting event:", error);
+    }
+};
+exports.deleteEvent = deleteEvent;

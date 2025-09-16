@@ -122,12 +122,14 @@ const deleteAccount = async (req, res) => {
         });
         const userPlaces = await Place_1.default.find({ user: userId });
         const placeIds = userPlaces.map((place) => place._id);
+        const userEvents = await Event_1.default.find({ place: { $in: placeIds } });
+        const eventIds = userEvents.map((event) => event._id);
         const placeImages = await Image_1.default.find({
             reference: { $in: placeIds },
             referenceType: "Place",
         });
         const eventImages = await Image_1.default.find({
-            reference: { $in: placeIds },
+            reference: { $in: eventIds },
             referenceType: "Event",
         });
         const allImagesToDelete = [...userImages, ...placeImages, ...eventImages];
