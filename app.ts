@@ -20,36 +20,32 @@ connectDB();
 
 const app = express();
 
-app.use(
-  cors({
-    origin: [
-      "http://localhost:3000",
-      "https://spotlight-project.vercel.app",
-      "https://api.server.innovastay.fr",
-    ],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
-  })
-);
-
 const allowedOrigins = [
+  "http://localhost:3000",
   "https://spotlight-project.vercel.app",
   "https://api.server.innovastay.fr",
 ];
 
 const corsOptions = {
   origin: (origin: string | undefined, callback: Function) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
     }
   },
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "Cookie",
+    "X-Requested-With",
+  ],
+  exposedHeaders: ["Set-Cookie"],
 };
-
 
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "50mb" }));

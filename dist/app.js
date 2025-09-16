@@ -21,31 +21,31 @@ const helmet_1 = __importDefault(require("helmet"));
 dotenv_1.default.config();
 (0, db_1.default)();
 const app = (0, express_1.default)();
-app.use((0, cors_1.default)({
-    origin: [
-        "http://localhost:3000",
-        "https://spotlight-project.vercel.app",
-        "https://api.server.innovastay.fr",
-    ],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
-}));
 const allowedOrigins = [
+    "http://localhost:3000",
     "https://spotlight-project.vercel.app",
     "https://api.server.innovastay.fr",
 ];
 const corsOptions = {
     origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (!origin)
+            return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
             callback(null, true);
         }
         else {
             callback(new Error("Not allowed by CORS"));
         }
     },
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "Cookie",
+        "X-Requested-With",
+    ],
+    exposedHeaders: ["Set-Cookie"],
 };
 app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.json({ limit: "50mb" }));
