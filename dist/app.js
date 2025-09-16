@@ -23,10 +23,14 @@ app.use((0, cors_1.default)({
     origin: [
         "http://localhost:3000",
         "https://spotlight-project.vercel.app",
+        "https://api.server.innovastay.fr",
     ],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
 }));
-app.use(express_1.default.json());
+app.use(express_1.default.json({ limit: "50mb" }));
+app.use(express_1.default.urlencoded({ limit: "50mb", extended: true }));
 app.use((0, cookie_parser_1.default)());
 app.use("/api/users", userRoutes_1.default);
 app.use("/api/categories", categorieRoutes_1.default);
