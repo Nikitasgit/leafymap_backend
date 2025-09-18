@@ -1865,3 +1865,5 @@ Use mongoose.model(name, schema)
 [05-09-2025 09:54:09] - [[31merror[39m]: Error in verifyToken: invalid algorithm
 [09-09-2025 17:25:02] - [[31merror[39m]: Erreur lors de l'upload et création des images: Erreur lors du traitement de l'image
 [09-09-2025 17:26:44] - [[31merror[39m]: Erreur lors de l'upload et création des images: Erreur lors du traitement de l'image
+[18-09-2025 10:44:57] - [[31merror[39m]: Error getting partnerships by user id: Cast to string failed for value "{}" (type Object) at path "status" for model "Partnership"
+[18-09-2025 10:45:04] - [[31merror[39m]: Error getting partnerships by user id: Cast to string failed for value "{}" (type Object) at path "status" for model "Partnership"

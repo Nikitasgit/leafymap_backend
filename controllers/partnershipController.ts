@@ -150,9 +150,14 @@ const getPartnerships = async (req: Request, res: Response) => {
 const getPartnershipsByUserId = async (req: CustomRequest, res: Response) => {
   try {
     const { userId } = req.params;
-    const { asCollaborator, includeCancelledEvents, includePastEvents } =
-      req.query;
+    const {
+      asCollaborator,
+      includeCancelledEvents,
+      includePastEvents,
+      onlyAccepted,
+    } = req.query;
 
+    const onlyAcceptedStatus = onlyAccepted === "true";
     const isCollaborator = asCollaborator === "true";
     const query = isCollaborator
       ? { collaborator: new mongoose.Types.ObjectId(userId) }
@@ -172,7 +177,12 @@ const getPartnershipsByUserId = async (req: CustomRequest, res: Response) => {
       eventPopulateQuery.match = { status: { $ne: "cancelled" } };
     }
 
-    const partnerships = await Partnership.find({ ...query, deleted: false })
+    const partnerships = await Partnership.find({
+      ...query,
+      deleted: false,
+      ...(onlyAcceptedStatus ? { status: "accepted" } : {}),
+    })
+      .sort({ updatedAt: -1 })
       .populate("initiator", "firstName lastName email")
       .populate("collaborator", "firstName lastName email")
       .populate({

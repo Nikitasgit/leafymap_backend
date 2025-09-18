@@ -11,7 +11,6 @@ import partnershipRoutes from "./routes/partnershipRoutes";
 import cookieParser from "cookie-parser";
 import imageRoutes from "./routes/imageRoutes";
 import cors from "cors";
-import xss from "xss-clean";
 import helmet from "helmet";
 
 dotenv.config();
@@ -21,6 +20,7 @@ connectDB();
 const app = express();
 
 const allowedOrigins = [
+  "http://localhost:3000",
   "https://spotlight-project.vercel.app",
   "https://api.server.innovastay.fr",
 ];
@@ -49,7 +49,7 @@ const corsOptions = {
     "X-Requested-With",
   ],
   exposedHeaders: ["Set-Cookie"],
-  optionsSuccessStatus: 200, 
+  optionsSuccessStatus: 200,
   maxAge: 86400,
 };
 
@@ -58,7 +58,6 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
 app.use(helmet());
-app.use(xss());
 
 app.use("/api/users", userRoutes);
 app.use("/api/categories", categorieRoutes);
