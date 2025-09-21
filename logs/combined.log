@@ -1942,3 +1942,11 @@ Use mongoose.model(name, schema)
 [13-09-2025 15:38:07] - [[32minfo[39m]: Successfully deleted 1 images from database and S3
 [18-09-2025 10:44:57] - [[31merror[39m]: Error getting partnerships by user id: Cast to string failed for value "{}" (type Object) at path "status" for model "Partnership"
 [18-09-2025 10:45:04] - [[31merror[39m]: Error getting partnerships by user id: Cast to string failed for value "{}" (type Object) at path "status" for model "Partnership"
+[21-09-2025 10:16:31] - [[32minfo[39m]: Image 68cd31eb181e74e3a5c7f63d: 3/3 files deleted from S3
+[21-09-2025 10:16:31] - [[32minfo[39m]: Successfully deleted 1 images from database and S3
+[21-09-2025 10:17:09] - [[32minfo[39m]: Image 68cd3202181e74e3a5c7f655: 3/3 files deleted from S3
+[21-09-2025 10:17:09] - [[32minfo[39m]: Successfully deleted 1 images from database and S3
+[21-09-2025 10:17:12] - [[32minfo[39m]: Image 68cd3202181e74e3a5c7f656: 3/3 files deleted from S3
+[21-09-2025 10:17:12] - [[32minfo[39m]: Successfully deleted 1 images from database and S3
+[21-09-2025 10:17:34] - [[32minfo[39m]: Image 68cd34c3181e74e3a5c7f732: 3/3 files deleted from S3
+[21-09-2025 10:17:34] - [[32minfo[39m]: Successfully deleted 1 images from database and S3

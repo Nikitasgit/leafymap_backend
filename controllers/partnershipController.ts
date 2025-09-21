@@ -109,7 +109,7 @@ const getPartnerships = async (req: Request, res: Response) => {
         populate: {
           path: "image",
           model: "Image",
-          select: "url",
+          select: "urls",
         },
       })
       .select("collaborator status deleted")

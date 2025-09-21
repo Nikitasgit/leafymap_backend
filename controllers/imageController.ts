@@ -97,3 +97,34 @@ export const deleteImages = async (
     );
   }
 };
+
+export const getGalleryImages = async (
+  req: CustomRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const { reference, referenceType } = req.query;
+    const images = await Image.find({
+      reference,
+      referenceType,
+      type: "gallery",
+    });
+    APIResponse(
+      res,
+      { images },
+      "Images de la galerie récupérées avec succès",
+      200
+    );
+  } catch (error) {
+    logger.error(
+      "Erreur lors de la récupération des images de la galerie:",
+      error
+    );
+    APIResponse(
+      res,
+      null,
+      "Erreur serveur lors de la récupération des images de la galerie",
+      500
+    );
+  }
+};
