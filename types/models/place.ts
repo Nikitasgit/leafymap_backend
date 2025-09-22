@@ -53,6 +53,7 @@ export interface IPlace extends Document {
   placeType: PlaceType[];
   defaultSchedule: IDefaultSchedule;
   customDates: ICustomDate[];
+  followers: Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }

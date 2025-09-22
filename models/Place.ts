@@ -99,6 +99,7 @@ const placeSchema = new Schema<IPlace>({
   deleted: { type: Boolean, default: false },
   isCreatorPlace: { type: Boolean, required: true, default: false },
   rating: { type: Number, default: 0 },
+  followers: { type: [Schema.Types.ObjectId], ref: "User", default: [] },
   placeCategory: {
     type: Schema.Types.ObjectId,
     ref: "PlaceCategory",

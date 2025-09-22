@@ -1867,3 +1867,12 @@ Use mongoose.model(name, schema)
 [09-09-2025 17:26:44] - [[31merror[39m]: Erreur lors de l'upload et création des images: Erreur lors du traitement de l'image
 [18-09-2025 10:44:57] - [[31merror[39m]: Error getting partnerships by user id: Cast to string failed for value "{}" (type Object) at path "status" for model "Partnership"
 [18-09-2025 10:45:04] - [[31merror[39m]: Error getting partnerships by user id: Cast to string failed for value "{}" (type Object) at path "status" for model "Partnership"
+[22-09-2025 09:53:48] - [[31merror[39m]: Error in getCategories: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-01.kz3b41i.mongodb.net
+[22-09-2025 09:53:48] - [[31merror[39m]: Error fetching event: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-01.kz3b41i.mongodb.net
+[22-09-2025 09:53:48] - [[31merror[39m]: Error getting partnerships by place id: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-01.kz3b41i.mongodb.net
+[22-09-2025 09:59:23] - [[31merror[39m]: Error in signIn: read ECONNRESET
+[22-09-2025 09:59:23] - [[31merror[39m]: Error finding users: connection 19 to 65.62.27.100:27017 closed
+[22-09-2025 09:59:53] - [[31merror[39m]: Error in signIn: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-01.kz3b41i.mongodb.net
+[22-09-2025 10:00:35] - [[31merror[39m]: Error in getCategories: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-01.kz3b41i.mongodb.net
+[22-09-2025 10:00:36] - [[31merror[39m]: Error in signIn: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-01.kz3b41i.mongodb.net
+[22-09-2025 10:27:37] - [[31merror[39m]: Erreur lors de l'upload et création des images: Erreur lors du traitement de l'image

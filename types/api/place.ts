@@ -43,6 +43,7 @@ export interface Place extends BaseEntity, ContactInfo {
   placeType: ApiPlaceType[];
   defaultSchedule: DefaultSchedule;
   customSchedule: CustomSchedule[];
+  followers: string[];
 }
 
 export interface PlaceWithDetails

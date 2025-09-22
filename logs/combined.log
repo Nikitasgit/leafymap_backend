@@ -1950,3 +1950,12 @@ Use mongoose.model(name, schema)
 [21-09-2025 10:17:12] - [[32minfo[39m]: Successfully deleted 1 images from database and S3
 [21-09-2025 10:17:34] - [[32minfo[39m]: Image 68cd34c3181e74e3a5c7f732: 3/3 files deleted from S3
 [21-09-2025 10:17:34] - [[32minfo[39m]: Successfully deleted 1 images from database and S3
+[22-09-2025 09:53:48] - [[31merror[39m]: Error in getCategories: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-01.kz3b41i.mongodb.net
+[22-09-2025 09:53:48] - [[31merror[39m]: Error fetching event: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-01.kz3b41i.mongodb.net
+[22-09-2025 09:53:48] - [[31merror[39m]: Error getting partnerships by place id: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-01.kz3b41i.mongodb.net
+[22-09-2025 09:59:23] - [[31merror[39m]: Error in signIn: read ECONNRESET
+[22-09-2025 09:59:23] - [[31merror[39m]: Error finding users: connection 19 to 65.62.27.100:27017 closed
+[22-09-2025 09:59:53] - [[31merror[39m]: Error in signIn: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-01.kz3b41i.mongodb.net
+[22-09-2025 10:00:35] - [[31merror[39m]: Error in getCategories: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-01.kz3b41i.mongodb.net
+[22-09-2025 10:00:36] - [[31merror[39m]: Error in signIn: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-01.kz3b41i.mongodb.net
+[22-09-2025 10:27:37] - [[31merror[39m]: Erreur lors de l'upload et création des images: Erreur lors du traitement de l'image
