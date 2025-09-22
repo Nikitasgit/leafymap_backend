@@ -63,7 +63,16 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { eventId } = req.params;
     const event = await Event.findById(eventId)
-      .populate({ path: "place", model: "Place", select: "_id" })
+      .populate({
+        path: "place",
+        model: "Place",
+        select: "_id location image name",
+        populate: {
+          path: "image",
+          model: "Image",
+          select: "urls",
+        },
+      })
       .populate({ path: "image", model: "Image", select: "_id urls" })
       .populate({
         path: "schedule.timeSlots.collaborators",
@@ -85,13 +94,12 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
       ...event,
       schedule: event.schedule.map((period) => ({
         ...period,
-        startDate: format(period.startDate, "dd-MM-yyyy"),
-        endDate: period.endDate ? format(period.endDate, "dd-MM-yyyy") : "",
         timeSlots: period.timeSlots.map((slot) => ({
           ...slot,
           collaborators: slot.collaborators.map((collaborator: any) => ({
             name: collaborator.creatorName,
             image: collaborator.image.urls.thumbnail,
+            _id: collaborator._id,
           })),
         })),
       })),

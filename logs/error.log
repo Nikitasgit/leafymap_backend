@@ -1876,3 +1876,8 @@ Use mongoose.model(name, schema)
 [22-09-2025 10:00:35] - [[31merror[39m]: Error in getCategories: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-01.kz3b41i.mongodb.net
 [22-09-2025 10:00:36] - [[31merror[39m]: Error in signIn: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-01.kz3b41i.mongodb.net
 [22-09-2025 10:27:37] - [[31merror[39m]: Erreur lors de l'upload et création des images: Erreur lors du traitement de l'image
+[22-09-2025 18:05:17] - [[31merror[39m]: Error in getCategories: Operation `subcategories.find()` buffering timed out after 10000ms
+[22-09-2025 18:05:17] - [[31merror[39m]: Error fetching event: Operation `events.findOne()` buffering timed out after 10000ms
+[22-09-2025 18:12:50] - [[31merror[39m]: Error fetching events: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-02.kz3b41i.mongodb.net
+[22-09-2025 18:12:56] - [[31merror[39m]: Error in getCategories: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-02.kz3b41i.mongodb.net
+[22-09-2025 18:12:56] - [[31merror[39m]: Error fetching events: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-02.kz3b41i.mongodb.net
