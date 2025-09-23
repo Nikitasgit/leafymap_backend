@@ -91,11 +91,18 @@ const getPartnerships = async (req, res) => {
             path: "collaborator",
             select: "creatorName creatorCategories image deleted",
             model: "User",
-            populate: {
-                path: "image",
-                model: "Image",
-                select: "url",
-            },
+            populate: [
+                {
+                    path: "image",
+                    model: "Image",
+                    select: "urls",
+                },
+                {
+                    path: "creatorCategories",
+                    model: "SubCategory",
+                    select: "name",
+                },
+            ],
         })
             .select("collaborator status deleted")
             .lean();
@@ -126,7 +133,8 @@ exports.getPartnerships = getPartnerships;
 const getPartnershipsByUserId = async (req, res) => {
     try {
         const { userId } = req.params;
-        const { asCollaborator, includeCancelledEvents, includePastEvents } = req.query;
+        const { asCollaborator, includeCancelledEvents, includePastEvents, onlyAccepted, } = req.query;
+        const onlyAcceptedStatus = onlyAccepted === "true";
         const isCollaborator = asCollaborator === "true";
         const query = isCollaborator
             ? { collaborator: new mongoose_1.default.Types.ObjectId(userId) }
@@ -143,7 +151,12 @@ const getPartnershipsByUserId = async (req, res) => {
         if (includeCancelledEvents !== "true") {
             eventPopulateQuery.match = { status: { $ne: "cancelled" } };
         }
-        const partnerships = await Partnership_1.Partnership.find({ ...query, deleted: false })
+        const partnerships = await Partnership_1.Partnership.find({
+            ...query,
+            deleted: false,
+            ...(onlyAcceptedStatus ? { status: "accepted" } : {}),
+        })
+            .sort({ updatedAt: -1 })
             .populate("initiator", "firstName lastName email")
             .populate("collaborator", "firstName lastName email")
             .populate({
@@ -152,7 +165,7 @@ const getPartnershipsByUserId = async (req, res) => {
                 deleted: { $ne: true },
                 active: { $ne: false },
             },
-            select: "name address image location active deleted",
+            select: "name address image location active deleted description",
             populate: {
                 path: "image",
                 model: "Image",

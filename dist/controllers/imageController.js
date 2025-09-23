@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteImages = exports.uploadImages = void 0;
+exports.getGalleryImages = exports.deleteImages = exports.uploadImages = void 0;
 const Image_1 = __importDefault(require("../models/Image"));
 const response_1 = require("../utils/response");
 const logger_1 = __importDefault(require("../utils/logger"));
@@ -72,3 +72,19 @@ const deleteImages = async (req, res) => {
     }
 };
 exports.deleteImages = deleteImages;
+const getGalleryImages = async (req, res) => {
+    try {
+        const { reference, referenceType } = req.query;
+        const images = await Image_1.default.find({
+            reference,
+            referenceType,
+            type: "gallery",
+        });
+        (0, response_1.APIResponse)(res, { images }, "Images de la galerie récupérées avec succès", 200);
+    }
+    catch (error) {
+        logger_1.default.error("Erreur lors de la récupération des images de la galerie:", error);
+        (0, response_1.APIResponse)(res, null, "Erreur serveur lors de la récupération des images de la galerie", 500);
+    }
+};
+exports.getGalleryImages = getGalleryImages;

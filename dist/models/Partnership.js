@@ -6,7 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Partnership = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const partnershipSchema = new mongoose_1.default.Schema({
-    place: { type: mongoose_1.default.Schema.Types.ObjectId, ref: "Place", required: true },
+    place: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "Place",
+        required: true,
+    },
     initiator: {
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: "User",
@@ -35,5 +39,5 @@ const partnershipSchema = new mongoose_1.default.Schema({
         default: "place",
     },
     deleted: { type: Boolean, default: false },
-});
+}, { timestamps: true });
 exports.Partnership = mongoose_1.default.model("Partnership", partnershipSchema);

@@ -106,11 +106,18 @@ const getPartnerships = async (req: Request, res: Response) => {
         path: "collaborator",
         select: "creatorName creatorCategories image deleted",
         model: "User",
-        populate: {
-          path: "image",
-          model: "Image",
-          select: "urls",
-        },
+        populate: [
+          {
+            path: "image",
+            model: "Image",
+            select: "urls",
+          },
+          {
+            path: "creatorCategories",
+            model: "SubCategory",
+            select: "name",
+          },
+        ],
       })
       .select("collaborator status deleted")
       .lean();
@@ -191,7 +198,7 @@ const getPartnershipsByUserId = async (req: CustomRequest, res: Response) => {
           deleted: { $ne: true },
           active: { $ne: false },
         },
-        select: "name address image location active deleted",
+        select: "name address image location active deleted description",
         populate: {
           path: "image",
           model: "Image",

@@ -45,4 +45,5 @@ const memoryUpload_1 = __importStar(require("../middlewares/memoryUpload"));
 const router = express_1.default.Router();
 router.post("/", auth_1.default, memoryUpload_1.default.array("images", 10), memoryUpload_1.handleUploadError, imageUploadAuthorization_1.default, imageController_1.uploadImages);
 router.delete("/", auth_1.default, imagesOwnership_1.default, imageController_1.deleteImages);
+router.get("/gallery", imageController_1.getGalleryImages);
 exports.default = router;

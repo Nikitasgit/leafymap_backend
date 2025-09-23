@@ -73,6 +73,7 @@ const placeSchema = new mongoose_1.Schema({
     deleted: { type: Boolean, default: false },
     isCreatorPlace: { type: Boolean, required: true, default: false },
     rating: { type: Number, default: 0 },
+    followers: { type: [mongoose_1.Schema.Types.ObjectId], ref: "User", default: [] },
     placeCategory: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: "PlaceCategory",

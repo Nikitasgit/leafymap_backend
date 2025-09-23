@@ -9,7 +9,6 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const response_1 = require("../utils/response");
 const logger_1 = __importDefault(require("../utils/logger"));
 const eventValidations_1 = require("../validations/eventValidations");
-const date_fns_1 = require("date-fns");
 const Partnership_1 = require("../models/Partnership");
 const Image_1 = __importDefault(require("../models/Image"));
 const createEvent = async (req, res) => {
@@ -61,7 +60,16 @@ const getEventById = async (req, res) => {
     try {
         const { eventId } = req.params;
         const event = await Event_1.default.findById(eventId)
-            .populate({ path: "place", model: "Place", select: "_id" })
+            .populate({
+            path: "place",
+            model: "Place",
+            select: "_id location image name",
+            populate: {
+                path: "image",
+                model: "Image",
+                select: "urls",
+            },
+        })
             .populate({ path: "image", model: "Image", select: "_id urls" })
             .populate({
             path: "schedule.timeSlots.collaborators",
@@ -81,13 +89,12 @@ const getEventById = async (req, res) => {
             ...event,
             schedule: event.schedule.map((period) => ({
                 ...period,
-                startDate: (0, date_fns_1.format)(period.startDate, "dd-MM-yyyy"),
-                endDate: period.endDate ? (0, date_fns_1.format)(period.endDate, "dd-MM-yyyy") : "",
                 timeSlots: period.timeSlots.map((slot) => ({
                     ...slot,
                     collaborators: slot.collaborators.map((collaborator) => ({
                         name: collaborator.creatorName,
                         image: collaborator.image.urls.thumbnail,
+                        _id: collaborator._id,
                     })),
                 })),
             })),

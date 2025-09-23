@@ -16,7 +16,6 @@ const partnershipRoutes_1 = __importDefault(require("./routes/partnershipRoutes"
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const imageRoutes_1 = __importDefault(require("./routes/imageRoutes"));
 const cors_1 = __importDefault(require("cors"));
-const xss_clean_1 = __importDefault(require("xss-clean"));
 const helmet_1 = __importDefault(require("helmet"));
 dotenv_1.default.config();
 (0, db_1.default)();
@@ -28,8 +27,14 @@ const allowedOrigins = [
 ];
 const corsOptions = {
     origin: (origin, callback) => {
-        if (!origin)
-            return callback(null, true);
+        if (!origin) {
+            if (process.env.NODE_ENV === "development") {
+                return callback(null, true);
+            }
+            else {
+                return callback(new Error("Origin required in production"), false);
+            }
+        }
         if (allowedOrigins.includes(origin)) {
             callback(null, true);
         }
@@ -46,13 +51,14 @@ const corsOptions = {
         "X-Requested-With",
     ],
     exposedHeaders: ["Set-Cookie"],
+    optionsSuccessStatus: 200,
+    maxAge: 86400,
 };
 app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.json({ limit: "50mb" }));
 app.use(express_1.default.urlencoded({ limit: "50mb", extended: true }));
 app.use((0, cookie_parser_1.default)());
 app.use((0, helmet_1.default)());
-app.use((0, xss_clean_1.default)());
 app.use("/api/users", userRoutes_1.default);
 app.use("/api/categories", categorieRoutes_1.default);
 app.use("/api/auth", authRoutes_1.default);
