@@ -36,6 +36,8 @@ export interface IUser extends Document {
   creatorProfile?: ICreatorProfile;
   interests: Types.ObjectId[];
   places: (Types.ObjectId | IPlace)[];
+  acceptedCGU: boolean;
+  acceptedAt: Date;
   createdAt: Date;
   updatedAt: Date;
 }

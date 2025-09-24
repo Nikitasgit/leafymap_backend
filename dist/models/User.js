@@ -32,5 +32,7 @@ const userSchema = new mongoose_1.Schema({
     followers: [{ type: mongoose_1.Types.ObjectId, ref: "User" }],
     interests: [{ type: mongoose_1.Types.ObjectId, ref: "SubCategory" }],
     places: [{ type: mongoose_1.Types.ObjectId, ref: "Place" }],
+    acceptedCGU: { type: Boolean, required: true, default: false },
+    acceptedAt: { type: Date, required: true },
 }, { timestamps: true });
 exports.default = (0, mongoose_1.model)("User", userSchema);

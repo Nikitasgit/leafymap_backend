@@ -15,6 +15,9 @@ exports.registerSchema = zod_1.z.object({
         .min(10, "Le mot de passe doit contenir au moins 10 caractères")
         .max(100, "Le mot de passe ne peut pas dépasser 100 caractères")
         .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre"),
+    acceptedCGU: zod_1.z.boolean().refine((val) => val === true, {
+        message: "Vous devez accepter les Conditions Générales d'Utilisation",
+    }),
 });
 const identifierSchema = zod_1.z
     .string()

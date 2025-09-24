@@ -20,6 +20,9 @@ export const registerSchema = z.object({
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
       "Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre"
     ),
+  acceptedCGU: z.boolean().refine((val) => val === true, {
+    message: "Vous devez accepter les Conditions Générales d'Utilisation",
+  }),
 });
 
 const identifierSchema = z

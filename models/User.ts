@@ -9,7 +9,6 @@ const addressSchema = new Schema<IAddress>({
   extra: { type: String },
 });
 
-
 const userSchema = new Schema<IUser>(
   {
     firstname: { type: String },
@@ -35,6 +34,8 @@ const userSchema = new Schema<IUser>(
     followers: [{ type: Types.ObjectId, ref: "User" }],
     interests: [{ type: Types.ObjectId, ref: "SubCategory" }],
     places: [{ type: Types.ObjectId, ref: "Place" }],
+    acceptedCGU: { type: Boolean, required: true, default: false },
+    acceptedAt: { type: Date, required: true },
   },
   { timestamps: true }
 );

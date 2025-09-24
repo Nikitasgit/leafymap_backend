@@ -199,32 +199,59 @@ const getPlacesInView = async (req, res) => {
 exports.getPlacesInView = getPlacesInView;
 const searchPlaces = async (req, res) => {
     try {
-        const { name, limit = "10" } = req.query;
-        if (!name || name.length < 3) {
-            (0, response_1.APIResponse)(res, [], "Search query must be at least 2 characters", 200);
-            return;
-        }
+        const { name, categoryId, limit = "10" } = req.query;
         const maxLimit = 20;
         const queryLimit = Math.min(parseInt(limit), maxLimit);
-        const places = await Place_1.default.find({
-            name: { $regex: name, $options: "i" },
+        const baseQuery = {
             active: true,
             deleted: false,
-        })
-            .select("_id name location.label image placeCategory")
+        };
+        let sortOptions = {};
+        if (name && name.length >= 3) {
+            baseQuery.name = { $regex: name, $options: "i" };
+        }
+        else if (categoryId && !name) {
+            baseQuery.placeCategory = categoryId;
+            sortOptions = { createdAt: -1 };
+        }
+        else if (!name && !categoryId) {
+            sortOptions = { createdAt: -1 };
+        }
+        else if (name && name.length < 3) {
+            (0, response_1.APIResponse)(res, [], "Search query must be at least 3 characters", 200);
+            return;
+        }
+        const places = await Place_1.default.find(baseQuery)
+            .select("_id name location.label image placeCategory createdAt description isCreatorPlace user")
             .populate({
             path: "placeCategory",
             model: "PlaceCategory",
             select: "name",
         })
             .populate({
+            path: "user",
+            model: "User",
+            select: "_id",
+        })
+            .populate({
             path: "image",
             model: "Image",
             select: "urls",
         })
+            .sort(sortOptions)
             .limit(queryLimit)
             .lean();
-        (0, response_1.APIResponse)(res, places, "Places searched successfully", 200);
+        let message = "Places retrieved successfully";
+        if (name) {
+            message = "Places searched successfully";
+        }
+        else if (categoryId) {
+            message = "Places by category retrieved successfully";
+        }
+        else {
+            message = "Latest places retrieved successfully";
+        }
+        (0, response_1.APIResponse)(res, places, message, 200);
     }
     catch (error) {
         logger_1.default.error("Error searching places:", error);

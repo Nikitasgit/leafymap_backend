@@ -77,15 +77,16 @@ const updatePartnerships = async (req, res) => {
     }
 };
 exports.updatePartnerships = updatePartnerships;
-// get partnerships by place id or event id
 const getPartnerships = async (req, res) => {
     try {
         const { placeId, eventId } = req.params;
+        const { onlyAccepted } = req.query;
         const type = req.query.type;
         const partnerships = await Partnership_1.Partnership.find({
             place: placeId,
             event: eventId,
             type,
+            ...(onlyAccepted === "true" ? { status: "accepted" } : {}),
         })
             .populate({
             path: "collaborator",

@@ -18,7 +18,7 @@ const register = async (req, res) => {
             (0, response_1.APIResponse)(res, validatedData.errors, "Validation failed", 400);
             return;
         }
-        const { email, password, username } = req.body;
+        const { email, password, username, acceptedCGU } = req.body;
         const emailExists = await User_1.default.findOne({ email });
         if (emailExists) {
             (0, response_1.APIResponse)(res, null, "Email already exists", 400);
@@ -30,7 +30,13 @@ const register = async (req, res) => {
             return;
         }
         const hashed = await bcrypt_1.default.hash(password, 10);
-        await User_1.default.create({ email, password: hashed, username });
+        await User_1.default.create({
+            email,
+            password: hashed,
+            username,
+            acceptedCGU,
+            acceptedAt: new Date(),
+        });
         (0, response_1.APIResponse)(res, null, "User registered", 201);
     }
     catch (error) {

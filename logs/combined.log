@@ -1966,3 +1966,19 @@ Use mongoose.model(name, schema)
 [22-09-2025 18:12:50] - [[31merror[39m]: Error fetching events: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-02.kz3b41i.mongodb.net
 [22-09-2025 18:12:56] - [[31merror[39m]: Error in getCategories: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-02.kz3b41i.mongodb.net
 [22-09-2025 18:12:56] - [[31merror[39m]: Error fetching events: getaddrinfo ENOTFOUND ac-xynsc6w-shard-00-02.kz3b41i.mongodb.net
+[24-09-2025 13:25:03] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "undefined" (type string) at path "_id" for model "User"
+[24-09-2025 13:25:03] - [[31merror[39m]: Erreur lors de la récupération des images de la galerie: Cast to ObjectId failed for value "undefined" (type string) at path "reference" for model "Image"
+[24-09-2025 13:25:03] - [[31merror[39m]: Error getting partnerships by user id: Argument passed in must be a string of 12 bytes or a string of 24 hex characters or an integer
+[24-09-2025 13:25:03] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "undefined" (type string) at path "_id" for model "User"
+[24-09-2025 13:25:03] - [[31merror[39m]: Erreur lors de la récupération des images de la galerie: Cast to ObjectId failed for value "undefined" (type string) at path "reference" for model "Image"
+[24-09-2025 13:25:03] - [[31merror[39m]: Error getting partnerships by user id: Argument passed in must be a string of 12 bytes or a string of 24 hex characters or an integer
+[24-09-2025 13:25:10] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "undefined" (type string) at path "_id" for model "User"
+[24-09-2025 13:25:10] - [[31merror[39m]: Erreur lors de la récupération des images de la galerie: Cast to ObjectId failed for value "undefined" (type string) at path "reference" for model "Image"
+[24-09-2025 13:25:10] - [[31merror[39m]: Error getting partnerships by user id: Argument passed in must be a string of 12 bytes or a string of 24 hex characters or an integer
+[24-09-2025 13:25:29] - [[31merror[39m]: Error getting user: Cast to ObjectId failed for value "undefined" (type string) at path "_id" for model "User"
+[24-09-2025 13:25:29] - [[31merror[39m]: Erreur lors de la récupération des images de la galerie: Cast to ObjectId failed for value "undefined" (type string) at path "reference" for model "Image"
+[24-09-2025 13:25:29] - [[31merror[39m]: Error getting partnerships by user id: Argument passed in must be a string of 12 bytes or a string of 24 hex characters or an integer
+[24-09-2025 14:45:21] - [[32minfo[39m]: Image 68d3e7d75a056f69e6a02975: 3/3 files deleted from S3
+[24-09-2025 14:45:21] - [[32minfo[39m]: Successfully deleted 1 images from database and S3
+[24-09-2025 14:45:23] - [[32minfo[39m]: Image 68d3e7c55a056f69e6a02971: 3/3 files deleted from S3
+[24-09-2025 14:45:23] - [[32minfo[39m]: Successfully deleted 1 images from database and S3

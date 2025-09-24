@@ -85,8 +85,12 @@ const placeSchema = new mongoose_1.Schema({
         required: true,
         default: ["art"],
     },
-    defaultSchedule: { type: defaultScheduleSchema, required: true, default: {} },
+    defaultSchedule: {
+        type: defaultScheduleSchema,
+        required: true,
+        default: {},
+    },
     customDates: [exports.customDateSchema],
-});
+}, { timestamps: true });
 placeSchema.index({ "location.coordinates": "2dsphere" });
 exports.default = (0, mongoose_1.model)("Place", placeSchema);

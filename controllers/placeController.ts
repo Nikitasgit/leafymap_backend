@@ -240,35 +240,72 @@ const getPlacesInView = async (req: Request, res: Response): Promise<void> => {
 
 const searchPlaces = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, limit = "10" } = req.query;
+    const { name, categoryId, limit = "10" } = req.query;
 
-    if (!name || (name as string).length < 3) {
-      APIResponse(res, [], "Search query must be at least 2 characters", 200);
-      return;
-    }
     const maxLimit = 20;
     const queryLimit = Math.min(parseInt(limit as string), maxLimit);
 
-    const places = await Place.find({
-      name: { $regex: name as string, $options: "i" },
+    interface PlaceSearchQuery {
+      active: boolean;
+      deleted: boolean;
+      name?: { $regex: string; $options: string };
+      placeCategory?: string;
+    }
+
+    interface SortOptions {
+      [key: string]: 1 | -1;
+    }
+
+    const baseQuery: PlaceSearchQuery = {
       active: true,
       deleted: false,
-    })
-      .select("_id name location.label image placeCategory")
+    };
+    let sortOptions: SortOptions = {};
+
+    if (name && (name as string).length >= 3) {
+      baseQuery.name = { $regex: name as string, $options: "i" };
+    } else if (categoryId && !name) {
+      baseQuery.placeCategory = categoryId as string;
+      sortOptions = { createdAt: -1 };
+    } else if (!name && !categoryId) {
+      sortOptions = { createdAt: -1 };
+    } else if (name && (name as string).length < 3) {
+      APIResponse(res, [], "Search query must be at least 3 characters", 200);
+      return;
+    }
+    const places = await Place.find(baseQuery)
+      .select(
+        "_id name location.label image placeCategory createdAt description isCreatorPlace user"
+      )
       .populate({
         path: "placeCategory",
         model: "PlaceCategory",
         select: "name",
       })
       .populate({
+        path: "user",
+        model: "User",
+        select: "_id",
+      })
+      .populate({
         path: "image",
         model: "Image",
         select: "urls",
       })
+      .sort(sortOptions)
       .limit(queryLimit)
       .lean();
 
-    APIResponse(res, places, "Places searched successfully", 200);
+    let message = "Places retrieved successfully";
+    if (name) {
+      message = "Places searched successfully";
+    } else if (categoryId) {
+      message = "Places by category retrieved successfully";
+    } else {
+      message = "Latest places retrieved successfully";
+    }
+
+    APIResponse(res, places, message, 200);
   } catch (error) {
     logger.error("Error searching places:", error);
     APIResponse(res, null, "Failed to search places", 500);

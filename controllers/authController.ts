@@ -20,7 +20,7 @@ const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const { email, password, username } = req.body;
+    const { email, password, username, acceptedCGU } = req.body;
 
     const emailExists = await User.findOne({ email });
     if (emailExists) {
@@ -33,7 +33,13 @@ const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
     const hashed = await bcrypt.hash(password, 10);
-    await User.create({ email, password: hashed, username });
+    await User.create({
+      email,
+      password: hashed,
+      username,
+      acceptedCGU,
+      acceptedAt: new Date(),
+    });
 
     APIResponse(res, null, "User registered", 201);
   } catch (error) {

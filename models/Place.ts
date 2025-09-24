@@ -86,34 +86,41 @@ const locationSchema = new Schema<ILocation>(
   { _id: false }
 );
 
-const placeSchema = new Schema<IPlace>({
-  name: { type: String, required: true },
-  description: { type: String },
-  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  location: locationSchema,
-  phone: { type: String },
-  email: { type: String },
-  website: { type: String },
-  image: { type: Schema.Types.ObjectId, ref: "Image" },
-  active: { type: Boolean, default: true },
-  deleted: { type: Boolean, default: false },
-  isCreatorPlace: { type: Boolean, required: true, default: false },
-  rating: { type: Number, default: 0 },
-  followers: { type: [Schema.Types.ObjectId], ref: "User", default: [] },
-  placeCategory: {
-    type: Schema.Types.ObjectId,
-    ref: "PlaceCategory",
-    required: true,
+const placeSchema = new Schema<IPlace>(
+  {
+    name: { type: String, required: true },
+    description: { type: String },
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    location: locationSchema,
+    phone: { type: String },
+    email: { type: String },
+    website: { type: String },
+    image: { type: Schema.Types.ObjectId, ref: "Image" },
+    active: { type: Boolean, default: true },
+    deleted: { type: Boolean, default: false },
+    isCreatorPlace: { type: Boolean, required: true, default: false },
+    rating: { type: Number, default: 0 },
+    followers: { type: [Schema.Types.ObjectId], ref: "User", default: [] },
+    placeCategory: {
+      type: Schema.Types.ObjectId,
+      ref: "PlaceCategory",
+      required: true,
+    },
+    placeType: {
+      type: [String],
+      enum: ["food", "art", "craft"],
+      required: true,
+      default: ["art"],
+    },
+    defaultSchedule: {
+      type: defaultScheduleSchema,
+      required: true,
+      default: {},
+    },
+    customDates: [customDateSchema],
   },
-  placeType: {
-    type: [String],
-    enum: ["food", "art", "craft"],
-    required: true,
-    default: ["art"],
-  },
-  defaultSchedule: { type: defaultScheduleSchema, required: true, default: {} },
-  customDates: [customDateSchema],
-});
+  { timestamps: true }
+);
 
 placeSchema.index({ "location.coordinates": "2dsphere" });
 
