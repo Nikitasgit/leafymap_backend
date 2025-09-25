@@ -24,12 +24,12 @@ const register = async (req: Request, res: Response): Promise<void> => {
 
     const emailExists = await User.findOne({ email });
     if (emailExists) {
-      APIResponse(res, null, "Email already exists", 400);
+      APIResponse(res, null, "Cet email est déjà utilisé", 400);
       return;
     }
     const usernameExists = await User.findOne({ username });
     if (usernameExists) {
-      APIResponse(res, null, "Username already exists", 400);
+      APIResponse(res, null, "Ce nom d'utilisateur est déjà utilisé", 400);
       return;
     }
     const hashed = await bcrypt.hash(password, 10);
@@ -159,6 +159,10 @@ const getCurrentUser = async (
           model: "Image",
           select: "urls",
         },
+      })
+      .populate({
+        path: "creatorCategories",
+        model: "SubCategory",
       })
       .lean();
     if (!user) {

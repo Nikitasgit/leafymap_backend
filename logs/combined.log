@@ -1982,3 +1982,9 @@ Use mongoose.model(name, schema)
 [24-09-2025 14:45:21] - [[32minfo[39m]: Successfully deleted 1 images from database and S3
 [24-09-2025 14:45:23] - [[32minfo[39m]: Image 68d3e7c55a056f69e6a02971: 3/3 files deleted from S3
 [24-09-2025 14:45:23] - [[32minfo[39m]: Successfully deleted 1 images from database and S3
+[25-09-2025 17:00:46] - [[32minfo[39m]: Image 68cbcb39a0eaf765d8aeea5a: 3/3 files deleted from S3
+[25-09-2025 17:00:46] - [[32minfo[39m]: Successfully deleted 1 images from database and S3
+[25-09-2025 17:03:08] - [[32minfo[39m]: Image 68d5593f6f59567234e24df3: 3/3 files deleted from S3
+[25-09-2025 17:03:08] - [[32minfo[39m]: Successfully deleted 1 images from database and S3
+[25-09-2025 17:04:31] - [[32minfo[39m]: Image 68d559d36f59567234e24dfc: 3/3 files deleted from S3
+[25-09-2025 17:04:31] - [[32minfo[39m]: Successfully deleted 1 images from database and S3

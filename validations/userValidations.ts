@@ -10,21 +10,12 @@ export const creatorNameSchema = z
   .string()
   .min(1, "Le nom est requis")
   .min(4, "Le nom doit contenir au moins 4 caractères")
-  .max(40, "Le nom ne peut pas dépasser 40 caractères")
+  .max(30, "Le nom ne peut pas dépasser 30 caractères")
   .regex(
     /^[a-zA-ZÀ-ÿ0-9\s']+$/,
     "Le nom ne peut contenir que des lettres, chiffres, espaces et le caractère '"
   );
 
-/* const usernameSchema = z
-  .string()
-  .min(3, "Le nom d'utilisateur doit contenir au moins 3 caractères")
-  .max(30, "Le nom d'utilisateur ne peut pas dépasser 30 caractères")
-  .regex(
-    /^[a-zA-Z0-9_-]+$/,
-    "Le nom d'utilisateur ne peut contenir que des lettres, chiffres, tirets et underscores"
-  );
-*/
 const creatorCategoriesSchema = z
   .array(z.string())
   .min(1, "Veuillez sélectionner une catégorie");

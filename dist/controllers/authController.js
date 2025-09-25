@@ -21,12 +21,12 @@ const register = async (req, res) => {
         const { email, password, username, acceptedCGU } = req.body;
         const emailExists = await User_1.default.findOne({ email });
         if (emailExists) {
-            (0, response_1.APIResponse)(res, null, "Email already exists", 400);
+            (0, response_1.APIResponse)(res, null, "Cet email est déjà utilisé", 400);
             return;
         }
         const usernameExists = await User_1.default.findOne({ username });
         if (usernameExists) {
-            (0, response_1.APIResponse)(res, null, "Username already exists", 400);
+            (0, response_1.APIResponse)(res, null, "Ce nom d'utilisateur est déjà utilisé", 400);
             return;
         }
         const hashed = await bcrypt_1.default.hash(password, 10);
@@ -144,6 +144,10 @@ const getCurrentUser = async (req, res) => {
                 model: "Image",
                 select: "urls",
             },
+        })
+            .populate({
+            path: "creatorCategories",
+            model: "SubCategory",
         })
             .lean();
         if (!user) {

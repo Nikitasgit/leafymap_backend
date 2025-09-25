@@ -12,7 +12,7 @@ const userSchema = new mongoose_1.Schema({
     firstname: { type: String },
     lastname: { type: String },
     username: { type: String, required: true, unique: true },
-    creatorName: { type: String },
+    creatorName: { type: String, maxlength: 30 },
     creatorCategories: [{ type: mongoose_1.Types.ObjectId, ref: "SubCategory" }],
     email: { type: String, required: true, unique: true },
     website: { type: String },
