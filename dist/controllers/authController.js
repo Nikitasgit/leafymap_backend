@@ -3,9 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCurrentUser = exports.verifyToken = exports.signOut = exports.signIn = exports.register = void 0;
+exports.getCurrentUser = exports.signOut = exports.signIn = exports.register = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const User_1 = __importDefault(require("../models/User"));
 const response_1 = require("../utils/response");
 const logger_1 = __importDefault(require("../utils/logger"));
@@ -99,34 +98,6 @@ const signOut = async (_req, res) => {
         .json({ message: "Logged out" });
 };
 exports.signOut = signOut;
-const verifyToken = async (req, res) => {
-    try {
-        const token = req.cookies.token;
-        if (!token) {
-            (0, response_1.APIResponse)(res, null, "No token provided", 401);
-            return;
-        }
-        const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || "");
-        const user = await User_1.default.findById(decoded.id);
-        if (!user) {
-            (0, response_1.APIResponse)(res, null, "User not found", 401);
-            return;
-        }
-        (0, response_1.APIResponse)(res, {
-            user: {
-                id: user._id,
-                userType: user.userType,
-                username: user.username,
-                email: user.email,
-            },
-        }, "Token verified", 200);
-    }
-    catch (error) {
-        (0, response_1.APIResponse)(res, null, "Invalid token", 401);
-        logger_1.default.error("Error in verifyToken:", error);
-    }
-};
-exports.verifyToken = verifyToken;
 const getCurrentUser = async (req, res) => {
     try {
         const decoded = req.decoded;

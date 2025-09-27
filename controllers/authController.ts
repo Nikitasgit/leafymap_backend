@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import User from "../models/User";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
@@ -103,42 +102,6 @@ const signOut = async (_req: Request, res: Response): Promise<void> => {
     .json({ message: "Logged out" });
 };
 
-const verifyToken = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const token = req.cookies.token;
-
-    if (!token) {
-      APIResponse(res, null, "No token provided", 401);
-      return;
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "") as any;
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      APIResponse(res, null, "User not found", 401);
-      return;
-    }
-
-    APIResponse(
-      res,
-      {
-        user: {
-          id: user._id,
-          userType: user.userType,
-          username: user.username,
-          email: user.email,
-        },
-      },
-      "Token verified",
-      200
-    );
-  } catch (error) {
-    APIResponse(res, null, "Invalid token", 401);
-    logger.error("Error in verifyToken:", error);
-  }
-};
-
 const getCurrentUser = async (
   req: CustomRequest,
   res: Response
@@ -184,4 +147,4 @@ const getCurrentUser = async (
   }
 };
 
-export { register, signIn, signOut, verifyToken, getCurrentUser };
+export { register, signIn, signOut, getCurrentUser };
