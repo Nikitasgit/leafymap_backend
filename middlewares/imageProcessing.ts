@@ -34,6 +34,12 @@ const uploadToS3 = async (
   return `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 };
 
+/**
+ * Processes an uploaded image into three sizes and uploads them to S3:
+ * - Original: optimized with 90% quality
+ * - Thumbnail: 150x150 cropped (for avatars, cards)
+ * - Medium: max 800x600 (for galleries, previews)
+ */
 export const processImageToMultipleSizes = async (
   originalBuffer: Buffer,
   originalName: string,
@@ -52,6 +58,7 @@ export const processImageToMultipleSizes = async (
       .png({ quality: 90 })
       .toBuffer();
 
+    // Thumbnail: square crop, centered
     const thumbnailBuffer = await sharp(originalBuffer)
       .resize(150, 150, {
         fit: "cover",
@@ -61,6 +68,7 @@ export const processImageToMultipleSizes = async (
       .png({ quality: 80 })
       .toBuffer();
 
+    // Medium: fit inside dimensions, preserve aspect ratio
     const mediumBuffer = await sharp(originalBuffer)
       .resize(800, 600, {
         fit: "inside",
@@ -70,6 +78,7 @@ export const processImageToMultipleSizes = async (
       .png({ quality: 85 })
       .toBuffer();
 
+    // Upload all three sizes in parallel for better performance
     const [originalUrl, thumbnailUrl, mediumUrl] = await Promise.all([
       uploadToS3(originalBufferProcessed, originalKey, mimetype),
       uploadToS3(thumbnailBuffer, thumbnailKey, mimetype),

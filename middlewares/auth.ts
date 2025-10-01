@@ -9,6 +9,7 @@ const auth = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    // Support both cookie-based and Authorization header token
     const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
     if (!token) {
       res.status(401).json({

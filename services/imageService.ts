@@ -2,13 +2,19 @@ import logger from "../utils/logger";
 import { deleteObjectFromS3 } from "../utils/s3";
 import Image from "../models/Image";
 
-const deleteImages = async (imageIds: any[]): Promise<void> => {
+/**
+ * Deletes images from both database and S3 storage.
+ * Uses Promise.allSettled to ensure partial failures don't stop the cleanup process.
+ */
+const deleteImages = async (imageIds: string[]): Promise<void> => {
   if (imageIds.length === 0) return;
 
   try {
     const imagesToDelete = await Image.find({ _id: { $in: imageIds } });
     await Image.deleteMany({ _id: { $in: imageIds } });
 
+    // Delete all three sizes (original, thumbnail, medium) from S3
+    // Using allSettled to continue even if some deletions fail
     await Promise.allSettled(
       imagesToDelete.map(async (image) => {
         if (!image.urls) {
@@ -33,7 +39,6 @@ const deleteImages = async (imageIds: any[]): Promise<void> => {
     logger.info(
       `Successfully deleted ${imageIds.length} images from database and S3`
     );
-    
   } catch (error) {
     logger.error("Error deleting images:", error);
     throw error;

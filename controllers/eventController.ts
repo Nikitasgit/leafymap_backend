@@ -90,6 +90,7 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // Transform collaborator data structure for frontend consumption
     const updatedEvent = {
       ...event,
       schedule: event.schedule.map((period) => ({

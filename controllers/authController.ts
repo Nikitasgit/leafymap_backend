@@ -60,6 +60,7 @@ const signIn = async (req: Request, res: Response): Promise<void> => {
     }
     const { identifier, password } = req.body;
 
+    // Flexible search: allows login with either email OR username
     const user = await User.findOne({
       $or: [{ email: identifier }, { username: identifier }],
     });
@@ -108,6 +109,10 @@ const getCurrentUser = async (
 ): Promise<void> => {
   try {
     const decoded = req.decoded!;
+    // Fetch complete user data with nested populates:
+    // - user's profile image
+    // - user's places (with their images)
+    // - creator categories (subcategories for creators)
     const user = await User.findById(decoded.id)
       .select("-password -createdAt -updatedAt -interests  -deleted -__v")
       .populate({

@@ -13,12 +13,20 @@ const s3 = new S3Client({
   },
 });
 const bucketName = process.env.AWS_BUCKET_NAME as string;
+
+/**
+ * Generates a temporary signed URL from a full S3 URL.
+ * Signed URLs expire after 10 minutes for security.
+ * @param fullUrl - The full S3 URL (e.g., https://bucket.s3.region.amazonaws.com/key)
+ * @returns A pre-signed URL that grants temporary access to the S3 object
+ */
 async function generateSignedUrlFromFullUrl(fullUrl: string): Promise<string> {
   if (!fullUrl || typeof fullUrl !== "string") {
     throw new Error("Invalid URL provided to generateSignedUrlFromFullUrl");
   }
 
   const region = process.env.AWS_REGION;
+  // Extract the S3 key from the full URL
   const key = fullUrl.replace(
     `https://${bucketName}.s3.${region}.amazonaws.com/`,
     ""
@@ -29,15 +37,21 @@ async function generateSignedUrlFromFullUrl(fullUrl: string): Promise<string> {
     Key: decodeURIComponent(key),
   });
 
-  const expiresIn = 60 * 10;
+  const expiresIn = 60 * 10; // 10 minutes
   const signedUrl = await getSignedUrl(s3, command, { expiresIn });
   return signedUrl;
 }
 
+/**
+ * Deletes an object from S3 given its full URL.
+ * Handles signed URLs by removing query parameters before extraction.
+ * @returns true if deletion succeeded, false if it failed
+ */
 async function deleteObjectFromS3(fullUrl: string): Promise<boolean> {
   try {
     const bucketName = process.env.AWS_BUCKET_NAME as string;
     const region = process.env.AWS_REGION;
+    // Remove query parameters (e.g., signed URL params)
     const cleanUrl = fullUrl.split("?")[0];
     const key = cleanUrl.replace(
       `https://${bucketName}.s3.${region}.amazonaws.com/`,

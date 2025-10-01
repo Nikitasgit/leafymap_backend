@@ -52,6 +52,10 @@ const newOrganizerPlaceSchema = newPlaceSchema.extend({
 const updatePlaceSchema = newPlaceSchema.partial();
 const updateOrganizerPlaceSchema = newOrganizerPlaceSchema.partial();
 
+/**
+ * Validates place data based on user type and operation (create/update).
+ * Organizers have more required fields (email, phone, etc.) than creators.
+ */
 export const validatePlaceData = (
   data: Partial<IPlace>,
   userType: "organizer" | "creator" | "guest",
@@ -59,6 +63,7 @@ export const validatePlaceData = (
 ): ValidationResult => {
   const errors: Record<string, string> = {};
 
+  // Different schemas for organizers vs creators, and create vs update
   let placeSchema;
   if (isUpdate) {
     placeSchema =

@@ -31,6 +31,7 @@ const createPlace = async (
       APIResponse(res, null, "User not found", 404);
       return;
     }
+    // Business rules: creators can only have 1 place, organizers can have up to 3
     if (user.places.length >= 1 && decoded.userType === "creator") {
       APIResponse(res, null, "Creator already have a place", 400);
     }
@@ -38,6 +39,7 @@ const createPlace = async (
       APIResponse(res, null, "Organizer already have 3 places", 400);
     }
 
+    // For creators, the place name is automatically set from their creator name
     if (decoded.userType === "creator") {
       req.body.isCreatorPlace = true;
       req.body.name = user.creatorName;
@@ -135,6 +137,7 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // For creator places, override place description with user's description
     if (
       place.isCreatorPlace &&
       typeof place.user === "object" &&
@@ -178,6 +181,7 @@ const getPlacesInView = async (req: Request, res: Response): Promise<void> => {
       placeCategories: [],
     });
 
+    // MongoDB geospatial query: find places within a bounding box (map viewport)
     const query: any = {
       location: {
         $geoWithin: {
@@ -187,6 +191,7 @@ const getPlacesInView = async (req: Request, res: Response): Promise<void> => {
       active: true,
     };
 
+    // Filter by place type; "art-craft" is a special case that includes both "art" and "craft"
     if (placeType && placeType !== "all") {
       if (placeType === "art-craft") {
         query.placeType = { $in: ["art", "craft"] };
@@ -296,9 +301,11 @@ const deletePlace = async (
     const placeId = req.placeId;
     const decoded = req.decoded!;
 
+    // Cascade deletion: find all associated events
     const placeEvents = await Event.find({ place: placeId });
     const eventIds = placeEvents.map((event) => event._id);
 
+    // Gather all images to delete: both from events and from the place itself
     const eventsImages = await Image.find({
       reference: { $in: eventIds },
       referenceType: "Event",
@@ -311,6 +318,7 @@ const deletePlace = async (
     const allImagesToDelete = [...eventsImages, ...placeImages];
     const imageIds = allImagesToDelete.map((img) => img._id);
 
+    // Delete everything: images (from DB + S3), place, events, partnerships, and user reference
     await ImageService.deleteImages(imageIds);
     await Place.findByIdAndDelete(placeId);
     await Event.deleteMany({ place: placeId });
