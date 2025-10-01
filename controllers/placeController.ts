@@ -316,7 +316,7 @@ const deletePlace = async (
     });
 
     const allImagesToDelete = [...eventsImages, ...placeImages];
-    const imageIds = allImagesToDelete.map((img) => img._id);
+    const imageIds = allImagesToDelete.map((img) => img._id.toString());
 
     // Delete everything: images (from DB + S3), place, events, partnerships, and user reference
     await ImageService.deleteImages(imageIds);

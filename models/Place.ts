@@ -6,7 +6,6 @@ import {
   IPlace,
   IPlaceTimeSlot,
 } from "../types/models/place";
-import { ICollaborator } from "../types/models/collaborator";
 
 const timeSlotSchema = new Schema<IPlaceTimeSlot>(
   {
@@ -59,18 +58,6 @@ export const customDateSchema = new Schema<ICustomDate>(
   { _id: false }
 );
 
-export const collaboratorSchema = new Schema<ICollaborator>(
-  {
-    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    status: {
-      type: String,
-      enum: ["pending", "accepted", "refused"],
-      required: true,
-      default: "pending",
-    },
-  },
-  { _id: false }
-);
 
 const locationSchema = new Schema<ILocation>(
   {

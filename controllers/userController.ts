@@ -142,7 +142,7 @@ const deleteAccount = async (
       referenceType: "Event",
     });
     const allImagesToDelete = [...userImages, ...placeImages, ...eventImages];
-    const imageIds = allImagesToDelete.map((img) => img._id);
+    const imageIds = allImagesToDelete.map((img) => img._id.toString());
     await ImageService.deleteImages(imageIds);
 
     const eventsUpdated = await Event.updateMany(
