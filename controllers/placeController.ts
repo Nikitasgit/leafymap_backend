@@ -5,12 +5,67 @@ import User from "../models/User";
 import Event from "../models/Event";
 import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
-import { enrichScheduleWithEvents } from "../utils/schedule";
 import { CustomRequest } from "../types/custom";
 import { validatePlaceData } from "../validations/placeValidations";
 import { ImageService } from "../services";
 import Image from "../models/Image";
 import { Partnership } from "../models/Partnership";
+
+const createPlace = async (
+  req: CustomRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const decoded = req.decoded!;
+    if (!["creator", "organizer"].includes(decoded.userType)) {
+      APIResponse(
+        res,
+        null,
+        "Only creators and organizers can create places",
+        403
+      );
+      return;
+    }
+    const user = await User.findById(decoded.id).select("creatorName places");
+    if (!user) {
+      APIResponse(res, null, "User not found", 404);
+      return;
+    }
+    if (user.places.length >= 1 && decoded.userType === "creator") {
+      APIResponse(res, null, "Creator already have a place", 400);
+    }
+    if (user.places.length >= 3 && decoded.userType === "organizer") {
+      APIResponse(res, null, "Organizer already have 3 places", 400);
+    }
+
+    if (decoded.userType === "creator") {
+      req.body.isCreatorPlace = true;
+      req.body.name = user.creatorName;
+    }
+    req.body.user = decoded.id;
+
+    const validationResult = validatePlaceData(
+      req.body,
+      decoded.userType as "creator" | "organizer"
+    );
+
+    if (!validationResult.isValid) {
+      APIResponse(res, validationResult.errors, "Validation failed", 400);
+      return;
+    }
+
+    const place = await Place.create(req.body);
+
+    await User.findByIdAndUpdate(decoded.id, {
+      $push: { places: place._id },
+    });
+
+    APIResponse(res, place._id, "Place created successfully", 201);
+  } catch (error) {
+    logger.error("Error creating place:", error);
+    APIResponse(res, null, "Failed to create place", 500);
+  }
+};
 
 const updatePlace = async (
   req: CustomRequest,
@@ -51,66 +106,9 @@ const updatePlace = async (
     APIResponse(res, null, "Failed to update place", 500);
   }
 };
-
-const createPlace = async (
-  req: CustomRequest,
-  res: Response
-): Promise<void> => {
-  try {
-    const decoded = req.decoded!;
-    if (!["creator", "organizer"].includes(decoded.userType)) {
-      APIResponse(
-        res,
-        null,
-        "Only creators and organizers can create places",
-        403
-      );
-      return;
-    }
-    const user = await User.findById(decoded.id).select("creatorName places");
-    if (!user) {
-      APIResponse(res, null, "User not found", 404);
-      return;
-    }
-    if (user.places.length === 1 && decoded.userType === "creator") {
-      APIResponse(res, null, "Creator already have a place", 400);
-    }
-    if (user.places.length === 3 && decoded.userType === "organizer") {
-      APIResponse(res, null, "Organizer already have 3 places", 400);
-    }
-    if (decoded.userType === "creator") {
-      req.body.isCreatorPlace = true;
-      req.body.name = user.creatorName;
-    }
-    req.body.user = decoded.id;
-
-    const validationResult = validatePlaceData(
-      req.body,
-      decoded.userType as "creator" | "organizer"
-    );
-
-    if (!validationResult.isValid) {
-      APIResponse(res, validationResult.errors, "Validation failed", 400);
-      return;
-    }
-
-    const place = await Place.create(req.body);
-
-    await User.findByIdAndUpdate(decoded.id, {
-      $push: { places: place._id },
-    });
-
-    APIResponse(res, place._id, "Place created successfully", 201);
-  } catch (error) {
-    logger.error("Error creating place:", error);
-    APIResponse(res, null, "Failed to create place", 500);
-  }
-};
-
 const getPlaceById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { placeId } = req.params;
-    const { enrichSchedule = "true" } = req.query;
 
     let place = await Place.findById(placeId)
       .populate({
@@ -145,24 +143,6 @@ const getPlaceById = async (req: Request, res: Response): Promise<void> => {
       place.description = place.user.description;
     }
 
-    if (enrichSchedule === "true") {
-      const events = await Event.find({
-        place: placeId,
-        status: { $ne: "cancelled" },
-      })
-        .select("name schedule")
-        .lean();
-
-      const enrichedSchedule = enrichScheduleWithEvents(
-        place.defaultSchedule,
-        events.map((event) => ({
-          ...event,
-          _id: event._id.toString(),
-        }))
-      );
-      place.defaultSchedule = enrichedSchedule;
-    }
-
     APIResponse(res, place, "Place fetched successfully", 200);
   } catch (error) {
     logger.error("Error fetching place:", error);
@@ -193,15 +173,10 @@ const getPlacesInView = async (req: Request, res: Response): Promise<void> => {
     const maxLimit = 100;
     const queryLimit = Math.min(parseInt((limit as string) || "20"), maxLimit);
 
-    const { placeType, placeCategories, startDate, endDate } = parseJson(
-      filters as string,
-      {
-        placeType: "all",
-        placeCategories: [],
-        startDate: null,
-        endDate: null,
-      }
-    );
+    const { placeType, placeCategories } = parseJson(filters as string, {
+      placeType: "all",
+      placeCategories: [],
+    });
 
     const query: any = {
       location: {
@@ -211,6 +186,7 @@ const getPlacesInView = async (req: Request, res: Response): Promise<void> => {
       },
       active: true,
     };
+
     if (placeType && placeType !== "all") {
       if (placeType === "art-craft") {
         query.placeType = { $in: ["art", "craft"] };
@@ -218,6 +194,7 @@ const getPlacesInView = async (req: Request, res: Response): Promise<void> => {
         query.placeType = placeType;
       }
     }
+
     if (placeCategories && placeCategories.length > 0) {
       query.placeCategory = { $in: placeCategories };
     }
@@ -241,7 +218,6 @@ const getPlacesInView = async (req: Request, res: Response): Promise<void> => {
 const searchPlaces = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, categoryId, limit = "10" } = req.query;
-
     const maxLimit = 20;
     const queryLimit = Math.min(parseInt(limit as string), maxLimit);
 
