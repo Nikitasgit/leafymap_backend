@@ -50,10 +50,17 @@ const getUserById = async (req: Request, res: Response): Promise<void> => {
 
 const getUsers = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { creatorName, limit = 10 } = req.query;
+    const { creatorName, limit = 10, excludeIds } = req.query;
     const queryFilter: any = {};
+
     if (creatorName) {
       queryFilter["creatorName"] = { $regex: creatorName, $options: "i" };
+    }
+    if (excludeIds) {
+      const excludeArray = Array.isArray(excludeIds)
+        ? excludeIds
+        : [excludeIds];
+      queryFilter["_id"] = { $nin: excludeArray };
     }
 
     const users = await User.find(queryFilter)

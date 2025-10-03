@@ -266,7 +266,7 @@ const searchPlaces = async (req: Request, res: Response): Promise<void> => {
       .populate({
         path: "user",
         model: "User",
-        select: "_id",
+        select: "_id description",
       })
       .populate({
         path: "image",
