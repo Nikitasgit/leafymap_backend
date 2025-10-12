@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/db";
 import errorHandler from "./utils/errorHandler";
@@ -12,6 +12,7 @@ import cookieParser from "cookie-parser";
 import imageRoutes from "./routes/imageRoutes";
 import cors from "cors";
 import helmet from "helmet";
+import { apiLimiter } from "./middlewares/rateLimiter";
 
 dotenv.config();
 
@@ -19,11 +20,10 @@ connectDB();
 
 const app = express();
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://spotlight-project.vercel.app",
-  "https://api.server.innovastay.fr",
-];
+const allowedOrigins =
+  process.env.NODE_ENV === "production"
+    ? ["https://spotlight-project.vercel.app"]
+    : ["http://localhost:3000", "https://spotlight-project.vercel.app"];
 
 const corsOptions = {
   origin: (origin: string | undefined, callback: Function) => {
@@ -54,10 +54,13 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb", extended: true }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(cookieParser());
 app.use(helmet());
+
+// Apply rate limiting to all API routes
+app.use("/api/", apiLimiter);
 
 app.use("/api/users", userRoutes);
 app.use("/api/categories", categorieRoutes);
@@ -68,14 +71,5 @@ app.use("/api/images", imageRoutes);
 app.use("/api/partnerships", partnershipRoutes);
 
 app.use(errorHandler);
-
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({
-    success: false,
-    message: "Something went wrong!",
-    error: process.env.NODE_ENV === "development" ? err.message : undefined,
-  });
-});
 
 export default app;

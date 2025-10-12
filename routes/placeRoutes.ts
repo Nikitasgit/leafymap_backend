@@ -17,12 +17,13 @@ import {
   deleteEvent,
 } from "../controllers/eventController";
 import eventOwnership from "../middlewares/eventOwnership";
+import { strictLimiter } from "../middlewares/rateLimiter";
 
 const router: Router = express.Router();
 
 router.post("/", auth, createPlace);
 router.put("/:placeId", auth, placeOwnership, updatePlace);
-router.delete("/:placeId", auth, placeOwnership, deletePlace);
+router.delete("/:placeId", auth, strictLimiter, placeOwnership, deletePlace);
 router.get("/search", searchPlaces);
 router.get("/in-view", getPlacesInView);
 router.get("/:placeId", getPlaceById);
@@ -38,6 +39,13 @@ router.put(
   eventOwnership,
   updateEvent
 );
-router.delete("/:placeId/events/:eventId", auth, placeOwnership, eventOwnership, deleteEvent);
+router.delete(
+  "/:placeId/events/:eventId",
+  auth,
+  strictLimiter,
+  placeOwnership,
+  eventOwnership,
+  deleteEvent
+);
 
 export default router;

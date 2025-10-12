@@ -2,10 +2,7 @@ import logger from "../utils/logger";
 import { deleteObjectFromS3 } from "../utils/s3";
 import Image from "../models/Image";
 
-/**
- * Deletes images from both database and S3 storage.
- * Uses Promise.allSettled to ensure partial failures don't stop the cleanup process.
- */
+
 const deleteImages = async (imageIds: string[]): Promise<void> => {
   if (imageIds.length === 0) return;
 

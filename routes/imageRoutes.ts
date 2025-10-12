@@ -8,6 +8,7 @@ import {
 } from "../controllers/imageController";
 import imageUploadAuthorization from "../middlewares/imageUploadAuthorization";
 import upload, { handleUploadError } from "../middlewares/memoryUpload";
+import { strictLimiter } from "../middlewares/rateLimiter";
 
 const router: Router = express.Router();
 
@@ -20,7 +21,7 @@ router.post(
   uploadImages
 );
 
-router.delete("/", auth, imagesOwnership, deleteImages);
+router.delete("/", auth, strictLimiter, imagesOwnership, deleteImages);
 
 router.get("/gallery", getGalleryImages);
 

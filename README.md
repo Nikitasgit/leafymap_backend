@@ -20,9 +20,8 @@
    - [Réponses API](#réponses-api)
 5. [🔧 Configuration](#-configuration)
 6. [📦 Dépendances principales](#-dépendances-principales)
-7. [🔄 Workflow de développement](#-workflow-de-développement)
-8. [📝 Notes importantes](#-notes-importantes)
-9. [🚢 Déploiement](#-déploiement)
+7. [📝 Notes importantes](#-notes-importantes)
+8. [🚢 Déploiement](#-déploiement)
    - [Déploiement initial sur AWS EC2](#déploiement-initial-sur-aws-ec2)
    - [Mise à jour du backend](#mise-à-jour-du-backend-après-un-push)
    - [Commandes PM2 utiles](#commandes-pm2-utiles)
@@ -355,13 +354,6 @@ S3_BUCKET_NAME=...
 - **Helmet** : Sécurité HTTP
 - **CORS** : Cross-Origin Resource Sharing
 
-## 🔄 Workflow de développement
-
-1. **Modifier le code TypeScript** dans les fichiers `.ts`
-2. **Nodemon** détecte les changements et rebuild automatiquement
-3. **TypeScript compile** vers `/dist`
-4. **Le serveur redémarre** avec le nouveau code
-
 ## 📝 Notes importantes
 
 - **Logs** : Vérifier `logs/error.log` en cas de problème
@@ -378,14 +370,14 @@ Le backend est déployé sur une instance AWS EC2 Ubuntu. Voici les étapes qui 
 #### 1. Configuration de l'instance EC2
 
 - Création d'une instance EC2 sur AWS
-- Génération d'une paire de clés SSH (`innovastay-ssh-key.pem`)
+- Génération d'une paire de clés SSH (`.pem`)
 - Configuration des groupes de sécurité (ports 80, 443, 22)
 
 #### 2. Connexion et configuration du serveur
 
 ```bash
 # Connexion SSH à l'instance
-ssh -i "votre-cle.pem" ubuntu@votre-instance.eu-west-3.compute.amazonaws.com
+ssh -i "votre-cle.pem" ubuntu@your-instance.compute.amazonaws.com
 
 # Mise à jour du système Ubuntu
 sudo apt update && sudo apt upgrade -y
@@ -411,8 +403,8 @@ npm install -g pm2
 
 ```bash
 # Cloner le repository
-git clone https://github.com/votre-repo/innovastay-backend.git
-cd innovastay-backend
+git clone https://github.com/your-username/your-backend.git
+cd your-backend
 
 # Installation des dépendances
 npm install
@@ -424,7 +416,7 @@ nano .env
 npm run build
 
 # Démarrage avec PM2
-pm2 start dist/server.js --name innovastay-backend
+pm2 start dist/server.js --name backend-app
 pm2 save
 pm2 startup
 ```
@@ -436,7 +428,7 @@ pm2 startup
 sudo apt install nginx -y
 
 # Configuration du reverse proxy
-sudo nano /etc/nginx/sites-available/innovastay
+sudo nano /etc/nginx/sites-available/backend
 
 # Redirection des requêtes vers le port 3000
 # Redirection HTTP → HTTPS automatique
@@ -447,7 +439,7 @@ Configuration Nginx :
 ```nginx
 server {
     listen 80;
-    server_name api.server.innovastay.fr;
+    server_name api.yourdomain.com;
 
     location / {
         proxy_pass http://localhost:3000;
@@ -462,7 +454,7 @@ server {
 
 #### 6. Configuration DNS (Route 53)
 
-- Ajout d'un enregistrement A : `api.server.innovastay.fr` → IP de l'instance EC2
+- Ajout d'un enregistrement A : `api.yourdomain.com` → IP de l'instance EC2
 - TTL : 600 secondes
 
 #### 7. Certificat SSL avec Certbot
@@ -472,12 +464,12 @@ server {
 sudo apt install certbot python3-certbot-nginx -y
 
 # Génération du certificat SSL
-sudo certbot --nginx -d api.server.innovastay.fr
+sudo certbot --nginx -d api.yourdomain.com
 
 # Renouvellement automatique configuré
 ```
 
-Le backend est maintenant accessible sur **https://api.server.innovastay.fr**
+Le backend est maintenant accessible sur **https://api.yourdomain.com**
 
 ---
 
@@ -501,7 +493,7 @@ ssh -i "votre-cle-ssh.pem" ubuntu@votre-instance.compute.amazonaws.com
 #### Étape 2 : Navigation vers le projet
 
 ```bash
-cd innovastay-backend
+cd your-backend
 ```
 
 #### Étape 3 : Récupération des dernières modifications
@@ -527,7 +519,7 @@ npm run build
 #### Étape 6 : Redémarrage de l'application avec PM2
 
 ```bash
-pm2 restart innovastay-backend
+pm2 restart backend-app
 ```
 
 #### Étape 7 : Vérification du statut
@@ -537,10 +529,10 @@ pm2 restart innovastay-backend
 pm2 status
 
 # Voir les logs en temps réel (optionnel)
-pm2 logs innovastay-backend
+pm2 logs backend-app
 
 # Voir les logs d'erreur uniquement
-pm2 logs innovastay-backend --err
+pm2 logs backend-app --err
 ```
 
 ### Commandes PM2 utiles
@@ -550,35 +542,35 @@ pm2 logs innovastay-backend --err
 pm2 status
 
 # Voir les logs
-pm2 logs innovastay-backend
+pm2 logs backend-app
 
 # Arrêter l'application
-pm2 stop innovastay-backend
+pm2 stop backend-app
 
 # Démarrer l'application
-pm2 start innovastay-backend
+pm2 start backend-app
 
 # Redémarrer l'application
-pm2 restart innovastay-backend
+pm2 restart backend-app
 
 # Supprimer l'application de PM2
-pm2 delete innovastay-backend
+pm2 delete backend-app
 
 # Vider les logs
 pm2 flush
 
 # Informations détaillées
-pm2 describe innovastay-backend
+pm2 describe backend-app
 ```
 
 ### Résumé rapide : Mise à jour en 5 commandes
 
 ```bash
-ssh -i "votre-cle.pem" ubuntu@votre-instance.compute.amazonaws.com
-cd innovastay-backend
+ssh -i "votre-cle.pem" ubuntu@your-instance.compute.amazonaws.com
+cd your-backend
 git pull
 npm run build
-pm2 restart innovastay-backend
+pm2 restart backend-app
 ```
 
 ### Checklist avant déploiement
