@@ -1,10 +1,10 @@
 # Documentation Backend - Spotlight
 
-## 📑 Table des matières
+## Table des matières
 
-1. [🚀 Commandes de base](#-commandes-de-base)
-2. [📁 Architecture du projet](#-architecture-du-projet)
-3. [🔑 Fonctionnalités principales](#-fonctionnalités-principales)
+1. [Commandes de base](#-commandes-de-base)
+2. [Architecture du projet](#-architecture-du-projet)
+3. [Fonctionnalités principales](#-fonctionnalités-principales)
    - [Authentification & Autorisation](#1-authentification--autorisation)
    - [Système de permissions et rôles](#2-système-de-permissions-et-rôles)
    - [Gestion des ressources](#3-gestion-des-ressources)
@@ -12,16 +12,16 @@
    - [Validation des données](#5-validation-des-données)
    - [Sécurité](#6-sécurité)
    - [Logging](#7-logging)
-4. [🛠️ Conventions de code](#️-conventions-de-code)
+4. [Conventions de code](#️-conventions-de-code)
    - [TypeScript](#typescript)
    - [Architecture](#architecture)
    - [Nommage](#nommage)
    - [Gestion d'erreurs](#gestion-derreurs)
    - [Réponses API](#réponses-api)
-5. [🔧 Configuration](#-configuration)
-6. [📦 Dépendances principales](#-dépendances-principales)
-7. [📝 Notes importantes](#-notes-importantes)
-8. [🚢 Déploiement](#-déploiement)
+5. [Configuration](#-configuration)
+6. [ Dépendances principales](#-dépendances-principales)
+7. [ Notes importantes](#-notes-importantes)
+8. [Déploiement](#-déploiement)
    - [Déploiement initial sur AWS EC2](#déploiement-initial-sur-aws-ec2)
    - [Mise à jour du backend](#mise-à-jour-du-backend-après-un-push)
    - [Commandes PM2 utiles](#commandes-pm2-utiles)
@@ -29,7 +29,7 @@
 
 ---
 
-## 🚀 Commandes de base
+## Commandes de base
 
 ```bash
 # Installation des dépendances
@@ -48,7 +48,7 @@ npm run watch
 npm start
 ```
 
-## 📁 Architecture du projet
+## Architecture du projet
 
 ```
 innovastay-backend/
@@ -66,7 +66,7 @@ innovastay-backend/
 └── logs/                  # Logs d'application (Winston)
 ```
 
-## 🔑 Fonctionnalités principales
+## Fonctionnalités principales
 
 ### 1. Authentification & Autorisation
 
@@ -75,7 +75,6 @@ innovastay-backend/
 1. **Validation des données** : Schéma Zod pour email, password, username
 2. **Vérification d'unicité** : Email et username doivent être uniques
 3. **Hashage du mot de passe** :
-   - Utilisation de **bcrypt** avec 10 rounds de salt
    - Le mot de passe en clair n'est jamais stocké
    - Hash stocké dans la base de données
 4. **Type d'utilisateur** : Par défaut `guest`
@@ -87,10 +86,6 @@ innovastay-backend/
 2. **Vérification** : `bcrypt.compare()` entre password fourni et hash stocké
 3. **Génération JWT** : Token contenant `id` et `userType`
 4. **Cookie HTTP-only** : Token stocké côté client de manière sécurisée
-   - `httpOnly: true` (inaccessible en JavaScript)
-   - `secure: true` en production (HTTPS uniquement)
-   - `sameSite: "none"` en production pour cross-origin
-   - Expiration : 1 jour
 
 #### Middleware d'authentification
 
@@ -342,7 +337,7 @@ S3_BUCKET_NAME=...
 - **Upload** : Multer + S3
 - **Signed URLs** : Génération pour accès sécurisé
 
-## 📦 Dépendances principales
+## Dépendances principales
 
 - **Express** : Framework web
 - **Mongoose** : ODM MongoDB
@@ -354,14 +349,14 @@ S3_BUCKET_NAME=...
 - **Helmet** : Sécurité HTTP
 - **CORS** : Cross-Origin Resource Sharing
 
-## 📝 Notes importantes
+## Notes importantes
 
 - **Logs** : Vérifier `logs/error.log` en cas de problème
 - **Types** : Toujours typer les nouvelles entités dans `/types`
 - **Validation** : Créer un schéma Zod pour chaque nouveau endpoint
 - **Tests** : Utiliser Postman/Thunder Client pour tester les routes
 
-## 🚢 Déploiement
+## Déploiement
 
 ### Déploiement initial sur AWS EC2
 
@@ -502,8 +497,6 @@ cd your-backend
 git pull origin main
 ```
 
-> 💡 Si vous avez des conflits, résolvez-les avant de continuer
-
 #### Étape 4 : Installation des nouvelles dépendances (si nécessaire)
 
 ```bash
@@ -559,9 +552,6 @@ pm2 delete backend-app
 # Vider les logs
 pm2 flush
 
-# Informations détaillées
-pm2 describe backend-app
-```
 
 ### Résumé rapide : Mise à jour en 5 commandes
 
