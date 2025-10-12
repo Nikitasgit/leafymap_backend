@@ -99,7 +99,7 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
           ...slot,
           collaborators: slot.collaborators.map((collaborator: any) => ({
             name: collaborator.creatorName,
-            image: collaborator.image.urls.thumbnail,
+            image: collaborator.image?.urls?.thumbnail || null,
             _id: collaborator._id,
           })),
         })),
