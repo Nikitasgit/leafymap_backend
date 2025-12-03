@@ -1,0 +1,24 @@
+import { IReview, ReviewReferenceType } from "../../types/models/review";
+import { Types } from "mongoose";
+
+export interface ReviewFilters {
+  reference?: string;
+  referenceType?: ReviewReferenceType;
+  author?: string;
+  _id?: { $in: string[] };
+  [key: string]: any;
+}
+
+export interface IReviewRepository {
+  create(review: Partial<IReview>): Promise<Types.ObjectId>;
+  findById(id: string, project?: (keyof IReview)[]): Promise<IReview | null>;
+  findAll<K extends keyof IReview>(params: {
+    filters?: ReviewFilters;
+    project: K[];
+    limit?: number;
+    sort?: { [key: string]: 1 | -1 };
+  }): Promise<Pick<IReview, K>[]>;
+  findAllById(ids: string[], project?: (keyof IReview)[]): Promise<IReview[]>;
+  updateOne(id: string, update: Partial<IReview>): Promise<void>;
+  deleteOne(id: string): Promise<void>;
+}

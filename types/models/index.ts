@@ -5,3 +5,5 @@ export * from "./category";
 export * from "./subCategory";
 export * from "./placeCategory";
 export * from "./partnership";
+export * from "./review";
+export * from "./message";

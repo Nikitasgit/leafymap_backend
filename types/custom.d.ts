@@ -1,5 +1,7 @@
 import { Request } from "express";
 import { ImageDTO } from "./api/image.dto";
+import { IReview } from "./models/review";
+import { IMessage } from "./models/message";
 
 export interface IDecodedToken {
   id: string;
@@ -7,9 +9,12 @@ export interface IDecodedToken {
   iat: number;
   exp: number;
 }
+
 export interface CustomRequest extends Request {
   files?: S3File[] | { [fieldname: string]: S3File[] };
   placeId?: string;
   decoded?: IDecodedToken;
   images?: string[];
+  review?: IReview;
+  message?: IMessage;
 }

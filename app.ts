@@ -10,6 +10,8 @@ import eventRoutes from "./routes/eventRoutes";
 import partnershipRoutes from "./routes/partnershipRoutes";
 import cookieParser from "cookie-parser";
 import imageRoutes from "./routes/imageRoutes";
+import reviewRoutes from "./routes/reviewRoutes";
+import messageRoutes from "./routes/messageRoutes";
 import cors from "cors";
 import helmet from "helmet";
 import { apiLimiter } from "./middlewares/rateLimiter";
@@ -69,6 +71,8 @@ app.use("/api/places", placeRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/images", imageRoutes);
 app.use("/api/partnerships", partnershipRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/messages", messageRoutes);
 
 app.use(errorHandler);
 
