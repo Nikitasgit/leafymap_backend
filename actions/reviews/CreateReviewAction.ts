@@ -5,6 +5,7 @@ import Place from "../../models/Place";
 import Event from "../../models/Event";
 import User from "../../models/User";
 import { Types } from "mongoose";
+import { isUserOwnerOfReference } from "../../utils/ownershipCheck";
 
 export interface ICreateReviewAction {
   execute(params: {
@@ -36,6 +37,18 @@ const CreateReviewAction = (
     if (!referenceExists) {
       throw new Error(
         `The ${referenceType} reference with ID ${reference} does not exist`
+      );
+    }
+
+    // Check that the user is not trying to review their own entity
+    const isOwner = await isUserOwnerOfReference(
+      authorId,
+      reference,
+      referenceType
+    );
+    if (isOwner) {
+      throw new Error(
+        "You cannot leave a review on your own place, event, or profile"
       );
     }
 

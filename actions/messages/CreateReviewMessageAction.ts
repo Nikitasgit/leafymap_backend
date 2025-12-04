@@ -1,10 +1,8 @@
 import { IMessageRepository } from "../../repositories/messages/IMessageRepository";
 import { CreateMessageInput } from "../../validations/messageValidations";
-import Place from "../../models/Place";
-import Event from "../../models/Event";
 import Review from "../../models/Review";
 import { Types } from "mongoose";
-import { IPlace } from "../../types/models/place";
+import { isUserOwnerOfReference } from "../../utils/ownershipCheck";
 
 export interface ICreateReviewMessageAction {
   execute(params: {
@@ -24,37 +22,11 @@ const CreateReviewMessageAction = (
     }
 
     // Verify that the user is the owner of the place/event referenced by the review
-    let isOwner = false;
-
-    switch (review.referenceType) {
-      case "Place": {
-        const place = await Place.findById(review.reference);
-        if (place && place.user.toString() === authorId) {
-          isOwner = true;
-        }
-        break;
-      }
-      case "Event": {
-        const event = await Event.findById(review.reference).populate<{
-          place: IPlace;
-        }>("place");
-        if (
-          event &&
-          event.place &&
-          (event.place as IPlace).user.toString() === authorId
-        ) {
-          isOwner = true;
-        }
-        break;
-      }
-      case "User": {
-        // For reviews on a User, only the user themselves can respond
-        if (review.reference.toString() === authorId) {
-          isOwner = true;
-        }
-        break;
-      }
-    }
+    const isOwner = await isUserOwnerOfReference(
+      authorId,
+      review.reference.toString(),
+      review.referenceType
+    );
 
     if (!isOwner) {
       throw new Error("You are not authorized to respond to this review");

@@ -34,7 +34,7 @@ const viewMessagesListController = ViewMessagesListController(
 const router: Router = express.Router();
 
 // Owner can reply to a review
-router.post("/reviewReply/:reviewId", auth, createMessageReviewController);
+router.post("/review", auth, createMessageReviewController);
 router.get("/", viewMessagesListController);
 router.put("/:messageId", auth, messageOwnership, updateMessageController);
 router.delete(

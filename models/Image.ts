@@ -20,7 +20,7 @@ const imageSchema = new Schema(
     referenceType: {
       type: String,
       required: true,
-      enum: ["Place", "User", "Event", "Message", "Review"],
+      enum: ["Place", "User", "Event", "Comment", "Review"],
     },
     type: {
       type: String,

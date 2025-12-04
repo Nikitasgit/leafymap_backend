@@ -44,17 +44,17 @@ const imageUploadAuthorization = async (
         isAuthorized = reference === userId;
         break;
 
-      case "Message":
-        //  const message = await Message.findById(reference);
-        // if (!message) {
-        //   APIResponse(res, null, "Message non trouvé", 404);
+      case "Comment":
+        //  const comment = await Comment.findById(reference);
+        // if (!comment) {
+        //   APIResponse(res, null, "Commentaire non trouvé", 404);
         //   return;
         //  }
-        //  isAuthorized = message.sender.toString() === userId;
+        //  isAuthorized = comment.author.toString() === userId;
         APIResponse(
           res,
           null,
-          "Type de référence 'message' non encore implémenté",
+          "Type de référence 'comment' non encore implémenté",
           400
         );
         return;

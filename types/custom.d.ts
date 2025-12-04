@@ -1,7 +1,7 @@
 import { Request } from "express";
 import { ImageDTO } from "./api/image.dto";
 import { IReview } from "./models/review";
-import { IMessage } from "./models/message";
+import { IComment } from "./models/comment";
 
 export interface IDecodedToken {
   id: string;
@@ -16,5 +16,5 @@ export interface CustomRequest extends Request {
   decoded?: IDecodedToken;
   images?: string[];
   review?: IReview;
-  message?: IMessage;
+  comment?: IComment;
 }
