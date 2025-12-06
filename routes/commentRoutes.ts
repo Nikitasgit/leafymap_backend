@@ -3,6 +3,7 @@ import auth from "../middlewares/auth";
 import commentOwnership from "../middlewares/commentOwnership";
 import { strictLimiter } from "../middlewares/rateLimiter";
 import CreateCommentAction from "../actions/comments/CreateCommentAction";
+import CreateReviewCommentAction from "../actions/comments/CreateReviewCommentAction";
 import ViewCommentsListAction from "../actions/comments/ViewCommentsListAction";
 import UpdateCommentAction from "../actions/comments/UpdateCommentAction";
 import DeleteCommentAction from "../actions/comments/DeleteCommentAction";
@@ -11,18 +12,21 @@ import CreateCommentController from "../controllers/comments/createCommentContro
 import ViewCommentsListController from "../controllers/comments/viewCommentsListController";
 import UpdateCommentController from "../controllers/comments/updateCommentController";
 import DeleteCommentController from "../controllers/comments/deleteCommentController";
-
 // Initialize repositories
 const commentRepository = MongooseCommentRepository();
 
 // Initialize actions
 const createCommentAction = CreateCommentAction(commentRepository);
+const createReviewCommentAction = CreateReviewCommentAction(commentRepository);
 const viewCommentsListAction = ViewCommentsListAction(commentRepository);
 const updateCommentAction = UpdateCommentAction(commentRepository);
 const deleteCommentAction = DeleteCommentAction(commentRepository);
 
 // Initialize controllers
 const createCommentController = CreateCommentController(createCommentAction);
+const createReviewCommentController = CreateCommentController(
+  createReviewCommentAction
+);
 const viewCommentsListController = ViewCommentsListController(
   viewCommentsListAction
 );
@@ -32,6 +36,7 @@ const deleteCommentController = DeleteCommentController(deleteCommentAction);
 const router: Router = express.Router();
 
 router.post("/", auth, createCommentController);
+router.post("/review", auth, createReviewCommentController);
 router.get("/", viewCommentsListController);
 router.put("/:commentId", auth, commentOwnership, updateCommentController);
 router.delete(

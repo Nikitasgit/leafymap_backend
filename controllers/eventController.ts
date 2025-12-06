@@ -64,9 +64,9 @@ const getEventById = async (req: Request, res: Response): Promise<void> => {
     const { eventId } = req.params;
     const event = await Event.findById(eventId)
       .populate({
-        path: "place",
+        path: "place", 
         model: "Place",
-        select: "_id location image name",
+        select: "_id location image name user",
         populate: {
           path: "image",
           model: "Image",

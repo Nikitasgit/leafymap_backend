@@ -51,7 +51,14 @@ const MongooseReviewRepository = (): IReviewRepository => {
 
       // Always populate author if not specifically projecting
       if (!project || project.includes("author")) {
-        query = query.populate("author", "username image");
+        query = query.populate({
+          path: "author",
+          select: "username image creatorName firstname lastname",
+          populate: {
+            path: "image",
+            select: "urls",
+          },
+        });
       }
 
       const review = await query.lean();
@@ -84,9 +91,16 @@ const MongooseReviewRepository = (): IReviewRepository => {
         mongooseQuery = mongooseQuery.select(params.project.join(" "));
       }
 
-      // Populate author if requested in the project
+      // Populate author with image if requested in the project
       if (params.project.includes("author" as K)) {
-        mongooseQuery = mongooseQuery.populate("author", "username image");
+        mongooseQuery = mongooseQuery.populate({
+          path: "author",
+          select: "username image creatorName firstname lastname",
+          populate: {
+            path: "image",
+            select: "urls",
+          },
+        });
       }
 
       const reviews = await mongooseQuery.lean();
@@ -105,7 +119,14 @@ const MongooseReviewRepository = (): IReviewRepository => {
 
       // Always populate author if not specifically projecting
       if (!project || project.includes("author")) {
-        mongooseQuery = mongooseQuery.populate("author", "username image");
+        mongooseQuery = mongooseQuery.populate({
+          path: "author",
+          select: "username image creatorName firstname lastname",
+          populate: {
+            path: "image",
+            select: "urls",
+          },
+        });
       }
 
       const reviews = await mongooseQuery.lean();

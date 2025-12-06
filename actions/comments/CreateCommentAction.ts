@@ -18,12 +18,16 @@ const CreateCommentAction = (
   execute: async ({ commentData, authorId }) => {
     const { reference, referenceType, content } = commentData;
 
+    // Reviews can only be commented via the /review endpoint
+    if (referenceType === "Review") {
+      throw new Error(
+        "Comments on reviews must be created via the /api/comments/review endpoint"
+      );
+    }
+
     // Verify that the reference exists
     let referenceExists = false;
     switch (referenceType) {
-      case "Review":
-        referenceExists = !!(await Review.exists({ _id: reference }));
-        break;
       case "Image":
         referenceExists = !!(await Image.exists({ _id: reference }));
         break;

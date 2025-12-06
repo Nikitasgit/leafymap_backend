@@ -52,25 +52,20 @@ const CreateReviewAction = (
       );
     }
 
-    // Check that no review was created in the last 3 months
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-
-    const latestReviews = await reviewRepository.findAll({
+    // Check that the user hasn't already left a review for this entity
+    const existingReview = await reviewRepository.findAll({
       filters: {
         author: authorId,
         reference,
         referenceType,
-        createdAt: { $gte: threeMonthsAgo },
       },
-      project: ["_id", "createdAt"],
+      project: ["_id"],
       limit: 1,
-      sort: { createdAt: -1 },
     });
 
-    if (latestReviews.length > 0) {
+    if (existingReview.length > 0) {
       throw new Error(
-        "You have already left a review for this entity less than 3 months ago"
+        "You have already left a review for this entity. You can only leave one review per entity."
       );
     }
 

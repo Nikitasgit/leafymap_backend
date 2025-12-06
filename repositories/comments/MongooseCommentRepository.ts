@@ -54,7 +54,14 @@ const MongooseCommentRepository = (): ICommentRepository => {
 
       // Always populate author if not specifically projecting
       if (!project || project.includes("author")) {
-        query = query.populate("author", "username image");
+        query = query.populate({
+          path: "author",
+          select: "username image creatorName firstname lastname",
+          populate: {
+            path: "image",
+            select: "urls",
+          },
+        });
       }
 
       const comment = await query.lean();
@@ -89,7 +96,14 @@ const MongooseCommentRepository = (): ICommentRepository => {
 
       // Populate author if requested in the project
       if (params.project.includes("author" as K)) {
-        mongooseQuery = mongooseQuery.populate("author", "username image");
+        mongooseQuery = mongooseQuery.populate({
+          path: "author",
+          select: "username image creatorName firstname lastname",
+          populate: {
+            path: "image",
+            select: "urls",
+          },
+        });
       }
 
       const comments = await mongooseQuery.lean();
@@ -108,7 +122,14 @@ const MongooseCommentRepository = (): ICommentRepository => {
 
       // Always populate author if not specifically projecting
       if (!project || project.includes("author")) {
-        mongooseQuery = mongooseQuery.populate("author", "username image");
+        mongooseQuery = mongooseQuery.populate({
+          path: "author",
+          select: "username image creatorName firstname lastname",
+          populate: {
+            path: "image",
+            select: "urls",
+          },
+        });
       }
 
       const comments = await mongooseQuery.lean();
