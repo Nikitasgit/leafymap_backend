@@ -32,6 +32,7 @@ export interface IUser extends Document {
   description?: string;
   country?: (typeof ISO_COUNTRIES_ALPHA2)[number];
   image?: Types.ObjectId | Pick<IImage, "urls">;
+  rating: number;
   followers: Types.ObjectId[];
   creatorProfile?: ICreatorProfile;
   interests: Types.ObjectId[];

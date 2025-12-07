@@ -31,6 +31,7 @@ const userSchema = new Schema<IUser>(
     description: { type: String, maxlength: 300 },
     country: { type: String, enum: ISO_COUNTRIES_ALPHA2 },
     image: { type: Types.ObjectId, ref: "Image" },
+    rating: { type: Number, default: 0 },
     followers: [{ type: Types.ObjectId, ref: "User" }],
     interests: [{ type: Types.ObjectId, ref: "SubCategory" }],
     places: [{ type: Types.ObjectId, ref: "Place" }],

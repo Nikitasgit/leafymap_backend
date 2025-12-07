@@ -24,6 +24,7 @@ export interface IEvent extends Document {
   schedule: IEventPeriod[];
   place: Types.ObjectId | Partial<IPlace>;
   image?: Types.ObjectId | Partial<IImage>;
+  rating: number;
   deleted: boolean;
   createdAt: Date;
   updatedAt: Date;

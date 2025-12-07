@@ -6,6 +6,7 @@ import Event from "../../models/Event";
 import User from "../../models/User";
 import { Types } from "mongoose";
 import { isUserOwnerOfReference } from "../../utils/ownershipCheck";
+import { updateReviewRating } from "../../utils/updateReviewRating";
 
 export interface ICreateReviewAction {
   execute(params: {
@@ -78,6 +79,9 @@ const CreateReviewAction = (
       referenceType,
       certified: false,
     });
+
+    // Update the average rating for the reviewed entity
+    await updateReviewRating(reference, referenceType);
 
     return { _id: reviewId.toString() };
   },
