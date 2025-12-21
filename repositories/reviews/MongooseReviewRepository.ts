@@ -1,12 +1,12 @@
 import Review from "../../models/Review";
-import { IReview, ReviewReferenceType } from "../../types/models/review";
+import { IReview } from "../../types/models/review";
 import { IReviewRepository, ReviewFilters } from "./IReviewRepository";
-import { Types } from "mongoose";
+import { Types, FilterQuery } from "mongoose";
+import { PopulateParser } from "../utils/PopulateParser";
 
-const MongooseReviewRepository = (): IReviewRepository => {
-  // Helper to build query from filters
-  const buildQuery = (filters?: ReviewFilters): any => {
-    const query: any = {};
+class MongooseReviewRepository implements IReviewRepository {
+  private buildQuery(filters?: ReviewFilters): FilterQuery<IReview> {
+    const query: FilterQuery<IReview> = {};
 
     if (!filters) return query;
 
@@ -25,122 +25,89 @@ const MongooseReviewRepository = (): IReviewRepository => {
       };
     }
 
-    // Add all other filters (for flexibility)
     Object.keys(filters).forEach((key) => {
       if (!["reference", "referenceType", "author", "_id"].includes(key)) {
-        query[key] = filters[key];
+        (query as Record<string, unknown>)[key] = (
+          filters as Record<string, unknown>
+        )[key];
       }
     });
 
     return query;
-  };
+  }
 
-  return {
-    create: async (review: Partial<IReview>) => {
-      const newReview = new Review(review);
-      await newReview.save();
-      return newReview._id;
-    },
+  async create(review: Partial<IReview>): Promise<Types.ObjectId> {
+    const newReview = new Review(review);
+    await newReview.save();
+    return newReview._id;
+  }
 
-    findById: async (id: string, project?: (keyof IReview)[]) => {
-      let query = Review.findById(id);
+  async findById(
+    id: string,
+    project?: (keyof IReview | string)[]
+  ): Promise<IReview | null> {
+    let query = Review.findById(id);
 
-      if (project && project.length > 0) {
-        query = query.select(project.join(" "));
+    if (project && project.length > 0) {
+      const { selectFields, populateConfig } =
+        PopulateParser.parseProjectFields(project);
+
+      if (selectFields.length > 0) {
+        query = query.select(selectFields.join(" "));
       }
 
-      // Always populate author if not specifically projecting
-      if (!project || project.includes("author")) {
-        query = query.populate({
-          path: "author",
-          select: "username image creatorName firstname lastname",
-          populate: {
-            path: "image",
-            select: "urls",
-          },
-        });
+      query = PopulateParser.applyPopulate(query, populateConfig);
+    }
+
+    const review = await query.lean();
+    return review as IReview | null;
+  }
+
+  async findAll<K extends keyof IReview>(params: {
+    filters?: ReviewFilters;
+    project: (K | string)[];
+    limit?: number;
+    sort?: { [key: string]: 1 | -1 };
+  }): Promise<Pick<IReview, K>[]> {
+    const query = this.buildQuery(params.filters);
+
+    let mongooseQuery = Review.find(query);
+
+    if (params.sort) {
+      mongooseQuery = mongooseQuery.sort(params.sort);
+    } else {
+      mongooseQuery = mongooseQuery.sort({ createdAt: -1 });
+    }
+
+    if (params.limit) {
+      mongooseQuery = mongooseQuery.limit(params.limit);
+    }
+
+    if (params.project && params.project.length > 0) {
+      const { selectFields, populateConfig } =
+        PopulateParser.parseProjectFields(params.project);
+
+      if (selectFields.length > 0) {
+        mongooseQuery = mongooseQuery.select(selectFields.join(" "));
       }
 
-      const review = await query.lean();
-      return review as IReview | null;
-    },
+      mongooseQuery = PopulateParser.applyPopulate(
+        mongooseQuery,
+        populateConfig
+      );
+    }
 
-    findAll: async <K extends keyof IReview>(params: {
-      filters?: ReviewFilters;
-      project: K[];
-      limit?: number;
-      sort?: { [key: string]: 1 | -1 };
-    }) => {
-      const query = buildQuery(params.filters);
+    const reviews = await mongooseQuery.lean();
+    return reviews as Pick<IReview, K>[];
+  }
 
-      let mongooseQuery = Review.find(query);
+  async updateOne(id: string, update: Partial<IReview>): Promise<void> {
+    await Review.updateOne({ _id: id }, update).exec();
+  }
 
-      // Default sort if not specified
-      if (params.sort) {
-        mongooseQuery = mongooseQuery.sort(params.sort);
-      } else {
-        mongooseQuery = mongooseQuery.sort({ createdAt: -1 });
-      }
-
-      // Limit if specified
-      if (params.limit) {
-        mongooseQuery = mongooseQuery.limit(params.limit);
-      }
-
-      if (params.project && params.project.length > 0) {
-        mongooseQuery = mongooseQuery.select(params.project.join(" "));
-      }
-
-      // Populate author with image if requested in the project
-      if (params.project.includes("author" as K)) {
-        mongooseQuery = mongooseQuery.populate({
-          path: "author",
-          select: "username image creatorName firstname lastname",
-          populate: {
-            path: "image",
-            select: "urls",
-          },
-        });
-      }
-
-      const reviews = await mongooseQuery.lean();
-      return reviews as Pick<IReview, K>[];
-    },
-
-    findAllById: async (ids: string[], project?: (keyof IReview)[]) => {
-      const objectIds = ids.map((id) => new Types.ObjectId(id));
-      const query = { _id: { $in: objectIds } };
-
-      let mongooseQuery = Review.find(query);
-
-      if (project && project.length > 0) {
-        mongooseQuery = mongooseQuery.select(project.join(" "));
-      }
-
-      // Always populate author if not specifically projecting
-      if (!project || project.includes("author")) {
-        mongooseQuery = mongooseQuery.populate({
-          path: "author",
-          select: "username image creatorName firstname lastname",
-          populate: {
-            path: "image",
-            select: "urls",
-          },
-        });
-      }
-
-      const reviews = await mongooseQuery.lean();
-      return reviews as IReview[];
-    },
-
-    updateOne: async (id: string, update: Partial<IReview>) => {
-      await Review.updateOne({ _id: id }, update).exec();
-    },
-
-    deleteOne: async (id: string) => {
-      await Review.deleteOne({ _id: id }).exec();
-    },
-  };
-};
+  async deleteOne(id: string): Promise<void> {
+    await Review.deleteOne({ _id: id }).exec();
+  }
+}
 
 export default MongooseReviewRepository;

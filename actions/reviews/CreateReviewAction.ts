@@ -1,11 +1,10 @@
 import { IReviewRepository } from "../../repositories/reviews/IReviewRepository";
-import { ReviewReferenceType } from "../../types/models/review";
+
 import { CreateReviewInput } from "../../validations/reviewValidations";
 import Place from "../../models/Place";
 import Event from "../../models/Event";
 import User from "../../models/User";
 import { Types } from "mongoose";
-import { isUserOwnerOfReference } from "../../utils/ownershipCheck";
 import { updateReviewRating } from "../../utils/updateReviewRating";
 
 export interface ICreateReviewAction {
@@ -15,13 +14,18 @@ export interface ICreateReviewAction {
   }): Promise<{ _id: string }>;
 }
 
-const CreateReviewAction = (
-  reviewRepository: IReviewRepository
-): ICreateReviewAction => ({
-  execute: async ({ reviewData, authorId }) => {
+class CreateReviewAction implements ICreateReviewAction {
+  constructor(private reviewRepository: IReviewRepository) {}
+
+  async execute({
+    reviewData,
+    authorId,
+  }: {
+    reviewData: CreateReviewInput;
+    authorId: string;
+  }): Promise<{ _id: string }> {
     const { reference, referenceType, rating, comment } = reviewData;
 
-    // Verify that the reference exists
     let referenceExists = false;
     switch (referenceType) {
       case "Place":
@@ -41,20 +45,7 @@ const CreateReviewAction = (
       );
     }
 
-    // Check that the user is not trying to review their own entity
-    const isOwner = await isUserOwnerOfReference(
-      authorId,
-      reference,
-      referenceType
-    );
-    if (isOwner) {
-      throw new Error(
-        "You cannot leave a review on your own place, event, or profile"
-      );
-    }
-
-    // Check that the user hasn't already left a review for this entity
-    const existingReview = await reviewRepository.findAll({
+    const existingReview = await this.reviewRepository.findAll({
       filters: {
         author: authorId,
         reference,
@@ -70,8 +61,7 @@ const CreateReviewAction = (
       );
     }
 
-    // Create the review
-    const reviewId = await reviewRepository.create({
+    const reviewId = await this.reviewRepository.create({
       author: new Types.ObjectId(authorId),
       rating,
       comment,
@@ -80,11 +70,10 @@ const CreateReviewAction = (
       certified: false,
     });
 
-    // Update the average rating for the reviewed entity
     await updateReviewRating(reference, referenceType);
 
     return { _id: reviewId.toString() };
-  },
-});
+  }
+}
 
 export default CreateReviewAction;

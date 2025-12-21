@@ -7,32 +7,37 @@ import { IReview } from "../../types/models/review";
 export interface IViewReviewsListAction {
   execute(params: {
     filters?: ReviewFilters;
-    project?: (keyof IReview)[];
   }): Promise<IReview[] | Partial<IReview>[]>;
 }
 
-const ViewReviewsListAction = (
-  reviewRepository: IReviewRepository
-): IViewReviewsListAction => ({
-  execute: async ({ filters, project }) => {
-    const defaultProject: (keyof IReview)[] = [
-      "_id",
-      "author",
-      "rating",
-      "comment",
-      "reference",
-      "referenceType",
-      "certified",
-      "createdAt",
-      "updatedAt",
-    ];
+class ViewReviewsListAction implements IViewReviewsListAction {
+  private readonly project: (keyof IReview | string)[] = [
+    "_id",
+    "author.username",
+    "author.creatorName",
+    "author.image.urls",
+    "rating",
+    "comment",
+    "reference",
+    "referenceType",
+    "certified",
+    "createdAt",
+    "updatedAt",
+  ];
 
-    const reviews = await reviewRepository.findAll({
+  constructor(private reviewRepository: IReviewRepository) {}
+
+  async execute({
+    filters,
+  }: {
+    filters?: ReviewFilters;
+  }): Promise<IReview[] | Partial<IReview>[]> {
+    const reviews = await this.reviewRepository.findAll({
       filters,
-      project: project || defaultProject,
+      project: this.project,
     });
     return reviews;
-  },
-});
+  }
+}
 
 export default ViewReviewsListAction;

@@ -28,7 +28,7 @@ export const isUserOwnerOfReference = async (
       if (!event || !event.place) {
         return false;
       }
-      // After populate, place is a populated IPlace object
+
       return (event.place as any).user.toString() === userId;
     }
 

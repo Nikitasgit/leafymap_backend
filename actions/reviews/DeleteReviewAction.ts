@@ -5,12 +5,11 @@ export interface IDeleteReviewAction {
   execute(params: { reviewId: string }): Promise<void>;
 }
 
-const DeleteReviewAction = (
-  reviewRepository: IReviewRepository
-): IDeleteReviewAction => ({
-  execute: async ({ reviewId }) => {
-    // Get the review to know the reference before deleting
-    const review = await reviewRepository.findById(reviewId, [
+class DeleteReviewAction implements IDeleteReviewAction {
+  constructor(private reviewRepository: IReviewRepository) {}
+
+  async execute({ reviewId }: { reviewId: string }): Promise<void> {
+    const review = await this.reviewRepository.findById(reviewId, [
       "reference",
       "referenceType",
     ]);
@@ -19,11 +18,10 @@ const DeleteReviewAction = (
       throw new Error("Review not found");
     }
 
-    await reviewRepository.deleteOne(reviewId);
+    await this.reviewRepository.deleteOne(reviewId);
 
-    // Update the average rating for the reviewed entity
     await updateReviewRating(review.reference.toString(), review.referenceType);
-  },
-});
+  }
+}
 
 export default DeleteReviewAction;

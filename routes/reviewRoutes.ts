@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 import auth from "../middlewares/auth";
 import reviewOwnership from "../middlewares/reviewOwnership";
+import referenceOwnership from "../middlewares/referenceOwnership";
 import { strictLimiter } from "../middlewares/rateLimiter";
 import CreateReviewAction from "../actions/reviews/CreateReviewAction";
 import UpdateReviewAction from "../actions/reviews/UpdateReviewAction";
@@ -12,34 +13,41 @@ import ViewReviewsListController from "../controllers/reviews/viewReviewsListCon
 import UpdateReviewController from "../controllers/reviews/updateReviewController";
 import DeleteReviewController from "../controllers/reviews/deleteReviewController";
 
-// Initialize repositories
-const reviewRepository = MongooseReviewRepository();
+const reviewRepository = new MongooseReviewRepository();
 
-// Initialize actions
-const createReviewAction = CreateReviewAction(reviewRepository);
-const updateReviewAction = UpdateReviewAction(reviewRepository);
-const deleteReviewAction = DeleteReviewAction(reviewRepository);
-const viewReviewsListAction = ViewReviewsListAction(reviewRepository);
+const createReviewAction = new CreateReviewAction(reviewRepository);
+const updateReviewAction = new UpdateReviewAction(reviewRepository);
+const deleteReviewAction = new DeleteReviewAction(reviewRepository);
+const viewReviewsListAction = new ViewReviewsListAction(reviewRepository);
 
-// Initialize controllers
-const createReviewController = CreateReviewController(createReviewAction);
-const viewReviewsListController = ViewReviewsListController(
+const createReviewController = new CreateReviewController(createReviewAction);
+const viewReviewsListController = new ViewReviewsListController(
   viewReviewsListAction
 );
-const updateReviewController = UpdateReviewController(updateReviewAction);
-const deleteReviewController = DeleteReviewController(deleteReviewAction);
+const updateReviewController = new UpdateReviewController(updateReviewAction);
+const deleteReviewController = new DeleteReviewController(deleteReviewAction);
 
 const router: Router = express.Router();
 
-router.post("/", auth, createReviewController);
-router.get("/", viewReviewsListController);
-router.put("/:reviewId", auth, reviewOwnership, updateReviewController);
+router.post(
+  "/",
+  auth,
+  referenceOwnership({shouldBeOwner:false}),
+  createReviewController.handle()
+);
+router.get("/", viewReviewsListController.handle());
+router.put(
+  "/:reviewId",
+  auth,
+  reviewOwnership,
+  updateReviewController.handle()
+);
 router.delete(
   "/:reviewId",
   auth,
   strictLimiter,
   reviewOwnership,
-  deleteReviewController
+  deleteReviewController.handle()
 );
 
 export default router;

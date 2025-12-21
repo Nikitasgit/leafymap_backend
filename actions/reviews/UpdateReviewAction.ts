@@ -9,12 +9,17 @@ export interface IUpdateReviewAction {
   }): Promise<void>;
 }
 
-const UpdateReviewAction = (
-  reviewRepository: IReviewRepository
-): IUpdateReviewAction => ({
-  execute: async ({ reviewId, reviewData }) => {
-    // Get the review to know the reference before updating
-    const review = await reviewRepository.findById(reviewId, [
+class UpdateReviewAction implements IUpdateReviewAction {
+  constructor(private reviewRepository: IReviewRepository) {}
+
+  async execute({
+    reviewId,
+    reviewData,
+  }: {
+    reviewId: string;
+    reviewData: UpdateReviewInput;
+  }): Promise<void> {
+    const review = await this.reviewRepository.findById(reviewId, [
       "reference",
       "referenceType",
     ]);
@@ -23,11 +28,10 @@ const UpdateReviewAction = (
       throw new Error("Review not found");
     }
 
-    await reviewRepository.updateOne(reviewId, reviewData);
+    await this.reviewRepository.updateOne(reviewId, reviewData);
 
-    // Update the average rating for the reviewed entity
     await updateReviewRating(review.reference.toString(), review.referenceType);
-  },
-});
+  }
+}
 
 export default UpdateReviewAction;
