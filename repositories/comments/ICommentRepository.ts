@@ -11,14 +11,16 @@ export interface CommentFilters {
 
 export interface ICommentRepository {
   create(comment: Partial<IComment>): Promise<Types.ObjectId>;
-  findById(id: string, project?: (keyof IComment)[]): Promise<IComment | null>;
+  findById(
+    id: string,
+    project?: (keyof IComment | string)[]
+  ): Promise<IComment | null>;
   findAll<K extends keyof IComment>(params: {
     filters?: CommentFilters;
-    project: K[];
+    project: (K | string)[];
     limit?: number;
     sort?: { [key: string]: 1 | -1 };
   }): Promise<Pick<IComment, K>[]>;
-  findAllById(ids: string[], project?: (keyof IComment)[]): Promise<IComment[]>;
   updateOne(id: string, update: Partial<IComment>): Promise<void>;
   deleteOne(id: string): Promise<void>;
 }

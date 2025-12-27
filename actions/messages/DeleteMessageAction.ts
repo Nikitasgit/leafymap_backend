@@ -4,12 +4,12 @@ export interface IDeleteMessageAction {
   execute(params: { messageId: string }): Promise<void>;
 }
 
-const DeleteMessageAction = (
-  messageRepository: IMessageRepository
-): IDeleteMessageAction => ({
-  execute: async ({ messageId }) => {
-    await messageRepository.deleteOne(messageId);
-  },
-});
+class DeleteMessageAction implements IDeleteMessageAction {
+  constructor(private messageRepository: IMessageRepository) {}
+
+  async execute({ messageId }: { messageId: string }): Promise<void> {
+    await this.messageRepository.deleteOne(messageId);
+  }
+}
 
 export default DeleteMessageAction;

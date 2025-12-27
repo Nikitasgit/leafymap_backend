@@ -2,7 +2,7 @@ import express, { Router } from "express";
 import auth from "../middlewares/auth";
 import messageOwnership from "../middlewares/messageOwnership";
 import { strictLimiter } from "../middlewares/rateLimiter";
-import CreateReviewMessageAction from "../actions/messages/CreateReviewMessageAction";
+import CreateMessageAction from "../actions/messages/CreateMessageAction";
 import UpdateMessageAction from "../actions/messages/UpdateMessageAction";
 import DeleteMessageAction from "../actions/messages/DeleteMessageAction";
 import ViewMessagesListAction from "../actions/messages/ViewMessagesListAction";
@@ -13,36 +13,44 @@ import DeleteMessageController from "../controllers/messages/deleteMessageContro
 import ViewMessagesListController from "../controllers/messages/viewMessagesListController";
 
 // Initialize repositories
-const messageRepository = MongooseMessageRepository();
+const messageRepository = new MongooseMessageRepository();
 
 // Initialize actions
-const createReviewMessageAction = CreateReviewMessageAction(messageRepository);
-const updateMessageAction = UpdateMessageAction(messageRepository);
-const deleteMessageAction = DeleteMessageAction(messageRepository);
-const viewMessagesListAction = ViewMessagesListAction(messageRepository);
+const createMessageAction = new CreateMessageAction(messageRepository);
+const updateMessageAction = new UpdateMessageAction(messageRepository);
+const deleteMessageAction = new DeleteMessageAction(messageRepository);
+const viewMessagesListAction = new ViewMessagesListAction(messageRepository);
 
 // Initialize controllers
-const createMessageReviewController = CreateMessageController(
-  createReviewMessageAction
+const createMessageController = new CreateMessageController(
+  createMessageAction
 );
-const updateMessageController = UpdateMessageController(updateMessageAction);
-const deleteMessageController = DeleteMessageController(deleteMessageAction);
-const viewMessagesListController = ViewMessagesListController(
+const updateMessageController = new UpdateMessageController(
+  updateMessageAction
+);
+const deleteMessageController = new DeleteMessageController(
+  deleteMessageAction
+);
+const viewMessagesListController = new ViewMessagesListController(
   viewMessagesListAction
 );
 
 const router: Router = express.Router();
 
-// Owner can reply to a review
-router.post("/review", auth, createMessageReviewController);
-router.get("/", viewMessagesListController);
-router.put("/:messageId", auth, messageOwnership, updateMessageController);
+router.post("/", auth, createMessageController.handle());
+router.get("/", viewMessagesListController.handle());
+router.put(
+  "/:messageId",
+  auth,
+  messageOwnership,
+  updateMessageController.handle()
+);
 router.delete(
   "/:messageId",
   auth,
   strictLimiter,
   messageOwnership,
-  deleteMessageController
+  deleteMessageController.handle()
 );
 
 export default router;

@@ -21,6 +21,16 @@ class CreateReviewController {
           return;
         }
 
+        if (req.reviewReferenceIsOwner) {
+          APIResponse(
+            res,
+            null,
+            "Vous ne pouvez pas effectuer cette action sur votre propre entité",
+            403
+          );
+          return;
+        }
+
         const validationResult = createReviewSchema.safeParse(req.body);
         if (!validationResult.success) {
           const errors = validationResult.error.errors.reduce((acc, err) => {

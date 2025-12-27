@@ -1,9 +1,9 @@
 import express, { Router } from "express";
 import auth from "../middlewares/auth";
 import commentOwnership from "../middlewares/commentOwnership";
+import commentReferenceOwnership from "../middlewares/commentReferenceOwnership";
 import { strictLimiter } from "../middlewares/rateLimiter";
 import CreateCommentAction from "../actions/comments/CreateCommentAction";
-import CreateReviewCommentAction from "../actions/comments/CreateReviewCommentAction";
 import ViewCommentsListAction from "../actions/comments/ViewCommentsListAction";
 import UpdateCommentAction from "../actions/comments/UpdateCommentAction";
 import DeleteCommentAction from "../actions/comments/DeleteCommentAction";
@@ -13,38 +13,49 @@ import ViewCommentsListController from "../controllers/comments/viewCommentsList
 import UpdateCommentController from "../controllers/comments/updateCommentController";
 import DeleteCommentController from "../controllers/comments/deleteCommentController";
 // Initialize repositories
-const commentRepository = MongooseCommentRepository();
+const commentRepository = new MongooseCommentRepository();
 
 // Initialize actions
-const createCommentAction = CreateCommentAction(commentRepository);
-const createReviewCommentAction = CreateReviewCommentAction(commentRepository);
-const viewCommentsListAction = ViewCommentsListAction(commentRepository);
-const updateCommentAction = UpdateCommentAction(commentRepository);
-const deleteCommentAction = DeleteCommentAction(commentRepository);
+const createCommentAction = new CreateCommentAction(commentRepository);
+const viewCommentsListAction = new ViewCommentsListAction(commentRepository);
+const updateCommentAction = new UpdateCommentAction(commentRepository);
+const deleteCommentAction = new DeleteCommentAction(commentRepository);
 
 // Initialize controllers
-const createCommentController = CreateCommentController(createCommentAction);
-const createReviewCommentController = CreateCommentController(
-  createReviewCommentAction
+const createCommentController = new CreateCommentController(
+  createCommentAction
 );
-const viewCommentsListController = ViewCommentsListController(
+const viewCommentsListController = new ViewCommentsListController(
   viewCommentsListAction
 );
-const updateCommentController = UpdateCommentController(updateCommentAction);
-const deleteCommentController = DeleteCommentController(deleteCommentAction);
+const updateCommentController = new UpdateCommentController(
+  updateCommentAction
+);
+const deleteCommentController = new DeleteCommentController(
+  deleteCommentAction
+);
 
 const router: Router = express.Router();
 
-router.post("/", auth, createCommentController);
-router.post("/review", auth, createReviewCommentController);
-router.get("/", viewCommentsListController);
-router.put("/:commentId", auth, commentOwnership, updateCommentController);
+router.post(
+  "/",
+  auth,
+  commentReferenceOwnership,
+  createCommentController.handle()
+);
+router.get("/", viewCommentsListController.handle());
+router.put(
+  "/:commentId",
+  auth,
+  commentOwnership,
+  updateCommentController.handle()
+);
 router.delete(
   "/:commentId",
   auth,
   strictLimiter,
   commentOwnership,
-  deleteCommentController
+  deleteCommentController.handle()
 );
 
 export default router;

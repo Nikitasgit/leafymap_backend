@@ -1,13 +1,11 @@
 import { Document, Types } from "mongoose";
 
-export type MessageReferenceType = "Review";
-
 export interface IMessage extends Document {
   _id: Types.ObjectId;
-  author: Types.ObjectId;
+  senderId: Types.ObjectId;
+  recipientId: Types.ObjectId;
   content: string;
-  reference: Types.ObjectId;
-  referenceType: MessageReferenceType;
+  isRead: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

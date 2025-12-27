@@ -4,12 +4,12 @@ export interface IDeleteCommentAction {
   execute(params: { commentId: string }): Promise<void>;
 }
 
-const DeleteCommentAction = (
-  commentRepository: ICommentRepository
-): IDeleteCommentAction => ({
-  execute: async ({ commentId }) => {
-    await commentRepository.deleteOne(commentId);
-  },
-});
+class DeleteCommentAction implements IDeleteCommentAction {
+  constructor(private commentRepository: ICommentRepository) {}
+
+  async execute({ commentId }: { commentId: string }): Promise<void> {
+    await this.commentRepository.deleteOne(commentId);
+  }
+}
 
 export default DeleteCommentAction;

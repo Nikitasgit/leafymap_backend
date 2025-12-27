@@ -7,31 +7,37 @@ import { IMessage } from "../../types/models/message";
 export interface IViewMessagesListAction {
   execute(params: {
     filters?: MessageFilters;
-    project?: (keyof IMessage)[];
   }): Promise<IMessage[] | Partial<IMessage>[]>;
 }
 
-const ViewMessagesListAction = (
-  messageRepository: IMessageRepository
-): IViewMessagesListAction => ({
-  execute: async ({ filters, project }) => {
-    // If no project specified, return all fields by default
-    const defaultProject: (keyof IMessage)[] = [
-      "_id",
-      "author",
-      "content",
-      "reference",
-      "referenceType",
-      "createdAt",
-      "updatedAt",
-    ];
+class ViewMessagesListAction implements IViewMessagesListAction {
+  private readonly project: (keyof IMessage | string)[] = [
+    "_id",
+    "senderId.username",
+    "senderId.creatorName",
+    "senderId.image.urls",
+    "recipientId.username",
+    "recipientId.creatorName",
+    "recipientId.image.urls",
+    "content",
+    "isRead",
+    "createdAt",
+    "updatedAt",
+  ];
 
-    const messages = await messageRepository.findAll({
+  constructor(private messageRepository: IMessageRepository) {}
+
+  async execute({
+    filters,
+  }: {
+    filters?: MessageFilters;
+  }): Promise<IMessage[] | Partial<IMessage>[]> {
+    const messages = await this.messageRepository.findAll({
       filters,
-      project: project || defaultProject,
+      project: this.project,
     });
     return messages;
-  },
-});
+  }
+}
 
 export default ViewMessagesListAction;

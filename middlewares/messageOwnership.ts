@@ -29,7 +29,7 @@ const messageOwnership = async (
       return;
     }
 
-    if (message.author.toString() !== decoded.id) {
+    if (message.senderId.toString() !== decoded.id) {
       APIResponse(
         res,
         null,

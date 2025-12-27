@@ -1,149 +1,113 @@
 import Comment from "../../models/Comment";
-import { IComment, CommentReferenceType } from "../../types/models/comment";
+import { IComment } from "../../types/models/comment";
 import { ICommentRepository, CommentFilters } from "./ICommentRepository";
-import { Types } from "mongoose";
+import { Types, FilterQuery } from "mongoose";
+import { PopulateParser } from "../utils/PopulateParser";
 
-const MongooseCommentRepository = (): ICommentRepository => {
-  // Helper to build query from filters
-  const buildQuery = (filters?: CommentFilters): any => {
-    const query: any = {};
+class MongooseCommentRepository implements ICommentRepository {
+  private buildQuery(filters?: CommentFilters): FilterQuery<IComment> {
+    const query: FilterQuery<IComment> = {};
 
     if (!filters) return query;
 
     if (filters.reference) {
       query.reference = new Types.ObjectId(filters.reference);
     }
-
     if (filters.referenceType) {
       query.referenceType = filters.referenceType;
     }
-
     if (filters.author) {
       query.author = new Types.ObjectId(filters.author);
     }
-
     if (filters._id) {
       query._id = {
         $in: filters._id.$in.map((id) => new Types.ObjectId(id)),
       };
     }
 
-    // Add all other filters (for flexibility)
     Object.keys(filters).forEach((key) => {
       if (!["reference", "referenceType", "author", "_id"].includes(key)) {
-        query[key] = filters[key];
+        (query as Record<string, unknown>)[key] = (
+          filters as Record<string, unknown>
+        )[key];
       }
     });
 
     return query;
-  };
+  }
 
-  return {
-    create: async (comment: Partial<IComment>) => {
-      const newComment = new Comment(comment);
-      await newComment.save();
-      return newComment._id;
-    },
+  async create(comment: Partial<IComment>): Promise<Types.ObjectId> {
+    const newComment = new Comment(comment);
+    await newComment.save();
+    return newComment._id;
+  }
 
-    findById: async (id: string, project?: (keyof IComment)[]) => {
-      let query = Comment.findById(id);
+  async findById(
+    id: string,
+    project?: (keyof IComment | string)[]
+  ): Promise<IComment | null> {
+    let query = Comment.findById(id);
 
-      if (project && project.length > 0) {
-        query = query.select(project.join(" "));
+    if (project && project.length > 0) {
+      const { selectFields, populateConfig } =
+        PopulateParser.parseProjectFields(project);
+
+      if (selectFields.length > 0) {
+        query = query.select(selectFields.join(" "));
       }
 
-      // Always populate author if not specifically projecting
-      if (!project || project.includes("author")) {
-        query = query.populate({
-          path: "author",
-          select: "username image creatorName firstname lastname",
-          populate: {
-            path: "image",
-            select: "urls",
-          },
-        });
+      query = PopulateParser.applyPopulate(query, populateConfig);
+    }
+
+    const comment = await query.lean();
+    return comment as IComment | null;
+  }
+
+  async findAll<K extends keyof IComment>(params: {
+    filters?: CommentFilters;
+    project: (K | string)[];
+    limit?: number;
+    sort?: { [key: string]: 1 | -1 };
+  }): Promise<Pick<IComment, K>[]> {
+    const query = this.buildQuery(params.filters);
+
+    let mongooseQuery = Comment.find(query);
+
+    if (params.sort) {
+      mongooseQuery = mongooseQuery.sort(params.sort);
+    } else {
+      mongooseQuery = mongooseQuery.sort({ createdAt: -1 });
+    }
+
+    if (params.limit) {
+      mongooseQuery = mongooseQuery.limit(params.limit);
+    }
+
+    if (params.project && params.project.length > 0) {
+      const { selectFields, populateConfig } =
+        PopulateParser.parseProjectFields(params.project);
+
+      if (selectFields.length > 0) {
+        mongooseQuery = mongooseQuery.select(selectFields.join(" "));
       }
 
-      const comment = await query.lean();
-      return comment as IComment | null;
-    },
+      mongooseQuery = PopulateParser.applyPopulate(
+        mongooseQuery,
+        populateConfig
+      );
+    }
 
-    findAll: async <K extends keyof IComment>(params: {
-      filters?: CommentFilters;
-      project: K[];
-      limit?: number;
-      sort?: { [key: string]: 1 | -1 };
-    }) => {
-      const query = buildQuery(params.filters);
+    const comments = await mongooseQuery.lean();
+    return comments as Pick<IComment, K>[];
+  }
 
-      let mongooseQuery = Comment.find(query);
+  async updateOne(id: string, update: Partial<IComment>): Promise<void> {
+    await Comment.updateOne({ _id: id }, update).exec();
+  }
 
-      // Default sort if not specified
-      if (params.sort) {
-        mongooseQuery = mongooseQuery.sort(params.sort);
-      } else {
-        mongooseQuery = mongooseQuery.sort({ createdAt: 1 });
-      }
-
-      // Limit if specified
-      if (params.limit) {
-        mongooseQuery = mongooseQuery.limit(params.limit);
-      }
-
-      if (params.project && params.project.length > 0) {
-        mongooseQuery = mongooseQuery.select(params.project.join(" "));
-      }
-
-      // Populate author if requested in the project
-      if (params.project.includes("author" as K)) {
-        mongooseQuery = mongooseQuery.populate({
-          path: "author",
-          select: "username image creatorName firstname lastname",
-          populate: {
-            path: "image",
-            select: "urls",
-          },
-        });
-      }
-
-      const comments = await mongooseQuery.lean();
-      return comments as Pick<IComment, K>[];
-    },
-
-    findAllById: async (ids: string[], project?: (keyof IComment)[]) => {
-      const objectIds = ids.map((id) => new Types.ObjectId(id));
-      const query = { _id: { $in: objectIds } };
-
-      let mongooseQuery = Comment.find(query);
-
-      if (project && project.length > 0) {
-        mongooseQuery = mongooseQuery.select(project.join(" "));
-      }
-
-      // Always populate author if not specifically projecting
-      if (!project || project.includes("author")) {
-        mongooseQuery = mongooseQuery.populate({
-          path: "author",
-          select: "username image creatorName firstname lastname",
-          populate: {
-            path: "image",
-            select: "urls",
-          },
-        });
-      }
-
-      const comments = await mongooseQuery.lean();
-      return comments as IComment[];
-    },
-
-    updateOne: async (id: string, update: Partial<IComment>) => {
-      await Comment.updateOne({ _id: id }, update).exec();
-    },
-
-    deleteOne: async (id: string) => {
-      await Comment.deleteOne({ _id: id }).exec();
-    },
-  };
-};
+  async deleteOne(id: string): Promise<void> {
+    await Comment.deleteOne({ _id: id }).exec();
+  }
+}
 
 export default MongooseCommentRepository;

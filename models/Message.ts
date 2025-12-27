@@ -1,9 +1,14 @@
 import { Schema, model } from "mongoose";
-import { IMessage, MessageReferenceType } from "../types/models/message";
+import { IMessage } from "../types/models/message";
 
 const messageSchema = new Schema<IMessage>(
   {
-    author: {
+    senderId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    recipientId: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -12,21 +17,15 @@ const messageSchema = new Schema<IMessage>(
       type: String,
       required: true,
     },
-    reference: {
-      type: Schema.Types.ObjectId,
-      required: true,
-      refPath: "referenceType",
-    },
-    referenceType: {
-      type: String,
-      required: true,
-      enum: ["Review"] as MessageReferenceType[],
+    isRead: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }
 );
 
-// Index to improve query performance
-messageSchema.index({ reference: 1, referenceType: 1 });
+messageSchema.index({ senderId: 1, recipientId: 1 });
+messageSchema.index({ recipientId: 1, isRead: 1 });
 
 export default model<IMessage>("Message", messageSchema);

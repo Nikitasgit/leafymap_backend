@@ -7,31 +7,35 @@ import { IComment } from "../../types/models/comment";
 export interface IViewCommentsListAction {
   execute(params: {
     filters?: CommentFilters;
-    project?: (keyof IComment)[];
   }): Promise<IComment[] | Partial<IComment>[]>;
 }
 
-const ViewCommentsListAction = (
-  commentRepository: ICommentRepository
-): IViewCommentsListAction => ({
-  execute: async ({ filters, project }) => {
-    // If no project specified, return all fields by default
-    const defaultProject: (keyof IComment)[] = [
-      "_id",
-      "author",
-      "content",
-      "reference",
-      "referenceType",
-      "createdAt",
-      "updatedAt",
-    ];
+class ViewCommentsListAction implements IViewCommentsListAction {
+  private readonly project: (keyof IComment | string)[] = [
+    "_id",
+    "author.username",
+    "author.creatorName",
+    "author.image.urls",
+    "content",
+    "reference",
+    "referenceType",
+    "createdAt",
+    "updatedAt",
+  ];
 
-    const comments = await commentRepository.findAll({
+  constructor(private commentRepository: ICommentRepository) {}
+
+  async execute({
+    filters,
+  }: {
+    filters?: CommentFilters;
+  }): Promise<IComment[] | Partial<IComment>[]> {
+    const comments = await this.commentRepository.findAll({
       filters,
-      project: project || defaultProject,
+      project: this.project,
     });
     return comments;
-  },
-});
+  }
+}
 
 export default ViewCommentsListAction;

@@ -1,128 +1,113 @@
 import Message from "../../models/Message";
-import { IMessage, MessageReferenceType } from "../../types/models/message";
+import { IMessage } from "../../types/models/message";
 import { IMessageRepository, MessageFilters } from "./IMessageRepository";
-import { Types } from "mongoose";
+import { Types, FilterQuery } from "mongoose";
+import { PopulateParser } from "../utils/PopulateParser";
 
-const MongooseMessageRepository = (): IMessageRepository => {
-  // Helper to build query from filters
-  const buildQuery = (filters?: MessageFilters): any => {
-    const query: any = {};
+class MongooseMessageRepository implements IMessageRepository {
+  private buildQuery(filters?: MessageFilters): FilterQuery<IMessage> {
+    const query: FilterQuery<IMessage> = {};
 
     if (!filters) return query;
 
-    if (filters.reference) {
-      query.reference = new Types.ObjectId(filters.reference);
+    if (filters.senderId) {
+      query.senderId = new Types.ObjectId(filters.senderId);
     }
-
-    if (filters.referenceType) {
-      query.referenceType = filters.referenceType;
+    if (filters.recipientId) {
+      query.recipientId = new Types.ObjectId(filters.recipientId);
     }
-
-    if (filters.author) {
-      query.author = new Types.ObjectId(filters.author);
+    if (filters.isRead !== undefined) {
+      query.isRead = filters.isRead;
     }
-
     if (filters._id) {
       query._id = {
         $in: filters._id.$in.map((id) => new Types.ObjectId(id)),
       };
     }
 
-    // Add all other filters (for flexibility)
     Object.keys(filters).forEach((key) => {
-      if (!["reference", "referenceType", "author", "_id"].includes(key)) {
-        query[key] = filters[key];
+      if (!["senderId", "recipientId", "isRead", "_id"].includes(key)) {
+        (query as Record<string, unknown>)[key] = (
+          filters as Record<string, unknown>
+        )[key];
       }
     });
 
     return query;
-  };
+  }
 
-  return {
-    create: async (message: Partial<IMessage>) => {
-      const newMessage = new Message(message);
-      await newMessage.save();
-      return newMessage._id;
-    },
+  async create(message: Partial<IMessage>): Promise<Types.ObjectId> {
+    const newMessage = new Message(message);
+    await newMessage.save();
+    return newMessage._id;
+  }
 
-    findById: async (id: string, project?: (keyof IMessage)[]) => {
-      let query = Message.findById(id);
+  async findById(
+    id: string,
+    project?: (keyof IMessage | string)[]
+  ): Promise<IMessage | null> {
+    let query = Message.findById(id);
 
-      if (project && project.length > 0) {
-        query = query.select(project.join(" "));
+    if (project && project.length > 0) {
+      const { selectFields, populateConfig } =
+        PopulateParser.parseProjectFields(project);
+
+      if (selectFields.length > 0) {
+        query = query.select(selectFields.join(" "));
       }
 
-      // Always populate author if not specifically projecting
-      if (!project || project.includes("author")) {
-        query = query.populate("author", "username image");
+      query = PopulateParser.applyPopulate(query, populateConfig);
+    }
+
+    const message = await query.lean();
+    return message as IMessage | null;
+  }
+
+  async findAll<K extends keyof IMessage>(params: {
+    filters?: MessageFilters;
+    project: (K | string)[];
+    limit?: number;
+    sort?: { [key: string]: 1 | -1 };
+  }): Promise<Pick<IMessage, K>[]> {
+    const query = this.buildQuery(params.filters);
+
+    let mongooseQuery = Message.find(query);
+
+    if (params.sort) {
+      mongooseQuery = mongooseQuery.sort(params.sort);
+    } else {
+      mongooseQuery = mongooseQuery.sort({ createdAt: -1 });
+    }
+
+    if (params.limit) {
+      mongooseQuery = mongooseQuery.limit(params.limit);
+    }
+
+    if (params.project && params.project.length > 0) {
+      const { selectFields, populateConfig } =
+        PopulateParser.parseProjectFields(params.project);
+
+      if (selectFields.length > 0) {
+        mongooseQuery = mongooseQuery.select(selectFields.join(" "));
       }
 
-      const message = await query.lean();
-      return message as IMessage | null;
-    },
+      mongooseQuery = PopulateParser.applyPopulate(
+        mongooseQuery,
+        populateConfig
+      );
+    }
 
-    findAll: async <K extends keyof IMessage>(params: {
-      filters?: MessageFilters;
-      project: K[];
-      limit?: number;
-      sort?: { [key: string]: 1 | -1 };
-    }) => {
-      const query = buildQuery(params.filters);
+    const messages = await mongooseQuery.lean();
+    return messages as Pick<IMessage, K>[];
+  }
 
-      let mongooseQuery = Message.find(query);
+  async updateOne(id: string, update: Partial<IMessage>): Promise<void> {
+    await Message.updateOne({ _id: id }, update).exec();
+  }
 
-      // Default sort if not specified
-      if (params.sort) {
-        mongooseQuery = mongooseQuery.sort(params.sort);
-      } else {
-        mongooseQuery = mongooseQuery.sort({ createdAt: 1 });
-      }
-
-      // Limit if specified
-      if (params.limit) {
-        mongooseQuery = mongooseQuery.limit(params.limit);
-      }
-
-      if (params.project && params.project.length > 0) {
-        mongooseQuery = mongooseQuery.select(params.project.join(" "));
-      }
-
-      // Populate author if requested in the project
-      if (params.project.includes("author" as K)) {
-        mongooseQuery = mongooseQuery.populate("author", "username image");
-      }
-
-      const messages = await mongooseQuery.lean();
-      return messages as Pick<IMessage, K>[];
-    },
-
-    findAllById: async (ids: string[], project?: (keyof IMessage)[]) => {
-      const objectIds = ids.map((id) => new Types.ObjectId(id));
-      const query = { _id: { $in: objectIds } };
-
-      let mongooseQuery = Message.find(query);
-
-      if (project && project.length > 0) {
-        mongooseQuery = mongooseQuery.select(project.join(" "));
-      }
-
-      // Always populate author if not specifically projecting
-      if (!project || project.includes("author")) {
-        mongooseQuery = mongooseQuery.populate("author", "username image");
-      }
-
-      const messages = await mongooseQuery.lean();
-      return messages as IMessage[];
-    },
-
-    updateOne: async (id: string, update: Partial<IMessage>) => {
-      await Message.updateOne({ _id: id }, update).exec();
-    },
-
-    deleteOne: async (id: string) => {
-      await Message.deleteOne({ _id: id }).exec();
-    },
-  };
-};
+  async deleteOne(id: string): Promise<void> {
+    await Message.deleteOne({ _id: id }).exec();
+  }
+}
 
 export default MongooseMessageRepository;

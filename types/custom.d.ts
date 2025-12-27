@@ -2,6 +2,9 @@ import { Request } from "express";
 import { ImageDTO } from "./api/image.dto";
 import { IReview } from "./models/review";
 import { IComment } from "./models/comment";
+import { IMessage } from "./models/message";
+import { IImage } from "./models/Image";
+import { IPlace, IEvent } from "./models";
 
 export interface IDecodedToken {
   id: string;
@@ -17,4 +20,8 @@ export interface CustomRequest extends Request {
   images?: string[];
   review?: IReview;
   comment?: IComment;
+  message?: IMessage;
+  reviewReferenceIsOwner?: boolean;
+  reviewReference?: IPlace | IEvent | null;
+  commentReference?: IImage | IReview | null;
 }

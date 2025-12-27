@@ -322,7 +322,7 @@ JWT_SECRET=your_secret_key
 AWS_ACCESS_KEY_ID=...
 AWS_SECRET_ACCESS_KEY=...
 AWS_REGION=...
-S3_BUCKET_NAME=...
+AWS_BUCKET_NAME=...
 ```
 
 ### MongoDB
@@ -530,7 +530,7 @@ pm2 logs backend-app --err
 
 ### Commandes PM2 utiles
 
-```bash
+````bash
 # Voir le statut de toutes les applications
 pm2 status
 
@@ -561,7 +561,7 @@ cd your-backend
 git pull
 npm run build
 pm2 restart backend-app
-```
+````
 
 ### Checklist avant déploiement
 

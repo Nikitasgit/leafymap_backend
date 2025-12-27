@@ -1,7 +1,7 @@
 import express, { Router } from "express";
 import auth from "../middlewares/auth";
 import reviewOwnership from "../middlewares/reviewOwnership";
-import referenceOwnership from "../middlewares/referenceOwnership";
+import reviewReferenceOwnership from "../middlewares/reviewReferenceOwnership";
 import { strictLimiter } from "../middlewares/rateLimiter";
 import CreateReviewAction from "../actions/reviews/CreateReviewAction";
 import UpdateReviewAction from "../actions/reviews/UpdateReviewAction";
@@ -32,7 +32,7 @@ const router: Router = express.Router();
 router.post(
   "/",
   auth,
-  referenceOwnership({shouldBeOwner:false}),
+  reviewReferenceOwnership,
   createReviewController.handle()
 );
 router.get("/", viewReviewsListController.handle());

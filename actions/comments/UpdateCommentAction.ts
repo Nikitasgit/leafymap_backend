@@ -8,12 +8,18 @@ export interface IUpdateCommentAction {
   }): Promise<void>;
 }
 
-const UpdateCommentAction = (
-  commentRepository: ICommentRepository
-): IUpdateCommentAction => ({
-  execute: async ({ commentId, commentData }) => {
-    await commentRepository.updateOne(commentId, commentData);
-  },
-});
+class UpdateCommentAction implements IUpdateCommentAction {
+  constructor(private commentRepository: ICommentRepository) {}
+
+  async execute({
+    commentId,
+    commentData,
+  }: {
+    commentId: string;
+    commentData: UpdateCommentInput;
+  }): Promise<void> {
+    await this.commentRepository.updateOne(commentId, commentData);
+  }
+}
 
 export default UpdateCommentAction;

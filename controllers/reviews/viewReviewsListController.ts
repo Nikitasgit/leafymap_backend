@@ -18,13 +18,26 @@ class ViewReviewsListController {
       try {
         const { reference, referenceType, author } = req.query;
 
-        const filters: ReviewFilters = {};
-        if (reference && typeof reference === "string") {
-          filters.reference = reference;
+        if (!reference || typeof reference !== "string") {
+          APIResponse(res, null, "Le paramètre 'reference' est requis", 400);
+          return;
         }
-        if (referenceType && typeof referenceType === "string") {
-          filters.referenceType = referenceType as ReviewReferenceType;
+
+        if (!referenceType || typeof referenceType !== "string") {
+          APIResponse(
+            res,
+            null,
+            "Le paramètre 'referenceType' est requis",
+            400
+          );
+          return;
         }
+
+        const filters: ReviewFilters = {
+          reference,
+          referenceType: referenceType as ReviewReferenceType,
+        };
+
         if (author && typeof author === "string") {
           filters.author = author;
         }

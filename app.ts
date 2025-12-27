@@ -25,7 +25,7 @@ const app = express();
 const allowedOrigins =
   process.env.NODE_ENV === "production"
     ? ["https://spotlight-project.vercel.app"]
-    : ["http://localhost:3000", "https://spotlight-project.vercel.app"];
+    : ["http://localhost:3001", "https://spotlight-project.vercel.app"];
 
 const corsOptions = {
   origin: (origin: string | undefined, callback: Function) => {
