@@ -4,12 +4,12 @@ import commentOwnership from "../middlewares/commentOwnership";
 import commentReferenceOwnership from "../middlewares/commentReferenceOwnership";
 import { strictLimiter } from "../middlewares/rateLimiter";
 import CreateCommentAction from "../actions/comments/CreateCommentAction";
-import ViewCommentsListAction from "../actions/comments/ViewCommentsListAction";
+import GetCommentsAction from "../actions/comments/GetCommentsAction";
 import UpdateCommentAction from "../actions/comments/UpdateCommentAction";
 import DeleteCommentAction from "../actions/comments/DeleteCommentAction";
 import MongooseCommentRepository from "../repositories/comments/MongooseCommentRepository";
 import CreateCommentController from "../controllers/comments/createCommentController";
-import ViewCommentsListController from "../controllers/comments/viewCommentsListController";
+import GetCommentsController from "../controllers/comments/getCommentsController";
 import UpdateCommentController from "../controllers/comments/updateCommentController";
 import DeleteCommentController from "../controllers/comments/deleteCommentController";
 // Initialize repositories
@@ -17,7 +17,7 @@ const commentRepository = new MongooseCommentRepository();
 
 // Initialize actions
 const createCommentAction = new CreateCommentAction(commentRepository);
-const viewCommentsListAction = new ViewCommentsListAction(commentRepository);
+const getCommentsAction = new GetCommentsAction(commentRepository);
 const updateCommentAction = new UpdateCommentAction(commentRepository);
 const deleteCommentAction = new DeleteCommentAction(commentRepository);
 
@@ -25,9 +25,7 @@ const deleteCommentAction = new DeleteCommentAction(commentRepository);
 const createCommentController = new CreateCommentController(
   createCommentAction
 );
-const viewCommentsListController = new ViewCommentsListController(
-  viewCommentsListAction
-);
+const getCommentsController = new GetCommentsController(getCommentsAction);
 const updateCommentController = new UpdateCommentController(
   updateCommentAction
 );
@@ -43,7 +41,7 @@ router.post(
   commentReferenceOwnership,
   createCommentController.handle()
 );
-router.get("/", viewCommentsListController.handle());
+router.get("/", getCommentsController.handle());
 router.put(
   "/:commentId",
   auth,

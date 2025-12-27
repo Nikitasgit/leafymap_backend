@@ -2,12 +2,12 @@ import { Response, NextFunction, RequestHandler } from "express";
 import { CustomRequest } from "../../types/custom";
 import { APIResponse } from "../../utils/response";
 import logger from "../../utils/logger";
-import { IViewCommentsListAction } from "../../actions/comments/ViewCommentsListAction";
+import { IGetCommentsAction } from "../../actions/comments/GetCommentsAction";
 import { CommentFilters } from "../../repositories/comments/ICommentRepository";
 import { CommentReferenceType } from "../../types/models/comment";
 
-class ViewCommentsListController {
-  constructor(private viewCommentsListAction: IViewCommentsListAction) {}
+class GetCommentsController {
+  constructor(private getCommentsAction: IGetCommentsAction) {}
 
   handle(): RequestHandler {
     return async (
@@ -42,7 +42,7 @@ class ViewCommentsListController {
           filters.author = author;
         }
 
-        const comments = await this.viewCommentsListAction.execute({ filters });
+        const comments = await this.getCommentsAction.execute({ filters });
 
         APIResponse(
           res,
@@ -58,4 +58,4 @@ class ViewCommentsListController {
   }
 }
 
-export default ViewCommentsListController;
+export default GetCommentsController;

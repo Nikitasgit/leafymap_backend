@@ -5,12 +5,12 @@ import { strictLimiter } from "../middlewares/rateLimiter";
 import CreateMessageAction from "../actions/messages/CreateMessageAction";
 import UpdateMessageAction from "../actions/messages/UpdateMessageAction";
 import DeleteMessageAction from "../actions/messages/DeleteMessageAction";
-import ViewMessagesListAction from "../actions/messages/ViewMessagesListAction";
+import GetMessagesAction from "../actions/messages/GetMessagesAction";
 import MongooseMessageRepository from "../repositories/messages/MongooseMessageRepository";
 import CreateMessageController from "../controllers/messages/createMessageController";
 import UpdateMessageController from "../controllers/messages/updateMessageController";
 import DeleteMessageController from "../controllers/messages/deleteMessageController";
-import ViewMessagesListController from "../controllers/messages/viewMessagesListController";
+import GetMessagesController from "../controllers/messages/getMessagesController";
 
 // Initialize repositories
 const messageRepository = new MongooseMessageRepository();
@@ -19,7 +19,7 @@ const messageRepository = new MongooseMessageRepository();
 const createMessageAction = new CreateMessageAction(messageRepository);
 const updateMessageAction = new UpdateMessageAction(messageRepository);
 const deleteMessageAction = new DeleteMessageAction(messageRepository);
-const viewMessagesListAction = new ViewMessagesListAction(messageRepository);
+const getMessagesAction = new GetMessagesAction(messageRepository);
 
 // Initialize controllers
 const createMessageController = new CreateMessageController(
@@ -31,14 +31,12 @@ const updateMessageController = new UpdateMessageController(
 const deleteMessageController = new DeleteMessageController(
   deleteMessageAction
 );
-const viewMessagesListController = new ViewMessagesListController(
-  viewMessagesListAction
-);
+const getMessagesController = new GetMessagesController(getMessagesAction);
 
 const router: Router = express.Router();
 
 router.post("/", auth, createMessageController.handle());
-router.get("/", viewMessagesListController.handle());
+router.get("/", getMessagesController.handle());
 router.put(
   "/:messageId",
   auth,

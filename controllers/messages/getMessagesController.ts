@@ -2,11 +2,11 @@ import { Response, NextFunction, RequestHandler } from "express";
 import { CustomRequest } from "../../types/custom";
 import { APIResponse } from "../../utils/response";
 import logger from "../../utils/logger";
-import { IViewMessagesListAction } from "../../actions/messages/ViewMessagesListAction";
+import { IGetMessagesAction } from "../../actions/messages/GetMessagesAction";
 import { MessageFilters } from "../../repositories/messages/IMessageRepository";
 
-class ViewMessagesListController {
-  constructor(private viewMessagesListAction: IViewMessagesListAction) {}
+class GetMessagesController {
+  constructor(private getMessagesAction: IGetMessagesAction) {}
 
   handle(): RequestHandler {
     return async (
@@ -24,11 +24,11 @@ class ViewMessagesListController {
         if (recipientId && typeof recipientId === "string") {
           filters.recipientId = recipientId;
         }
-        if (isRead !== undefined) {
-          filters.isRead = isRead === "true" || isRead === true;
+        if (isRead !== undefined && typeof isRead === "string") {
+          filters.isRead = isRead === "true";
         }
 
-        const messages = await this.viewMessagesListAction.execute({ filters });
+        const messages = await this.getMessagesAction.execute({ filters });
 
         APIResponse(res, { messages }, "Messages récupérés avec succès", 200);
       } catch (error) {
@@ -39,4 +39,4 @@ class ViewMessagesListController {
   }
 }
 
-export default ViewMessagesListController;
+export default GetMessagesController;

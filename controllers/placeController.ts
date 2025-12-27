@@ -7,7 +7,8 @@ import { APIResponse } from "../utils/response";
 import logger from "../utils/logger";
 import { CustomRequest } from "../types/custom";
 import { validatePlaceData } from "../validations/placeValidations";
-import { ImageService } from "../services";
+import DeleteImagesAction from "../actions/images/DeleteImagesAction";
+import MongooseImageRepository from "../repositories/images/MongooseImageRepository";
 import Image from "../models/Image";
 import { Partnership } from "../models/Partnership";
 
@@ -319,7 +320,11 @@ const deletePlace = async (
     const imageIds = allImagesToDelete.map((img) => img._id.toString());
 
     // Delete everything: images (from DB + S3), place, events, partnerships, and user reference
-    await ImageService.deleteImages(imageIds);
+    if (imageIds.length > 0) {
+      const imageRepository = new MongooseImageRepository();
+      const deleteImagesAction = new DeleteImagesAction(imageRepository);
+      await deleteImagesAction.execute({ imageIds });
+    }
     await Place.findByIdAndDelete(placeId);
     await Event.deleteMany({ place: placeId });
     await Partnership.deleteMany({ place: placeId });

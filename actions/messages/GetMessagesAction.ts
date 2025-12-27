@@ -4,13 +4,13 @@ import {
 } from "../../repositories/messages/IMessageRepository";
 import { IMessage } from "../../types/models/message";
 
-export interface IViewMessagesListAction {
+export interface IGetMessagesAction {
   execute(params: {
     filters?: MessageFilters;
   }): Promise<IMessage[] | Partial<IMessage>[]>;
 }
 
-class ViewMessagesListAction implements IViewMessagesListAction {
+class GetMessagesAction implements IGetMessagesAction {
   private readonly project: (keyof IMessage | string)[] = [
     "_id",
     "senderId.username",
@@ -40,4 +40,4 @@ class ViewMessagesListAction implements IViewMessagesListAction {
   }
 }
 
-export default ViewMessagesListAction;
+export default GetMessagesAction;

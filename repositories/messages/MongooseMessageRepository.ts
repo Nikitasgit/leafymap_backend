@@ -37,18 +37,18 @@ class MongooseMessageRepository implements IMessageRepository {
   }
 
   async create(message: Partial<IMessage>): Promise<Types.ObjectId> {
-    const newMessage = new Message(message);
-    await newMessage.save();
-    return newMessage._id;
+      const newMessage = new Message(message);
+      await newMessage.save();
+      return newMessage._id;
   }
 
   async findById(
     id: string,
     project?: (keyof IMessage | string)[]
   ): Promise<IMessage | null> {
-    let query = Message.findById(id);
+      let query = Message.findById(id);
 
-    if (project && project.length > 0) {
+      if (project && project.length > 0) {
       const { selectFields, populateConfig } =
         PopulateParser.parseProjectFields(project);
 
@@ -57,33 +57,33 @@ class MongooseMessageRepository implements IMessageRepository {
       }
 
       query = PopulateParser.applyPopulate(query, populateConfig);
-    }
+      }
 
-    const message = await query.lean();
-    return message as IMessage | null;
+      const message = await query.lean();
+      return message as IMessage | null;
   }
 
   async findAll<K extends keyof IMessage>(params: {
-    filters?: MessageFilters;
+      filters?: MessageFilters;
     project: (K | string)[];
-    limit?: number;
-    sort?: { [key: string]: 1 | -1 };
+      limit?: number;
+      sort?: { [key: string]: 1 | -1 };
   }): Promise<Pick<IMessage, K>[]> {
     const query = this.buildQuery(params.filters);
 
-    let mongooseQuery = Message.find(query);
+      let mongooseQuery = Message.find(query);
 
-    if (params.sort) {
-      mongooseQuery = mongooseQuery.sort(params.sort);
-    } else {
+      if (params.sort) {
+        mongooseQuery = mongooseQuery.sort(params.sort);
+      } else {
       mongooseQuery = mongooseQuery.sort({ createdAt: -1 });
-    }
+      }
 
-    if (params.limit) {
-      mongooseQuery = mongooseQuery.limit(params.limit);
-    }
+      if (params.limit) {
+        mongooseQuery = mongooseQuery.limit(params.limit);
+      }
 
-    if (params.project && params.project.length > 0) {
+      if (params.project && params.project.length > 0) {
       const { selectFields, populateConfig } =
         PopulateParser.parseProjectFields(params.project);
 
@@ -95,18 +95,18 @@ class MongooseMessageRepository implements IMessageRepository {
         mongooseQuery,
         populateConfig
       );
-    }
+      }
 
-    const messages = await mongooseQuery.lean();
-    return messages as Pick<IMessage, K>[];
+      const messages = await mongooseQuery.lean();
+      return messages as Pick<IMessage, K>[];
   }
 
   async updateOne(id: string, update: Partial<IMessage>): Promise<void> {
-    await Message.updateOne({ _id: id }, update).exec();
+      await Message.updateOne({ _id: id }, update).exec();
   }
 
   async deleteOne(id: string): Promise<void> {
-    await Message.deleteOne({ _id: id }).exec();
+      await Message.deleteOne({ _id: id }).exec();
   }
 }
 

@@ -24,4 +24,6 @@ export interface CustomRequest extends Request {
   reviewReferenceIsOwner?: boolean;
   reviewReference?: IPlace | IEvent | null;
   commentReference?: IImage | IReview | null;
+  imageReferenceIsOwner?: boolean;
+  imageReference?: IPlace | IEvent | null;
 }

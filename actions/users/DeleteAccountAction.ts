@@ -1,9 +1,10 @@
 import { IUserRepository } from "../../repositories/users/IUserRepository";
-import Image from "../../models/Image";
 import Place from "../../models/Place";
 import Event from "../../models/Event";
 import { Partnership } from "../../models/Partnership";
-import { ImageService } from "../../services";
+import DeleteImagesAction from "../images/DeleteImagesAction";
+import { IImageRepository } from "../../repositories/images/IImageRepository";
+import MongooseImageRepository from "../../repositories/images/MongooseImageRepository";
 import logger from "../../utils/logger";
 
 export interface IDeleteAccountAction {
@@ -11,7 +12,13 @@ export interface IDeleteAccountAction {
 }
 
 class DeleteAccountAction implements IDeleteAccountAction {
-  constructor(private userRepository: IUserRepository) {}
+  private deleteImagesAction: DeleteImagesAction;
+  private imageRepository: IImageRepository;
+
+  constructor(private userRepository: IUserRepository) {
+    this.imageRepository = new MongooseImageRepository();
+    this.deleteImagesAction = new DeleteImagesAction(this.imageRepository);
+  }
 
   async execute({ userId }: { userId: string }): Promise<void> {
     const user = await this.userRepository.findById(userId, ["_id"]);
@@ -19,35 +26,58 @@ class DeleteAccountAction implements IDeleteAccountAction {
       throw new Error("User not found");
     }
 
-    // Find all user images
-    const userImages = await Image.find({
-      $or: [{ user: userId }, { reference: userId, referenceType: "User" }],
+    const userImagesByOwner = await this.imageRepository.findAll({
+      filters: { user: userId },
+      project: ["_id"],
     });
 
-    // Find user places
+    const userImagesByReference = await this.imageRepository.findAll({
+      filters: { reference: userId, referenceType: "User" },
+      project: ["_id"],
+    });
+    const userImageIds = [
+      ...userImagesByOwner.map((img) => img._id.toString()),
+      ...userImagesByReference.map((img) => img._id.toString()),
+    ];
+
     const userPlaces = await Place.find({ user: userId });
-    const placeIds = userPlaces.map((place) => place._id);
+    const placeIds = userPlaces.map((place) => place._id.toString());
 
-    // Find events for these places
     const userEvents = await Event.find({ place: { $in: placeIds } });
-    const eventIds = userEvents.map((event) => event._id);
+    const eventIds = userEvents.map((event) => event._id.toString());
 
-    // Find images for places and events
-    const placeImages = await Image.find({
-      reference: { $in: placeIds },
-      referenceType: "Place",
-    });
-    const eventImages = await Image.find({
-      reference: { $in: eventIds },
-      referenceType: "Event",
-    });
+    const placeImageIds: string[] = [];
+    if (placeIds.length > 0) {
+      const placeImages = await this.imageRepository.findAll({
+        filters: {
+          reference: { $in: placeIds } as any,
+          referenceType: "Place",
+        },
+        project: ["_id"],
+      });
+      placeImageIds.push(...placeImages.map((img) => img._id.toString()));
+    }
 
-    // Combine all images to delete
-    const allImagesToDelete = [...userImages, ...placeImages, ...eventImages];
-    const imageIds = allImagesToDelete.map((img) => img._id.toString());
+    // Find images for events using $in filter
+    const eventImageIds: string[] = [];
+    if (eventIds.length > 0) {
+      const eventImages = await this.imageRepository.findAll({
+        filters: {
+          reference: { $in: eventIds } as any,
+          referenceType: "Event",
+        },
+        project: ["_id"],
+      });
+      eventImageIds.push(...eventImages.map((img) => img._id.toString()));
+    }
+
+    // Combine all image IDs
+    const allImageIds = [...userImageIds, ...placeImageIds, ...eventImageIds];
 
     // Delete images from S3 and database
-    await ImageService.deleteImages(imageIds);
+    if (allImageIds.length > 0) {
+      await this.deleteImagesAction.execute({ imageIds: allImageIds });
+    }
 
     // Remove user from event collaborators
     const eventsUpdated = await Event.updateMany(

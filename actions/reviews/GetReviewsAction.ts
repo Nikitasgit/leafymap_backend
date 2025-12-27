@@ -4,13 +4,13 @@ import {
 } from "../../repositories/reviews/IReviewRepository";
 import { IReview } from "../../types/models/review";
 
-export interface IViewReviewsListAction {
+export interface IGetReviewsAction {
   execute(params: {
     filters?: ReviewFilters;
   }): Promise<IReview[] | Partial<IReview>[]>;
 }
 
-class ViewReviewsListAction implements IViewReviewsListAction {
+class GetReviewsAction implements IGetReviewsAction {
   private readonly project: (keyof IReview | string)[] = [
     "_id",
     "author.username",
@@ -40,4 +40,4 @@ class ViewReviewsListAction implements IViewReviewsListAction {
   }
 }
 
-export default ViewReviewsListAction;
+export default GetReviewsAction;

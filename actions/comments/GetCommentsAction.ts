@@ -4,13 +4,13 @@ import {
 } from "../../repositories/comments/ICommentRepository";
 import { IComment } from "../../types/models/comment";
 
-export interface IViewCommentsListAction {
+export interface IGetCommentsAction {
   execute(params: {
     filters?: CommentFilters;
   }): Promise<IComment[] | Partial<IComment>[]>;
 }
 
-class ViewCommentsListAction implements IViewCommentsListAction {
+class GetCommentsAction implements IGetCommentsAction {
   private readonly project: (keyof IComment | string)[] = [
     "_id",
     "author.username",
@@ -38,4 +38,4 @@ class ViewCommentsListAction implements IViewCommentsListAction {
   }
 }
 
-export default ViewCommentsListAction;
+export default GetCommentsAction;

@@ -6,10 +6,10 @@ import { strictLimiter } from "../middlewares/rateLimiter";
 import CreateReviewAction from "../actions/reviews/CreateReviewAction";
 import UpdateReviewAction from "../actions/reviews/UpdateReviewAction";
 import DeleteReviewAction from "../actions/reviews/DeleteReviewAction";
-import ViewReviewsListAction from "../actions/reviews/ViewReviewsListAction";
+import GetReviewsAction from "../actions/reviews/GetReviewsAction";
 import MongooseReviewRepository from "../repositories/reviews/MongooseReviewRepository";
 import CreateReviewController from "../controllers/reviews/createReviewController";
-import ViewReviewsListController from "../controllers/reviews/viewReviewsListController";
+import GetReviewsController from "../controllers/reviews/getReviewsController";
 import UpdateReviewController from "../controllers/reviews/updateReviewController";
 import DeleteReviewController from "../controllers/reviews/deleteReviewController";
 
@@ -18,12 +18,10 @@ const reviewRepository = new MongooseReviewRepository();
 const createReviewAction = new CreateReviewAction(reviewRepository);
 const updateReviewAction = new UpdateReviewAction(reviewRepository);
 const deleteReviewAction = new DeleteReviewAction(reviewRepository);
-const viewReviewsListAction = new ViewReviewsListAction(reviewRepository);
+const getReviewsAction = new GetReviewsAction(reviewRepository);
 
 const createReviewController = new CreateReviewController(createReviewAction);
-const viewReviewsListController = new ViewReviewsListController(
-  viewReviewsListAction
-);
+const getReviewsController = new GetReviewsController(getReviewsAction);
 const updateReviewController = new UpdateReviewController(updateReviewAction);
 const deleteReviewController = new DeleteReviewController(deleteReviewAction);
 
@@ -35,7 +33,7 @@ router.post(
   reviewReferenceOwnership,
   createReviewController.handle()
 );
-router.get("/", viewReviewsListController.handle());
+router.get("/", getReviewsController.handle());
 router.put(
   "/:reviewId",
   auth,

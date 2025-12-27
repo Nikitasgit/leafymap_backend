@@ -2,12 +2,12 @@ import { Response, NextFunction, RequestHandler } from "express";
 import { CustomRequest } from "../../types/custom";
 import { APIResponse } from "../../utils/response";
 import logger from "../../utils/logger";
-import { IViewReviewsListAction } from "../../actions/reviews/ViewReviewsListAction";
+import { IGetReviewsAction } from "../../actions/reviews/GetReviewsAction";
 import { ReviewFilters } from "../../repositories/reviews/IReviewRepository";
 import { ReviewReferenceType } from "../../types/models/review";
 
-class ViewReviewsListController {
-  constructor(private viewReviewsListAction: IViewReviewsListAction) {}
+class GetReviewsController {
+  constructor(private getReviewsAction: IGetReviewsAction) {}
 
   handle(): RequestHandler {
     return async (
@@ -42,7 +42,7 @@ class ViewReviewsListController {
           filters.author = author;
         }
 
-        const reviews = await this.viewReviewsListAction.execute({ filters });
+        const reviews = await this.getReviewsAction.execute({ filters });
 
         APIResponse(res, { reviews }, "Reviews récupérées avec succès", 200);
       } catch (error) {
@@ -53,4 +53,4 @@ class ViewReviewsListController {
   }
 }
 
-export default ViewReviewsListController;
+export default GetReviewsController;
