@@ -1,7 +1,7 @@
 import { IUserRepository } from "../../repositories/users/IUserRepository";
-import Place from "../../models/Place";
-import Event from "../../models/Event";
-import { Partnership } from "../../models/Partnership";
+import { IPlaceRepository } from "../../repositories/places/IPlaceRepository";
+import { IEventRepository } from "../../repositories/events/IEventRepository";
+import { IPartnershipRepository } from "../../repositories/partnerships/IPartnershipRepository";
 import DeleteImagesAction from "../images/DeleteImagesAction";
 import { IImageRepository } from "../../repositories/images/IImageRepository";
 import MongooseImageRepository from "../../repositories/images/MongooseImageRepository";
@@ -15,7 +15,12 @@ class DeleteAccountAction implements IDeleteAccountAction {
   private deleteImagesAction: DeleteImagesAction;
   private imageRepository: IImageRepository;
 
-  constructor(private userRepository: IUserRepository) {
+  constructor(
+    private userRepository: IUserRepository,
+    private placeRepository: IPlaceRepository,
+    private eventRepository: IEventRepository,
+    private partnershipRepository: IPartnershipRepository
+  ) {
     this.imageRepository = new MongooseImageRepository();
     this.deleteImagesAction = new DeleteImagesAction(this.imageRepository);
   }
@@ -40,17 +45,23 @@ class DeleteAccountAction implements IDeleteAccountAction {
       ...userImagesByReference.map((img) => img._id.toString()),
     ];
 
-    const userPlaces = await Place.find({ user: userId });
+    const userPlaces = await this.placeRepository.findAll({
+      filters: { user: userId },
+      project: ["_id"],
+    });
     const placeIds = userPlaces.map((place) => place._id.toString());
 
-    const userEvents = await Event.find({ place: { $in: placeIds } });
+    const userEvents = await this.eventRepository.findAll({
+      filters: { place: { $in: placeIds } },
+      project: ["_id"],
+    });
     const eventIds = userEvents.map((event) => event._id.toString());
 
     const placeImageIds: string[] = [];
     if (placeIds.length > 0) {
       const placeImages = await this.imageRepository.findAll({
         filters: {
-          reference: { $in: placeIds } as any,
+          reference: { $in: placeIds },
           referenceType: "Place",
         },
         project: ["_id"],
@@ -63,7 +74,7 @@ class DeleteAccountAction implements IDeleteAccountAction {
     if (eventIds.length > 0) {
       const eventImages = await this.imageRepository.findAll({
         filters: {
-          reference: { $in: eventIds } as any,
+          reference: { $in: eventIds },
           referenceType: "Event",
         },
         project: ["_id"],
@@ -80,33 +91,29 @@ class DeleteAccountAction implements IDeleteAccountAction {
     }
 
     // Remove user from event collaborators
-    const eventsUpdated = await Event.updateMany(
-      { "schedule.timeSlots.collaborators": userId },
-      { $pull: { "schedule.$[].timeSlots.$[].collaborators": userId } }
+    await this.eventRepository.updateMany(
+      { "schedule.timeSlots.collaborators": userId } as any,
+      { $pull: { "schedule.$[].timeSlots.$[].collaborators": userId } } as any
     );
-    logger.info(
-      `Removed user from collaborators in ${eventsUpdated.modifiedCount} events`
-    );
+    logger.info(`Removed user from collaborators in events`);
 
     // Delete events for user places
     if (placeIds.length > 0) {
-      await Event.deleteMany({ place: { $in: placeIds } });
+      await this.eventRepository.deleteMany({ place: { $in: placeIds } });
       logger.info(
         `Deleted events for ${placeIds.length} places of user ${userId}`
       );
     }
 
     // Delete partnerships
-    const partnershipsDeleted = await Partnership.deleteMany({
+    await this.partnershipRepository.deleteMany({
       $or: [{ initiator: userId }, { collaborator: userId }],
     });
-    logger.info(
-      `Deleted ${partnershipsDeleted.deletedCount} partnerships for user ${userId}`
-    );
+    logger.info(`Deleted partnerships for user ${userId}`);
 
     // Delete places
     if (placeIds.length > 0) {
-      await Place.deleteMany({ _id: { $in: placeIds } });
+      await this.placeRepository.deleteMany({ _id: { $in: placeIds } });
       logger.info(`Deleted ${placeIds.length} places for user ${userId}`);
     }
 

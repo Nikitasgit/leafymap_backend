@@ -1,6 +1,6 @@
 import { IReviewRepository } from "../../repositories/reviews/IReviewRepository";
 import { UpdateReviewInput } from "../../validations/reviewValidations";
-import { updateReviewRating } from "../../utils/updateReviewRating";
+import ReviewService from "../../services/reviewService";
 
 export interface IUpdateReviewAction {
   execute(params: {
@@ -10,7 +10,14 @@ export interface IUpdateReviewAction {
 }
 
 class UpdateReviewAction implements IUpdateReviewAction {
-  constructor(private reviewRepository: IReviewRepository) {}
+  private reviewService: ReviewService;
+
+  constructor(
+    private reviewRepository: IReviewRepository,
+    reviewService: ReviewService
+  ) {
+    this.reviewService = reviewService;
+  }
 
   async execute({
     reviewId,
@@ -30,7 +37,10 @@ class UpdateReviewAction implements IUpdateReviewAction {
 
     await this.reviewRepository.updateOne(reviewId, reviewData);
 
-    await updateReviewRating(review.reference.toString(), review.referenceType);
+    await this.reviewService.updateReviewRating(
+      review.reference.toString(),
+      review.referenceType
+    );
   }
 }
 

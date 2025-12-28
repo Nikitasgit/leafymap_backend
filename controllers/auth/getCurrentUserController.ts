@@ -24,6 +24,9 @@ class GetCurrentUserController {
     "places",
     "image.urls",
     "places.image.urls",
+    "places.name",
+    "places.description",
+    "places.placeCategory",
     "creatorCategories",
   ];
 

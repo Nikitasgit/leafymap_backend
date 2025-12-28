@@ -1,12 +1,19 @@
 import { IReviewRepository } from "../../repositories/reviews/IReviewRepository";
-import { updateReviewRating } from "../../utils/updateReviewRating";
+import ReviewService from "../../services/reviewService";
 
 export interface IDeleteReviewAction {
   execute(params: { reviewId: string }): Promise<void>;
 }
 
 class DeleteReviewAction implements IDeleteReviewAction {
-  constructor(private reviewRepository: IReviewRepository) {}
+  private reviewService: ReviewService;
+
+  constructor(
+    private reviewRepository: IReviewRepository,
+    reviewService: ReviewService
+  ) {
+    this.reviewService = reviewService;
+  }
 
   async execute({ reviewId }: { reviewId: string }): Promise<void> {
     const review = await this.reviewRepository.findById(reviewId, [
@@ -20,7 +27,10 @@ class DeleteReviewAction implements IDeleteReviewAction {
 
     await this.reviewRepository.deleteOne(reviewId);
 
-    await updateReviewRating(review.reference.toString(), review.referenceType);
+    await this.reviewService.updateReviewRating(
+      review.reference.toString(),
+      review.referenceType
+    );
   }
 }
 

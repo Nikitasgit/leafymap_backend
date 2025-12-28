@@ -6,11 +6,17 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import logger from "../utils/logger";
+import ImageProcessingService, {
+  ProcessedImageUrls,
+} from "./imageProcessingService";
+
+export { ProcessedImageUrls };
 
 class AwsService {
   private s3: S3Client;
   private bucketName: string;
   private region: string;
+  private imageProcessingService: ImageProcessingService;
 
   constructor() {
     this.region = process.env.AWS_REGION!;
@@ -22,6 +28,7 @@ class AwsService {
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
       },
     });
+    this.imageProcessingService = new ImageProcessingService();
   }
 
   /**
@@ -35,8 +42,11 @@ class AwsService {
       throw new Error("Invalid URL provided to generateSignedUrlFromFullUrl");
     }
 
+    // Remove query parameters (e.g., signed URL params) before extracting the key
+    const cleanUrl = fullUrl.split("?")[0];
+
     // Extract the S3 key from the full URL
-    const key = fullUrl.replace(
+    const key = cleanUrl.replace(
       `https://${this.bucketName}.s3.${this.region}.amazonaws.com/`,
       ""
     );
@@ -53,16 +63,58 @@ class AwsService {
 
   /**
    * Uploads a buffer to S3 and returns the full URL.
+   * For images, automatically processes them into multiple sizes using ImageProcessingService.
    * @param buffer - The file buffer to upload
    * @param key - The S3 key (path) where the file will be stored
    * @param contentType - The MIME type of the file
-   * @returns The full S3 URL of the uploaded object
+   * @param originalName - Optional: The original file name (required for image processing)
+   * @returns The full S3 URL of the uploaded object, or ProcessedImageUrls for images
    */
   async uploadToS3(
     buffer: Buffer,
     key: string,
-    contentType: string
-  ): Promise<string> {
+    contentType: string,
+    originalName?: string
+  ): Promise<string | ProcessedImageUrls> {
+    // If it's an image and originalName is provided, use processImageToMultipleSizes
+    if (
+      originalName &&
+      (contentType.startsWith("image/") ||
+        /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(originalName))
+    ) {
+      const processedImages =
+        await this.imageProcessingService.processImageToMultipleSizes(
+          buffer,
+          originalName
+        );
+
+      // Upload all three sizes in parallel (without originalName to avoid recursion)
+      const [originalUrl, thumbnailUrl, mediumUrl] = await Promise.all([
+        this.uploadToS3(
+          processedImages.original.buffer,
+          processedImages.original.key,
+          contentType
+        ),
+        this.uploadToS3(
+          processedImages.thumbnail.buffer,
+          processedImages.thumbnail.key,
+          contentType
+        ),
+        this.uploadToS3(
+          processedImages.medium.buffer,
+          processedImages.medium.key,
+          contentType
+        ),
+      ]);
+
+      return {
+        original: originalUrl as string,
+        thumbnail: thumbnailUrl as string,
+        medium: mediumUrl as string,
+      };
+    }
+
+    // For non-images or when originalName is not provided, use standard upload
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
       Key: key,

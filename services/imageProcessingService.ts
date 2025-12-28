@@ -1,6 +1,5 @@
 import sharp from "sharp";
 import path from "path";
-import AwsService from "./awsService";
 
 export interface ProcessedImageUrls {
   original: string;
@@ -9,19 +8,23 @@ export interface ProcessedImageUrls {
 }
 
 class ImageProcessingService {
-  constructor(private awsService: AwsService) {}
-
   /**
-   * Processes an uploaded image into three sizes and uploads them to S3:
+   * Processes an uploaded image into three sizes:
    * - Original: optimized with 90% quality
    * - Thumbnail: 150x150 cropped (for avatars, cards)
    * - Medium: max 800x600 (for galleries, previews)
+   * @param originalBuffer - The original image buffer
+   * @param originalName - The original file name
+   * @returns Object containing buffers for original, thumbnail, and medium sizes with their keys
    */
   async processImageToMultipleSizes(
     originalBuffer: Buffer,
-    originalName: string,
-    mimetype: string
-  ): Promise<ProcessedImageUrls> {
+    originalName: string
+  ): Promise<{
+    original: { buffer: Buffer; key: string };
+    thumbnail: { buffer: Buffer; key: string };
+    medium: { buffer: Buffer; key: string };
+  }> {
     try {
       const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
       const fileExtension = path.extname(originalName);
@@ -55,21 +58,10 @@ class ImageProcessingService {
         .png({ quality: 85 })
         .toBuffer();
 
-      // Upload all three sizes in parallel for better performance
-      const [originalUrl, thumbnailUrl, mediumUrl] = await Promise.all([
-        this.awsService.uploadToS3(
-          originalBufferProcessed,
-          originalKey,
-          mimetype
-        ),
-        this.awsService.uploadToS3(thumbnailBuffer, thumbnailKey, mimetype),
-        this.awsService.uploadToS3(mediumBuffer, mediumKey, mimetype),
-      ]);
-
       return {
-        original: originalUrl,
-        thumbnail: thumbnailUrl,
-        medium: mediumUrl,
+        original: { buffer: originalBufferProcessed, key: originalKey },
+        thumbnail: { buffer: thumbnailBuffer, key: thumbnailKey },
+        medium: { buffer: mediumBuffer, key: mediumKey },
       };
     } catch (error) {
       console.error("Erreur lors du traitement de l'image:", error);

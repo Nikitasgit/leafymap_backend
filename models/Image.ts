@@ -1,5 +1,7 @@
 import { Schema, model } from "mongoose";
-import { generateSignedUrlFromFullUrl } from "../utils/s3";
+import AwsService from "../services/awsService";
+
+const awsService = new AwsService();
 
 const imageSchema = new Schema(
   {
@@ -46,13 +48,15 @@ imageSchema.post(
     const processDoc = async (doc: any) => {
       if (doc && doc.urls) {
         try {
-          doc.urls.original = await generateSignedUrlFromFullUrl(
+          doc.urls.original = await awsService.generateSignedUrlFromFullUrl(
             doc.urls.original
           );
-          doc.urls.thumbnail = await generateSignedUrlFromFullUrl(
+          doc.urls.thumbnail = await awsService.generateSignedUrlFromFullUrl(
             doc.urls.thumbnail
           );
-          doc.urls.medium = await generateSignedUrlFromFullUrl(doc.urls.medium);
+          doc.urls.medium = await awsService.generateSignedUrlFromFullUrl(
+            doc.urls.medium
+          );
         } catch (error) {
           console.error("Error signing image URLs:", error);
         }

@@ -13,7 +13,7 @@ export interface IEventTimeSlot {
 export interface IEventPeriod {
   startDate: Date;
   endDate: Date;
-  timeSlots: IEventTimeSlot[];
+  timeSlots?: IEventTimeSlot[];
 }
 
 export interface IEvent extends Document {

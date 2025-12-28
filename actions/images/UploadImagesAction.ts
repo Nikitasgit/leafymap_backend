@@ -1,6 +1,5 @@
 import { IImageRepository } from "../../repositories/images/IImageRepository";
-import ImageProcessingService from "../../services/imageProcessingService";
-import AwsService from "../../services/awsService";
+import AwsService, { ProcessedImageUrls } from "../../services/awsService";
 import { Types } from "mongoose";
 import { IImage } from "../../types/models/Image";
 
@@ -18,22 +17,20 @@ export interface IUploadImagesAction {
 
 class UploadImagesAction implements IUploadImagesAction {
   private awsService: AwsService;
-  private imageProcessingService: ImageProcessingService;
 
   constructor(private imageRepository: IImageRepository) {
     this.awsService = new AwsService();
-    this.imageProcessingService = new ImageProcessingService(this.awsService);
   }
 
   async execute({ images }: { images: UploadImageInput[] }): Promise<IImage[]> {
     const imageResults = await Promise.all(
       images.map(async (input) => {
-        const processedUrls =
-          await this.imageProcessingService.processImageToMultipleSizes(
-            input.file.buffer,
-            input.file.originalname,
-            input.file.mimetype
-          );
+        const processedUrls = (await this.awsService.uploadToS3(
+          input.file.buffer,
+          "", // key not needed for images as it's generated automatically
+          input.file.mimetype,
+          input.file.originalname
+        )) as ProcessedImageUrls;
 
         return {
           urls: processedUrls,

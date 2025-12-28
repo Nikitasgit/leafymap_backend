@@ -10,7 +10,7 @@ export type ImageReferenceType =
 export type ImageType = "profile" | "cover" | "gallery" | "other";
 
 export interface ImageFilters {
-  reference?: string;
+  reference?: string | { $in: string[] };
   referenceType?: ImageReferenceType;
   user?: string;
   type?: ImageType;

@@ -1,11 +1,7 @@
 import { IReviewRepository } from "../../repositories/reviews/IReviewRepository";
-
 import { CreateReviewInput } from "../../validations/reviewValidations";
-import Place from "../../models/Place";
-import Event from "../../models/Event";
-import User from "../../models/User";
 import { Types } from "mongoose";
-import { updateReviewRating } from "../../utils/updateReviewRating";
+import ReviewService from "../../services/reviewService";
 
 export interface ICreateReviewAction {
   execute(params: {
@@ -15,7 +11,14 @@ export interface ICreateReviewAction {
 }
 
 class CreateReviewAction implements ICreateReviewAction {
-  constructor(private reviewRepository: IReviewRepository) {}
+  private reviewService: ReviewService;
+
+  constructor(
+    private reviewRepository: IReviewRepository,
+    reviewService: ReviewService
+  ) {
+    this.reviewService = reviewService;
+  }
 
   async execute({
     reviewData,
@@ -25,25 +28,6 @@ class CreateReviewAction implements ICreateReviewAction {
     authorId: string;
   }): Promise<{ _id: string }> {
     const { reference, referenceType, rating, comment } = reviewData;
-
-    let referenceExists = false;
-    switch (referenceType) {
-      case "Place":
-        referenceExists = !!(await Place.exists({ _id: reference }));
-        break;
-      case "Event":
-        referenceExists = !!(await Event.exists({ _id: reference }));
-        break;
-      case "User":
-        referenceExists = !!(await User.exists({ _id: reference }));
-        break;
-    }
-
-    if (!referenceExists) {
-      throw new Error(
-        `The ${referenceType} reference with ID ${reference} does not exist`
-      );
-    }
 
     const existingReview = await this.reviewRepository.findAll({
       filters: {
@@ -70,7 +54,7 @@ class CreateReviewAction implements ICreateReviewAction {
       certified: false,
     });
 
-    await updateReviewRating(reference, referenceType);
+    await this.reviewService.updateReviewRating(reference, referenceType);
 
     return { _id: reviewId.toString() };
   }

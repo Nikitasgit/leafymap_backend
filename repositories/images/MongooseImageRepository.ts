@@ -11,7 +11,15 @@ class MongooseImageRepository implements IImageRepository {
     if (!filters) return query;
 
     if (filters.reference) {
-      query.reference = new Types.ObjectId(filters.reference);
+      if (typeof filters.reference === "string") {
+        query.reference = new Types.ObjectId(filters.reference);
+      } else if (filters.reference.$in) {
+        query.reference = {
+          $in: filters.reference.$in.map(
+            (id: string) => new Types.ObjectId(id)
+          ),
+        };
+      }
     }
     if (filters.referenceType) {
       query.referenceType = filters.referenceType;

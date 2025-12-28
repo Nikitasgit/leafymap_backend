@@ -14,7 +14,9 @@ import reviewRoutes from "./routes/reviewRoutes";
 import commentRoutes from "./routes/commentRoutes";
 import cors from "cors";
 import helmet from "helmet";
-import { apiLimiter } from "./middlewares/rateLimiter";
+import RateLimiterMiddleware from "./middlewares/RateLimiterMiddleware";
+
+const rateLimiterMiddleware = new RateLimiterMiddleware();
 
 dotenv.config();
 
@@ -62,7 +64,7 @@ app.use(cookieParser());
 app.use(helmet());
 
 // Apply rate limiting to all API routes
-app.use("/api/", apiLimiter);
+app.use("/api/", rateLimiterMiddleware.api());
 
 app.use("/api/users", userRoutes);
 app.use("/api/categories", categorieRoutes);

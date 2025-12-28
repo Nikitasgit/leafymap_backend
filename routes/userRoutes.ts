@@ -1,7 +1,10 @@
 import express, { Router } from "express";
-import auth from "../middlewares/auth";
-import { strictLimiter } from "../middlewares/rateLimiter";
+import AuthMiddleware from "../middlewares/AuthMiddleware";
+import RateLimiterMiddleware from "../middlewares/RateLimiterMiddleware";
 import MongooseUserRepository from "../repositories/users/MongooseUserRepository";
+import MongoosePlaceRepository from "../repositories/places/MongoosePlaceRepository";
+import MongooseEventRepository from "../repositories/events/MongooseEventRepository";
+import MongoosePartnershipRepository from "../repositories/partnerships/MongoosePartnershipRepository";
 import GetUserByIdAction from "../actions/users/GetUserByIdAction";
 import GetUsersAction from "../actions/users/GetUsersAction";
 import UpdateUserAction from "../actions/users/UpdateUserAction";
@@ -13,12 +16,23 @@ import DeleteAccountController from "../controllers/users/deleteAccountControlle
 
 // Initialize repositories
 const userRepository = new MongooseUserRepository();
+const placeRepository = new MongoosePlaceRepository();
+const eventRepository = new MongooseEventRepository();
+const partnershipRepository = new MongoosePartnershipRepository();
+
+const authMiddleware = new AuthMiddleware(userRepository);
+const rateLimiterMiddleware = new RateLimiterMiddleware();
 
 // Initialize actions
 const getUserByIdAction = new GetUserByIdAction(userRepository);
 const getUsersAction = new GetUsersAction(userRepository);
 const updateUserAction = new UpdateUserAction(userRepository);
-const deleteAccountAction = new DeleteAccountAction(userRepository);
+const deleteAccountAction = new DeleteAccountAction(
+  userRepository,
+  placeRepository,
+  eventRepository,
+  partnershipRepository
+);
 
 // Initialize controllers
 const getUserByIdController = new GetUserByIdController(getUserByIdAction);
@@ -32,7 +46,12 @@ const router: Router = express.Router();
 
 router.get("/", getUsersController.handle());
 router.get("/:userId", getUserByIdController.handle());
-router.put("/", auth, updateUserController.handle());
-router.delete("/", auth, strictLimiter, deleteAccountController.handle());
+router.put("/", authMiddleware.verify(), updateUserController.handle());
+router.delete(
+  "/",
+  authMiddleware.verify(),
+  rateLimiterMiddleware.strict(),
+  deleteAccountController.handle()
+);
 
 export default router;

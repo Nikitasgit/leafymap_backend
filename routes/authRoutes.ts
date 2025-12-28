@@ -1,6 +1,6 @@
 import express, { Router } from "express";
-import auth from "../middlewares/auth";
-import { authLimiter } from "../middlewares/rateLimiter";
+import AuthMiddleware from "../middlewares/AuthMiddleware";
+import RateLimiterMiddleware from "../middlewares/RateLimiterMiddleware";
 import MongooseUserRepository from "../repositories/users/MongooseUserRepository";
 import RegisterAction from "../actions/auth/RegisterAction";
 import SignInAction from "../actions/auth/SignInAction";
@@ -11,6 +11,9 @@ import SignOutController from "../controllers/auth/signOutController";
 import GetCurrentUserController from "../controllers/auth/getCurrentUserController";
 
 const userRepository = new MongooseUserRepository();
+
+const authMiddleware = new AuthMiddleware(userRepository);
+const rateLimiterMiddleware = new RateLimiterMiddleware();
 
 const registerAction = new RegisterAction(userRepository);
 const signInAction = new SignInAction(userRepository);
@@ -25,9 +28,13 @@ const getCurrentUserController = new GetCurrentUserController(
 
 const router: Router = express.Router();
 
-router.post("/register", authLimiter, registerController.handle());
-router.post("/signin", authLimiter, signInController.handle());
+router.post(
+  "/register",
+  rateLimiterMiddleware.auth(),
+  registerController.handle()
+);
+router.post("/signin", rateLimiterMiddleware.auth(), signInController.handle());
 router.post("/signout", signOutController.handle());
-router.get("/me", auth, getCurrentUserController.handle());
+router.get("/me", authMiddleware.verify(), getCurrentUserController.handle());
 
 export default router;
