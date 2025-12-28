@@ -29,8 +29,8 @@ class GetPlaceByIdAction implements IGetPlaceByIdAction {
     "placeCategory.name",
     "image.urls",
     "user.description",
-    "user.creatorCategories",
-    "user.creatorCategories.name",
+    "user.userCategories",
+    "user.userCategories.name",
     "createdAt",
     "updatedAt",
   ];

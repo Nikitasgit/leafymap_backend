@@ -23,7 +23,7 @@ class GetUsersAction implements IGetUsersAction {
     "creatorName",
     "rating",
     "image.urls",
-    "creatorCategories.name",
+    "userCategories.name",
   ];
 
   constructor(private userRepository: IUserRepository) {}

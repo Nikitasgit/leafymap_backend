@@ -21,7 +21,7 @@ export interface IUser extends Document {
   lastname?: string;
   username: string;
   creatorName?: string;
-  creatorCategories?: Types.ObjectId[];
+  userCategories?: Types.ObjectId[];
   email: string;
   website?: string;
   phone?: string;

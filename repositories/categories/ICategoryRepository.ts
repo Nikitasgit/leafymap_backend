@@ -1,12 +1,11 @@
 import { IPlaceCategory } from "../../types/models/placeCategory";
-import { ISubCategory } from "../../types/models/subCategory";
+import { IUserCategory } from "../../types/models/userCategory";
 
 export interface CategoriesResponse {
-  creatorCategories: ISubCategory[];
+  userCategories: IUserCategory[];
   placeCategories: IPlaceCategory[];
 }
 
 export interface ICategoryRepository {
   getAllCategories(): Promise<CategoriesResponse>;
 }
-

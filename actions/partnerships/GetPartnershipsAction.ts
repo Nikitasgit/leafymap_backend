@@ -24,11 +24,11 @@ class GetPartnershipsAction implements IGetPartnershipsAction {
     "deleted",
     "collaborator._id",
     "collaborator.creatorName",
-    "collaborator.creatorCategories",
+    "collaborator.userCategories",
     "collaborator.image",
     "collaborator.deleted",
     "collaborator.image.urls",
-    "collaborator.creatorCategories.name",
+    "collaborator.userCategories.name",
   ];
 
   constructor(private partnershipRepository: IPartnershipRepository) {}
@@ -70,7 +70,7 @@ class GetPartnershipsAction implements IGetPartnershipsAction {
           collaborator: {
             _id: collaborator._id,
             name: collaborator.creatorName,
-            categories: collaborator.creatorCategories,
+            categories: collaborator.userCategories,
             image: collaborator.image,
             deleted: collaborator.deleted,
           },

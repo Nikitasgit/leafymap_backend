@@ -15,7 +15,7 @@ const userSchema = new Schema<IUser>(
     lastname: { type: String },
     username: { type: String, required: true, unique: true },
     creatorName: { type: String, maxlength: 30 },
-    creatorCategories: [{ type: Types.ObjectId, ref: "SubCategory" }],
+    userCategories: [{ type: Types.ObjectId, ref: "UserCategory" }],
     email: { type: String, required: true, unique: true },
     website: { type: String },
     phone: { type: String },

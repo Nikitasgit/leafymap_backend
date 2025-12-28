@@ -1,16 +1,16 @@
 import PlaceCategory from "../../models/PlaceCategory";
-import SubCategory from "../../models/SubCategory";
+import UserCategory from "../../models/UserCategory";
 import { ICategoryRepository, CategoriesResponse } from "./ICategoryRepository";
 
 class MongooseCategoryRepository implements ICategoryRepository {
   async getAllCategories(): Promise<CategoriesResponse> {
-    const creatorCategories = await SubCategory.find()
+    const userCategories = await UserCategory.find()
       .populate("category")
       .lean();
     const placeCategories = await PlaceCategory.find().lean();
 
     return {
-      creatorCategories: creatorCategories as any,
+      userCategories: userCategories as any,
       placeCategories: placeCategories as any,
     };
   }

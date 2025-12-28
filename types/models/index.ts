@@ -2,7 +2,8 @@ export * from "./user";
 export * from "./place";
 export * from "./event";
 export * from "./category";
-export * from "./subCategory";
+export * from "./userCategory";
+export * from "./subCategory"; // Keep for backwards compatibility with interests field
 export * from "./placeCategory";
 export * from "./partnership";
 export * from "./review";

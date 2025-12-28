@@ -27,7 +27,7 @@ class GetCurrentUserController {
     "places.name",
     "places.description",
     "places.placeCategory",
-    "creatorCategories",
+    "userCategories",
   ];
 
   constructor(private getUserByIdAction: IGetUserByIdAction) {}

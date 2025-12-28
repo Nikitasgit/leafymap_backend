@@ -5,9 +5,9 @@ export interface Category extends BaseEntity {
   name: string;
 }
 
-export interface SubCategory extends BaseEntity {
+export interface UserCategory extends BaseEntity {
   name: string;
-  type: string;
+  userCategoryType: "creation" | "organization";
 }
 
 export interface PlaceCategory extends BaseEntity {
@@ -18,5 +18,5 @@ export interface PlaceCategory extends BaseEntity {
 type PlaceType = "art" | "craft" | "food";
 
 export interface CategoryWithSubCategories extends Category {
-  subCategories: SubCategory[];
+  subCategories: UserCategory[];
 }
