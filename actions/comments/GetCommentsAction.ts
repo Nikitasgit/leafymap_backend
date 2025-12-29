@@ -14,7 +14,6 @@ class GetCommentsAction implements IGetCommentsAction {
   private readonly project: (keyof IComment | string)[] = [
     "_id",
     "author.username",
-    "author.creatorName",
     "author.image.urls",
     "content",
     "reference",

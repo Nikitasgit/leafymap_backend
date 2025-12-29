@@ -23,8 +23,9 @@ class GetPlacesInViewAction implements IGetPlacesInViewAction {
     "location",
     "placeCategory",
     "placeCategory.name",
-    "isCreatorPlace",
-    "name",
+    "user",
+    "user.username",
+    "rating",
   ];
 
   constructor(private placeRepository: IPlaceRepository) {}
@@ -58,7 +59,6 @@ class GetPlacesInViewAction implements IGetPlacesInViewAction {
           $box: [bounds.sw, bounds.ne],
         },
       },
-      active: true,
     };
 
     // Filter by place type; "art-craft" is a special case that includes both "art" and "craft"

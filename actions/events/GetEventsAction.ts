@@ -27,7 +27,6 @@ class GetEventsAction implements IGetEventsAction {
     "image._id",
     "image.urls",
     "place._id",
-    "place.name",
   ];
 
   constructor(private eventRepository: IEventRepository) {}

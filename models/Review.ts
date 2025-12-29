@@ -26,7 +26,7 @@ const reviewSchema = new Schema<IReview>(
     referenceType: {
       type: String,
       required: true,
-      enum: ["Place", "Event", "User"] as ReviewReferenceType[],
+      enum: ["Place", "Event"] as ReviewReferenceType[],
     },
     certified: {
       type: Boolean,

@@ -16,11 +16,11 @@ class GetUsersController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const { creatorName, limit, excludeIds } = req.query;
+        const { username, limit, excludeIds } = req.query;
         const filters: GetUsersInput = {};
 
-        if (creatorName && typeof creatorName === "string") {
-          filters.creatorName = creatorName;
+        if (username && typeof username === "string") {
+          filters.username = username;
         }
         if (limit) {
           filters.limit = parseInt(limit as string);

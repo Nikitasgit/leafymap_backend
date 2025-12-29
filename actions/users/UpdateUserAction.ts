@@ -19,7 +19,15 @@ class UpdateUserAction implements IUpdateUserAction {
     userId: string;
     updateData: Partial<IUser>;
   }): Promise<{ token: string }> {
-    await this.userRepository.updateOne(userId, updateData);
+    const processedData = { ...updateData };
+    if (processedData.firstname) {
+      processedData.firstname = processedData.firstname.toLowerCase().trim();
+    }
+    if (processedData.lastname) {
+      processedData.lastname = processedData.lastname.toLowerCase().trim();
+    }
+
+    await this.userRepository.updateOne(userId, processedData);
 
     const updatedUser = await this.userRepository.findById(userId, [
       "_id",

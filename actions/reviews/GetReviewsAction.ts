@@ -14,7 +14,6 @@ class GetReviewsAction implements IGetReviewsAction {
   private readonly project: (keyof IReview | string)[] = [
     "_id",
     "author.username",
-    "author.creatorName",
     "author.image.urls",
     "rating",
     "comment",

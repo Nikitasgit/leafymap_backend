@@ -3,14 +3,6 @@ import { emailSchema, ValidationResult } from "./commonValidations";
 import { LoginFormData, RegisterFormData } from "types/api/auth.dto";
 
 export const registerSchema = z.object({
-  username: z
-    .string()
-    .min(3, "Le nom d'utilisateur doit contenir au moins 3 caractères")
-    .max(30, "Le nom d'utilisateur ne peut pas dépasser 30 caractères")
-    .regex(
-      /^[a-zA-Z0-9_-]+$/,
-      "Le nom d'utilisateur ne peut contenir que des lettres, chiffres, tirets et underscores"
-    ),
   email: emailSchema,
   password: z
     .string()

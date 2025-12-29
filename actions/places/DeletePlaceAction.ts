@@ -30,20 +30,18 @@ class DeletePlaceAction implements IDeletePlaceAction {
     placeId: string;
     userId: string;
   }): Promise<void> {
-    const place = await this.placeRepository.findById(placeId, ["_id"]);
+    const place = await this.placeRepository.findById(placeId, ["_id", "user"]);
 
     if (!place) {
       throw new Error("Place not found");
     }
 
-    // Cascade deletion: find all associated events
     const placeEvents = await this.eventRepository.findAll({
       filters: { place: placeId },
       project: ["_id"],
     });
     const eventIds = placeEvents.map((event) => event._id.toString());
 
-    // Gather all images to delete: both from events and from the place itself
     const eventImageIds: string[] = [];
     if (eventIds.length > 0) {
       const eventsImages = await this.imageRepository.findAll({
@@ -56,15 +54,8 @@ class DeletePlaceAction implements IDeletePlaceAction {
       eventImageIds.push(...eventsImages.map((img) => img._id.toString()));
     }
 
-    const placeImages = await this.imageRepository.findAll({
-      filters: { reference: placeId, referenceType: "Place" },
-      project: ["_id"],
-    });
-    const placeImageIds = placeImages.map((img) => img._id.toString());
+    const imageIds = [...eventImageIds];
 
-    const imageIds = [...eventImageIds, ...placeImageIds];
-
-    // Delete everything: images (from DB + S3), place, events, partnerships, and user reference
     if (imageIds.length > 0) {
       await this.deleteImagesAction.execute({ imageIds });
     }
@@ -72,8 +63,9 @@ class DeletePlaceAction implements IDeletePlaceAction {
     await this.placeRepository.deleteOne(placeId);
     await this.eventRepository.deleteMany({ place: placeId });
     await this.partnershipRepository.deleteMany({ place: placeId });
-    await this.userRepository.updateOne(userId, {
-      $pull: { places: placeId },
+
+    await this.userRepository.updateOne(place.user.toString(), {
+      $unset: { place: "" },
     } as any);
 
     logger.info(`Place ${placeId} and associated data deleted successfully`);

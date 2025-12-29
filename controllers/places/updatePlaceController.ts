@@ -18,11 +18,7 @@ class UpdatePlaceController {
         const placeId = req.placeId!;
         const decoded = req.decoded!;
 
-        const validationResult = validatePlaceData(
-          req.body,
-          decoded.userType as "creator" | "organizer",
-          true
-        );
+        const validationResult = validatePlaceData(req.body, true);
 
         if (!validationResult.isValid) {
           APIResponse(res, validationResult.errors, "Validation failed", 400);
@@ -33,7 +29,6 @@ class UpdatePlaceController {
           placeId,
           updateData: req.body,
           userId: decoded.id,
-          userType: decoded.userType as "creator" | "organizer",
         });
 
         APIResponse(res, null, "Place updated successfully", 200);

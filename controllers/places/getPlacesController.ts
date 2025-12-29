@@ -17,24 +17,10 @@ class GetPlacesController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const { name, categoryId, limit } = req.query;
-
-        // Validate name length if provided
-        if (name && typeof name === "string" && name.length < 3) {
-          APIResponse(
-            res,
-            [],
-            "Search query must be at least 3 characters",
-            200
-          );
-          return;
-        }
+        const { categoryId, limit } = req.query;
 
         const filters: GetPlacesInput = {};
 
-        if (name && typeof name === "string") {
-          filters.name = name;
-        }
         if (categoryId && typeof categoryId === "string") {
           filters.categoryId = categoryId;
         }
@@ -45,9 +31,7 @@ class GetPlacesController {
         const places = await this.getPlacesAction.execute({ filters });
 
         let message = "Places retrieved successfully";
-        if (name) {
-          message = "Places searched successfully";
-        } else if (categoryId) {
+        if (categoryId) {
           message = "Places by category retrieved successfully";
         } else {
           message = "Latest places retrieved successfully";

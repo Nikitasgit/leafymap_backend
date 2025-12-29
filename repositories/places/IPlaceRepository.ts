@@ -6,9 +6,6 @@ export interface PlaceFilters {
   user?: string;
   placeCategory?: string | { $in: string[] };
   placeType?: PlaceType | { $in: PlaceType[] };
-  active?: boolean;
-  deleted?: boolean;
-  name?: { $regex: string; $options: string };
   location?: {
     $geoWithin: {
       $box: [[number, number], [number, number]];

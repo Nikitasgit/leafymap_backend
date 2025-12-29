@@ -3,10 +3,12 @@ import {
   ValidationResult,
   websiteSchema,
   descriptionSchema,
+  firstnameSchema,
+  lastnameSchema,
 } from "./commonValidations";
 import { IUser } from "types/models";
 
-export const creatorNameSchema = z
+export const usernameSchema = z
   .string()
   .min(1, "Le nom est requis")
   .min(4, "Le nom doit contenir au moins 4 caractères")
@@ -22,14 +24,12 @@ const userCategoriesSchema = z
 
 const newCreatorSchema = z.object({
   userType: z.literal("creator"),
-  creatorName: creatorNameSchema,
+  username: usernameSchema,
   userCategories: userCategoriesSchema,
   description: descriptionSchema,
   website: websiteSchema.optional(),
-});
-
-const newOrganizerSchema = z.object({
-  userType: z.literal("organizer"),
+  firstname: firstnameSchema,
+  lastname: lastnameSchema,
 });
 
 export const validateNewUserData = (data: Partial<IUser>): ValidationResult => {
@@ -38,8 +38,6 @@ export const validateNewUserData = (data: Partial<IUser>): ValidationResult => {
   let result;
   if (data.userType === "creator") {
     result = newCreatorSchema.safeParse(data);
-  } else if (data.userType === "organizer") {
-    result = newOrganizerSchema.safeParse(data);
   }
   if (result && !result.success) {
     result.error.errors.forEach((err) => {

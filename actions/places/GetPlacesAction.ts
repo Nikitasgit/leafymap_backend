@@ -5,7 +5,6 @@ import {
 import { IPlace } from "../../types/models/place";
 
 export interface GetPlacesInput {
-  name?: string;
   categoryId?: string;
   limit?: number;
 }
@@ -19,18 +18,19 @@ export interface IGetPlacesAction {
 class GetPlacesAction implements IGetPlacesAction {
   private readonly project: (keyof IPlace | string)[] = [
     "_id",
-    "name",
-    "description",
-    "location.label",
-    "image",
+    "location",
+    "rating",
     "placeCategory",
-    "createdAt",
-    "isCreatorPlace",
-    "user",
+    "placeType",
+    "defaultSchedule",
+    "customDates",
     "placeCategory.name",
+    "user",
     "user._id",
+    "user.username",
     "user.description",
-    "image.urls",
+    "createdAt",
+    "updatedAt",
   ];
 
   constructor(private placeRepository: IPlaceRepository) {}
@@ -40,19 +40,14 @@ class GetPlacesAction implements IGetPlacesAction {
   }: {
     filters?: GetPlacesInput;
   }): Promise<IPlace[] | Partial<IPlace>[]> {
-    const queryFilters: PlaceFilters = {
-      active: true,
-      deleted: false,
-    };
+    const queryFilters: PlaceFilters = {};
 
     let sortOptions: { [key: string]: 1 | -1 } = {};
 
-    if (filters?.name && filters.name.length >= 3) {
-      queryFilters.name = { $regex: filters.name, $options: "i" };
-    } else if (filters?.categoryId && !filters.name) {
+    if (filters?.categoryId) {
       queryFilters.placeCategory = filters.categoryId;
       sortOptions = { createdAt: -1 };
-    } else if (!filters?.name && !filters?.categoryId) {
+    } else {
       sortOptions = { createdAt: -1 };
     }
 

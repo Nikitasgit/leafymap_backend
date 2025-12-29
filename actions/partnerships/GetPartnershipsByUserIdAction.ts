@@ -40,14 +40,7 @@ class GetPartnershipsByUserIdAction implements IGetPartnershipsByUserIdAction {
     "collaborator.lastName",
     "collaborator.email",
     "place._id",
-    "place.name",
-    "place.address",
-    "place.image",
     "place.location",
-    "place.active",
-    "place.deleted",
-    "place.description",
-    "place.image.urls",
     "event._id",
     "event.name",
     "event.description",
@@ -84,10 +77,10 @@ class GetPartnershipsByUserIdAction implements IGetPartnershipsByUserIdAction {
       sort: { updatedAt: -1 },
     });
 
-    // Filter out partnerships with deleted/ inactive places
+    // Filter out partnerships with deleted places
     let validPartnerships = partnerships.filter((partnership: any) => {
       const place = partnership.place as Partial<IPlace> | null;
-      if (!place || place.deleted || !place.active) {
+      if (!place) {
         return false;
       }
       if (partnership.type === "event" && !partnership.event) {

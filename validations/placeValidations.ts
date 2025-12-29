@@ -35,43 +35,24 @@ export const placeTypeSchema = z
 
 const newPlaceSchema = z.object({
   placeCategory: placeCategorySchema,
-  location: locationSchema,
-  active: z.boolean(),
-  name: placeNameSchema,
-});
-
-const newOrganizerPlaceSchema = newPlaceSchema.extend({
-  email: emailSchema,
-  active: z.literal(true),
-  website: websiteSchema.optional(),
-  phone: phoneSchema,
   placeType: placeTypeSchema,
-  description: descriptionSchema,
+  location: locationSchema,
+  defaultSchedule: z.any().optional(),
+  customDates: z.array(z.any()).optional(),
 });
 
 const updatePlaceSchema = newPlaceSchema.partial();
-const updateOrganizerPlaceSchema = newOrganizerPlaceSchema.partial();
 
 /**
- * Validates place data based on user type and operation (create/update).
- * Organizers have more required fields (email, phone, etc.) than creators.
+ * Validates place data for create/update operations.
  */
 export const validatePlaceData = (
   data: Partial<IPlace>,
-  userType: "organizer" | "creator" | "guest",
   isUpdate: boolean = false
 ): ValidationResult => {
   const errors: Record<string, string> = {};
 
-  // Different schemas for organizers vs creators, and create vs update
-  let placeSchema;
-  if (isUpdate) {
-    placeSchema =
-      userType === "organizer" ? updateOrganizerPlaceSchema : updatePlaceSchema;
-  } else {
-    placeSchema =
-      userType === "organizer" ? newOrganizerPlaceSchema : newPlaceSchema;
-  }
+  const placeSchema = isUpdate ? updatePlaceSchema : newPlaceSchema;
 
   const result = placeSchema.safeParse(data);
   if (!result.success) {

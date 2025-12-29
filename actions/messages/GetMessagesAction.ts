@@ -14,10 +14,8 @@ class GetMessagesAction implements IGetMessagesAction {
   private readonly project: (keyof IMessage | string)[] = [
     "_id",
     "senderId.username",
-    "senderId.creatorName",
     "senderId.image.urls",
     "recipientId.username",
-    "recipientId.creatorName",
     "recipientId.image.urls",
     "content",
     "isRead",

@@ -1,20 +1,18 @@
 import { ReviewReferenceType } from "../types/models/review";
 import { IPlaceRepository } from "../repositories/places/IPlaceRepository";
 import { IEventRepository } from "../repositories/events/IEventRepository";
-import { IUserRepository } from "../repositories/users/IUserRepository";
 import { IReviewRepository } from "../repositories/reviews/IReviewRepository";
 
 class ReviewService {
   constructor(
     private reviewRepository: IReviewRepository,
     private placeRepository: IPlaceRepository,
-    private eventRepository: IEventRepository,
-    private userRepository: IUserRepository
+    private eventRepository: IEventRepository
   ) {}
 
   /**
-   * Calculate and update the average rating for a Place, Event, or User
-   * @param reference - The ID of the entity (Place, Event, or User)
+   * Calculate and update the average rating for a Place or Event
+   * @param reference - The ID of the entity (Place or Event)
    * @param referenceType - The type of entity
    */
   async updateReviewRating(
@@ -47,11 +45,6 @@ class ReviewService {
         break;
       case "Event":
         await this.eventRepository.updateOne(reference, {
-          rating: averageRating,
-        });
-        break;
-      case "User":
-        await this.userRepository.updateOne(reference, {
           rating: averageRating,
         });
         break;

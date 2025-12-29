@@ -20,15 +20,12 @@ class GetEventByIdAction implements IGetEventByIdAction {
     "updatedAt",
     "place._id",
     "place.location",
-    "place.image",
-    "place.name",
     "place.user",
-    "place.image.urls",
     "image._id",
     "image.urls",
     "schedule.timeSlots.collaborators",
     "schedule.timeSlots.collaborators._id",
-    "schedule.timeSlots.collaborators.creatorName",
+    "schedule.timeSlots.collaborators.username",
     "schedule.timeSlots.collaborators.image",
     "schedule.timeSlots.collaborators.image.urls",
   ];
@@ -54,7 +51,7 @@ class GetEventByIdAction implements IGetEventByIdAction {
           collaborators: slot.collaborators.map((collaborator: any) => {
             if (typeof collaborator === "object" && collaborator !== null) {
               return {
-                name: collaborator.creatorName,
+                name: collaborator.username,
                 image: collaborator.image?.urls?.thumbnail || null,
                 _id: collaborator._id,
               };

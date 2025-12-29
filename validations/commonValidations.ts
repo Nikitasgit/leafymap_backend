@@ -48,6 +48,24 @@ export const descriptionSchema = z
   .min(10, "La description doit contenir au moins 10 caractères")
   .max(300, "La description ne peut pas dépasser 300 caractères");
 
+export const firstnameSchema = z
+  .string()
+  .max(50, "Le prénom ne peut pas dépasser 50 caractères")
+  .regex(
+    /^[a-zA-ZÀ-ÿ\s'-]+$/,
+    "Le prénom ne peut contenir que des lettres, espaces, tirets et apostrophes"
+  )
+  .optional();
+
+export const lastnameSchema = z
+  .string()
+  .max(50, "Le nom ne peut pas dépasser 50 caractères")
+  .regex(
+    /^[a-zA-ZÀ-ÿ\s'-]+$/,
+    "Le nom ne peut contenir que des lettres, espaces, tirets et apostrophes"
+  )
+  .optional();
+
 export const addressSchema = z.object({
   number: z
     .string()

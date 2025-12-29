@@ -9,9 +9,9 @@ export const createReviewSchema = z.object({
     .max(5, "La note ne peut pas dépasser 5"),
   comment: z.string().optional(),
   reference: z.string().min(1, "La référence est requise"),
-  referenceType: z.enum(["Place", "Event", "User"], {
+  referenceType: z.enum(["Place", "Event"], {
     errorMap: () => ({
-      message: "Le type de référence doit être Place, Event ou User",
+      message: "Le type de référence doit être Place ou Event",
     }),
   }) as z.ZodType<ReviewReferenceType>,
 });

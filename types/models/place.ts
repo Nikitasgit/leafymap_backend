@@ -37,23 +37,13 @@ export interface ILocation {
 }
 
 export interface IPlace extends Document {
-  name: string;
-  description?: string;
   user: Types.ObjectId | Pick<IUser, "description">;
   location: ILocation;
-  phone?: string;
-  email?: string;
-  website?: string;
-  image?: Types.ObjectId | Pick<IImage, "urls">;
-  active: boolean;
-  deleted: boolean;
-  isCreatorPlace: boolean;
-  rating: number;
   placeCategory: Types.ObjectId;
   placeType: PlaceType[];
   defaultSchedule: IDefaultSchedule;
   customDates: ICustomDate[];
-  followers: Types.ObjectId[];
+  rating: number;
   createdAt: Date;
   updatedAt: Date;
 }

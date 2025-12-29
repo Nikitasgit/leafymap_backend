@@ -16,20 +16,12 @@ class CreatePlaceController {
     ): Promise<void> => {
       try {
         const decoded = req.decoded!;
-        if (!["creator", "organizer"].includes(decoded.userType)) {
-          APIResponse(
-            res,
-            null,
-            "Only creators and organizers can create places",
-            403
-          );
+        if (decoded.userType !== "creator") {
+          APIResponse(res, null, "Only creators can create places", 403);
           return;
         }
 
-        const validationResult = validatePlaceData(
-          req.body,
-          decoded.userType as "creator" | "organizer"
-        );
+        const validationResult = validatePlaceData(req.body);
 
         if (!validationResult.isValid) {
           APIResponse(res, validationResult.errors, "Validation failed", 400);
@@ -39,7 +31,6 @@ class CreatePlaceController {
         const place = await this.createPlaceAction.execute({
           placeData: req.body,
           userId: decoded.id,
-          userType: decoded.userType as "creator" | "organizer",
         });
 
         APIResponse(res, place, "Place created successfully", 201);

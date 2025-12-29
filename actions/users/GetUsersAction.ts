@@ -5,7 +5,7 @@ import {
 import { IUser } from "../../types/models/user";
 
 export interface GetUsersInput {
-  creatorName?: string;
+  username?: string;
   limit?: number;
   excludeIds?: string[];
 }
@@ -20,8 +20,6 @@ class GetUsersAction implements IGetUsersAction {
     "firstname",
     "lastname",
     "username",
-    "creatorName",
-    "rating",
     "image.urls",
     "userCategories.name",
   ];
@@ -33,11 +31,11 @@ class GetUsersAction implements IGetUsersAction {
       deleted: false,
     };
 
-    if (filters?.creatorName) {
-      queryFilters.creatorName = {
-        $regex: filters.creatorName,
+    if (filters?.username) {
+      queryFilters.username = {
+        $regex: filters.username,
         $options: "i",
-      };
+      } as any;
     }
 
     if (filters?.excludeIds) {

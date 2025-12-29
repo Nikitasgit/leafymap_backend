@@ -34,8 +34,7 @@ const rateLimiterMiddleware = new RateLimiterMiddleware();
 const reviewService = new ReviewService(
   reviewRepository,
   placeRepository,
-  eventRepository,
-  userRepository
+  eventRepository
 );
 
 // Initialize actions

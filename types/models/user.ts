@@ -2,6 +2,7 @@ import { Document, Types } from "mongoose";
 import { ISO_COUNTRIES_ALPHA2 } from "../../utils/constants/countries";
 import { IPlace } from "./place";
 import { IImage } from "./Image";
+import { IUserCategory } from "./userCategory";
 
 export interface IAddress {
   number?: string;
@@ -19,24 +20,22 @@ export interface ICreatorProfile {
 export interface IUser extends Document {
   firstname?: string;
   lastname?: string;
-  username: string;
-  creatorName?: string;
-  userCategories?: Types.ObjectId[];
+  username?: string;
+  userCategories?: Types.ObjectId[] | IUserCategory[];
   email: string;
   website?: string;
   phone?: string;
   password: string;
-  userType: "creator" | "organizer" | "guest";
+  userType: "creator" | "guest";
   deleted: boolean;
   address?: IAddress;
   description?: string;
   country?: (typeof ISO_COUNTRIES_ALPHA2)[number];
   image?: Types.ObjectId | Pick<IImage, "urls">;
-  rating: number;
   followers: Types.ObjectId[];
   creatorProfile?: ICreatorProfile;
-  interests: Types.ObjectId[];
-  places: (Types.ObjectId | IPlace)[];
+  interests?: Types.ObjectId[] | IUserCategory[];
+  place?: Types.ObjectId | IPlace;
   acceptedCGU: boolean;
   acceptedAt: Date;
   createdAt: Date;

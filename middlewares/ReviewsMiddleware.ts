@@ -137,12 +137,6 @@ class ReviewsMiddleware {
             break;
           }
 
-          case "User": {
-            isOwner = reference === userId;
-            foundReference = null;
-            break;
-          }
-
           default:
             APIResponse(res, null, "Type de référence invalide", 400);
             return;

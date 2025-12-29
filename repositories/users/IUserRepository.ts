@@ -4,9 +4,8 @@ import { Types } from "mongoose";
 export interface UserFilters {
   _id?: string | { $in: string[] } | { $nin: string[] };
   email?: string;
-  username?: string;
-  creatorName?: { $regex: string; $options: string };
-  userType?: "creator" | "organizer" | "guest";
+  username?: string | { $regex: string; $options: string };
+  userType?: "creator" | "guest";
   deleted?: boolean;
   [key: string]: unknown;
 }

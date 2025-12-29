@@ -23,7 +23,7 @@ class GetPartnershipsAction implements IGetPartnershipsAction {
     "status",
     "deleted",
     "collaborator._id",
-    "collaborator.creatorName",
+    "collaborator.username",
     "collaborator.userCategories",
     "collaborator.image",
     "collaborator.deleted",
@@ -69,7 +69,7 @@ class GetPartnershipsAction implements IGetPartnershipsAction {
           ...partnership,
           collaborator: {
             _id: collaborator._id,
-            name: collaborator.creatorName,
+            name: collaborator.username,
             categories: collaborator.userCategories,
             image: collaborator.image,
             deleted: collaborator.deleted,

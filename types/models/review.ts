@@ -1,6 +1,6 @@
 import { Document, Types } from "mongoose";
 
-export type ReviewReferenceType = "Place" | "Event" | "User";
+export type ReviewReferenceType = "Place" | "Event";
 
 export interface IReview extends Document {
   _id: Types.ObjectId;

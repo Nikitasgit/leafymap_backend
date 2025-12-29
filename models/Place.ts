@@ -58,7 +58,6 @@ export const customDateSchema = new Schema<ICustomDate>(
   { _id: false }
 );
 
-
 const locationSchema = new Schema<ILocation>(
   {
     type: { type: String, enum: ["Point"], required: true },
@@ -75,19 +74,8 @@ const locationSchema = new Schema<ILocation>(
 
 const placeSchema = new Schema<IPlace>(
   {
-    name: { type: String, required: true },
-    description: { type: String },
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     location: locationSchema,
-    phone: { type: String },
-    email: { type: String },
-    website: { type: String },
-    image: { type: Schema.Types.ObjectId, ref: "Image" },
-    active: { type: Boolean, default: true },
-    deleted: { type: Boolean, default: false },
-    isCreatorPlace: { type: Boolean, required: true, default: false },
-    rating: { type: Number, default: 0 },
-    followers: { type: [Schema.Types.ObjectId], ref: "User", default: [] },
     placeCategory: {
       type: Schema.Types.ObjectId,
       ref: "PlaceCategory",
@@ -105,6 +93,7 @@ const placeSchema = new Schema<IPlace>(
       default: {},
     },
     customDates: [customDateSchema],
+    rating: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

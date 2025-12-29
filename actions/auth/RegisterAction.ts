@@ -5,7 +5,6 @@ import bcrypt from "bcrypt";
 export interface RegisterInput {
   email: string;
   password: string;
-  username: string;
   acceptedCGU: boolean;
 }
 
@@ -21,15 +20,11 @@ class RegisterAction implements IRegisterAction {
   }: {
     registerData: RegisterInput;
   }): Promise<{ _id: string }> {
-    const { email, password, username, acceptedCGU } = registerData;
+    const { email, password, acceptedCGU } = registerData;
 
     const emailExists = await this.userRepository.findOne({ email });
     if (emailExists) {
       throw new Error("Cet email est déjà utilisé");
-    }
-    const usernameExists = await this.userRepository.findOne({ username });
-    if (usernameExists) {
-      throw new Error("Ce nom d'utilisateur est déjà utilisé");
     }
 
     const hashed = await bcrypt.hash(password, 10);
@@ -37,7 +32,6 @@ class RegisterAction implements IRegisterAction {
     const userId = await this.userRepository.create({
       email,
       password: hashed,
-      username,
       acceptedCGU,
       acceptedAt: new Date(),
       userType: "guest",

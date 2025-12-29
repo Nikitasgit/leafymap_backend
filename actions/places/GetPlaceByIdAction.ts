@@ -11,23 +11,14 @@ export interface IGetPlaceByIdAction {
 class GetPlaceByIdAction implements IGetPlaceByIdAction {
   private readonly defaultProject: (keyof IPlace | string)[] = [
     "_id",
-    "name",
-    "description",
     "location",
-    "phone",
-    "email",
-    "website",
-    "active",
-    "deleted",
-    "isCreatorPlace",
     "rating",
-    "followers",
     "placeCategory",
     "placeType",
     "defaultSchedule",
     "customDates",
     "placeCategory.name",
-    "image.urls",
+    "user",
     "user.description",
     "user.userCategories",
     "user.userCategories.name",
@@ -51,15 +42,6 @@ class GetPlaceByIdAction implements IGetPlaceByIdAction {
 
     if (!place) {
       throw new Error("Place not found");
-    }
-
-    // For creator places, override place description with user's description
-    if (
-      place.isCreatorPlace &&
-      typeof place.user === "object" &&
-      "description" in place.user
-    ) {
-      place.description = place.user.description;
     }
 
     return place;
