@@ -11,7 +11,7 @@ export interface GetPartnershipsByUserIdInput {
   asCollaborator?: boolean;
   includeCancelledEvents?: boolean;
   includePastEvents?: boolean;
-  onlyAccepted?: boolean;
+  currentUserId?: string;
 }
 
 export interface IGetPartnershipsByUserIdAction {
@@ -24,8 +24,6 @@ class GetPartnershipsByUserIdAction implements IGetPartnershipsByUserIdAction {
   private readonly project: (keyof IPartnership | string)[] = [
     "_id",
     "type",
-    "place",
-    "event",
     "initiator",
     "collaborator",
     "status",
@@ -35,6 +33,8 @@ class GetPartnershipsByUserIdAction implements IGetPartnershipsByUserIdAction {
     "initiator.firstName",
     "initiator.lastName",
     "initiator.email",
+    "initiator.username",
+    "initiator.image.urls",
     "collaborator._id",
     "collaborator.firstName",
     "collaborator.lastName",
@@ -67,18 +67,36 @@ class GetPartnershipsByUserIdAction implements IGetPartnershipsByUserIdAction {
       queryFilters.initiator = filters.userId;
     }
 
-    if (filters.onlyAccepted) {
-      queryFilters.status = "accepted";
-    }
-
     const partnerships = await this.partnershipRepository.findAll({
       filters: queryFilters,
       project: this.project,
       sort: { updatedAt: -1 },
     });
 
-    // Filter out partnerships with deleted places
-    let validPartnerships = partnerships.filter((partnership: any) => {
+    const filteredPartnerships = partnerships.filter((partnership: any) => {
+      if (!filters.currentUserId) {
+        return partnership.status === "accepted";
+      }
+
+      const isInitiator =
+        partnership.initiator &&
+        (typeof partnership.initiator === "object"
+          ? partnership.initiator._id?.toString()
+          : partnership.initiator.toString()) === filters.currentUserId;
+      const isCollaborator =
+        partnership.collaborator &&
+        (typeof partnership.collaborator === "object"
+          ? partnership.collaborator._id?.toString()
+          : partnership.collaborator.toString()) === filters.currentUserId;
+
+      if (isInitiator || isCollaborator) {
+        return true;
+      }
+
+      return partnership.status === "accepted";
+    });
+
+    let validPartnerships = filteredPartnerships.filter((partnership: any) => {
       const place = partnership.place as Partial<IPlace> | null;
       if (!place) {
         return false;
@@ -89,7 +107,6 @@ class GetPartnershipsByUserIdAction implements IGetPartnershipsByUserIdAction {
       return true;
     });
 
-    // Filter out cancelled events if needed
     if (filters.includeCancelledEvents !== true) {
       validPartnerships = validPartnerships.filter((partnership: any) => {
         if (!partnership.event) {
@@ -100,7 +117,6 @@ class GetPartnershipsByUserIdAction implements IGetPartnershipsByUserIdAction {
       });
     }
 
-    // Filter out past events if needed
     if (filters.includePastEvents !== true) {
       validPartnerships = validPartnerships.filter((partnership: any) => {
         if (!partnership.event) {

@@ -17,12 +17,9 @@ class GetPartnershipsByUserIdController {
     ): Promise<void> => {
       try {
         const { userId } = req.params;
-        const {
-          asCollaborator,
-          includeCancelledEvents,
-          includePastEvents,
-          onlyAccepted,
-        } = req.query;
+        const { asCollaborator, includeCancelledEvents, includePastEvents } =
+          req.query;
+        const currentUserId = req.decoded?.id;
 
         const partnerships = await this.getPartnershipsByUserIdAction.execute({
           filters: {
@@ -30,7 +27,7 @@ class GetPartnershipsByUserIdController {
             asCollaborator: asCollaborator === "true",
             includeCancelledEvents: includeCancelledEvents === "true",
             includePastEvents: includePastEvents === "true",
-            onlyAccepted: onlyAccepted === "true",
+            currentUserId,
           },
         });
 

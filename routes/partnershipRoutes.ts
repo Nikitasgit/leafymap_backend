@@ -50,8 +50,16 @@ const getPartnershipsByUserIdController = new GetPartnershipsByUserIdController(
 const router: Router = express.Router();
 
 // Routes
-router.get("/user/:userId", getPartnershipsByUserIdController.handle());
-router.get("/:placeId/:eventId?", getPartnershipsController.handle());
+router.get(
+  "/user/:userId",
+  authMiddleware.verifyOptional(),
+  getPartnershipsByUserIdController.handle()
+);
+router.get(
+  "/:placeId/:eventId?",
+  authMiddleware.verifyOptional(),
+  getPartnershipsController.handle()
+);
 router.put(
   "/:placeId/:eventId?",
   authMiddleware.verify(),

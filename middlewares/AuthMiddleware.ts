@@ -58,6 +58,45 @@ class AuthMiddleware {
       }
     };
   }
+
+  verifyOptional(): RequestHandler {
+    return async (
+      req: CustomRequest,
+      res: Response,
+      next: NextFunction
+    ): Promise<void> => {
+      try {
+        const token =
+          req.cookies.token || req.headers.authorization?.split(" ")[1];
+        if (!token) {
+          next();
+          return;
+        }
+        const JWT_SECRET = process.env.JWT_SECRET;
+        if (!JWT_SECRET) {
+          next();
+          return;
+        }
+
+        try {
+          const decoded = jwt.verify(token, JWT_SECRET) as IDecodedToken;
+
+          if (decoded) {
+            const user = await this.userRepository.findById(decoded.id, [
+              "_id",
+            ]);
+            if (user) {
+              req.decoded = decoded;
+            }
+          }
+        } catch (error) {}
+
+        next();
+      } catch (error) {
+        next();
+      }
+    };
+  }
 }
 
 export default AuthMiddleware;

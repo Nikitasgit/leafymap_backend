@@ -16,7 +16,6 @@ class UpdatePlaceController {
     ): Promise<void> => {
       try {
         const placeId = req.placeId!;
-        const decoded = req.decoded!;
 
         const validationResult = validatePlaceData(req.body, true);
 
@@ -28,7 +27,6 @@ class UpdatePlaceController {
         await this.updatePlaceAction.execute({
           placeId,
           updateData: req.body,
-          userId: decoded.id,
         });
 
         APIResponse(res, null, "Place updated successfully", 200);

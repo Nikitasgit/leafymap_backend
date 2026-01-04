@@ -9,6 +9,7 @@ export interface GetPartnershipsInput {
   placeId: string;
   eventId?: string;
   type?: "place" | "event";
+  currentUserId?: string;
   onlyAccepted?: boolean;
 }
 
@@ -19,9 +20,11 @@ export interface IGetPartnershipsAction {
 class GetPartnershipsAction implements IGetPartnershipsAction {
   private readonly project: (keyof IPartnership | string)[] = [
     "_id",
+    "initiator",
     "collaborator",
     "status",
     "deleted",
+    "initiator._id",
     "collaborator._id",
     "collaborator.username",
     "collaborator.userCategories",
@@ -48,17 +51,35 @@ class GetPartnershipsAction implements IGetPartnershipsAction {
       queryFilters.event = filters.eventId;
     }
 
-    if (filters.onlyAccepted) {
-      queryFilters.status = "accepted";
-    }
-
     const partnerships = await this.partnershipRepository.findAll({
       filters: queryFilters,
       project: this.project,
     });
 
-    // Transform and filter partnerships
-    const transformedPartnerships = partnerships
+    const filteredPartnerships = partnerships.filter((partnership: any) => {
+      if (!filters.currentUserId || filters.onlyAccepted) {
+        return partnership.status === "accepted";
+      }
+
+      const isInitiator =
+        partnership.initiator &&
+        (typeof partnership.initiator === "object"
+          ? partnership.initiator._id?.toString()
+          : partnership.initiator.toString()) === filters.currentUserId;
+      const isCollaborator =
+        partnership.collaborator &&
+        (typeof partnership.collaborator === "object"
+          ? partnership.collaborator._id?.toString()
+          : partnership.collaborator.toString()) === filters.currentUserId;
+
+      if (isInitiator || isCollaborator) {
+        return true;
+      }
+
+      return partnership.status === "accepted";
+    });
+
+    const transformedPartnerships = filteredPartnerships
       .map((partnership: any) => {
         const collaborator = partnership.collaborator as Partial<IUser>;
         if (collaborator.deleted) {

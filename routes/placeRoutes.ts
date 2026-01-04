@@ -36,10 +36,7 @@ const createPlaceAction = new CreatePlaceAction(
   placeRepository,
   userRepository
 );
-const updatePlaceAction = new UpdatePlaceAction(
-  placeRepository,
-  userRepository
-);
+const updatePlaceAction = new UpdatePlaceAction(placeRepository);
 const deletePlaceAction = new DeletePlaceAction(
   placeRepository,
   userRepository,
