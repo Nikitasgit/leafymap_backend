@@ -5,7 +5,15 @@ export interface EventFilters {
   place?: string | { $in: string[] };
   _id?: string;
   deleted?: boolean;
-  status?: "cancelled" | "full" | "available";
+  status?:
+    | "cancelled"
+    | "full"
+    | "available"
+    | { $ne: "cancelled" | "full" | "available" };
+  dateRange?: {
+    start: Date;
+    end: Date;
+  };
   [key: string]: unknown;
 }
 

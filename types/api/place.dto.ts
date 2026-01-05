@@ -11,6 +11,7 @@ export type PlaceTypeDTO = "food" | "art" | "craft";
 export interface DayScheduleDTO {
   open: boolean;
   timeSlots: TimeSlotDTO[];
+  events?: Array<{ id: string; name: string }>;
 }
 
 export interface DefaultScheduleDTO {

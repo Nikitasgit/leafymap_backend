@@ -11,6 +11,7 @@ export type ApiPlaceType = "food" | "art" | "craft";
 export interface DaySchedule {
   open: boolean;
   timeSlots: TimeSlot[];
+  events?: Array<{ id: string; name: string }>;
 }
 
 export interface DefaultSchedule {

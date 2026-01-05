@@ -44,7 +44,10 @@ const deletePlaceAction = new DeletePlaceAction(
   eventRepository,
   partnershipRepository
 );
-const getPlaceByIdAction = new GetPlaceByIdAction(placeRepository);
+const getPlaceByIdAction = new GetPlaceByIdAction(
+  placeRepository,
+  eventRepository
+);
 const getPlacesAction = new GetPlacesAction(placeRepository);
 const getPlacesInViewAction = new GetPlacesInViewAction(placeRepository);
 

@@ -15,8 +15,12 @@ class GetPlaceByIdController {
     ): Promise<void> => {
       try {
         const { placeId } = req.params;
+        const { scheduleWithEvents } = req.query;
 
-        const place = await this.getPlaceByIdAction.execute({ placeId });
+        const place = await this.getPlaceByIdAction.execute({
+          placeId,
+          scheduleWithEvents: scheduleWithEvents === "true",
+        });
 
         APIResponse(res, place, "Place fetched successfully", 200);
       } catch (error) {

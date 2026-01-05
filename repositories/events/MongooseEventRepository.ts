@@ -26,7 +26,15 @@ class MongooseEventRepository implements IEventRepository {
       query.deleted = filters.deleted;
     }
     if (filters.status) {
-      query.status = filters.status;
+      if (
+        typeof filters.status === "object" &&
+        filters.status !== null &&
+        "$ne" in filters.status
+      ) {
+        query.status = { $ne: (filters.status as { $ne: string }).$ne } as any;
+      } else {
+        query.status = filters.status as any;
+      }
     }
 
     if (filters["schedule.timeSlots.collaborators"]) {
@@ -34,6 +42,40 @@ class MongooseEventRepository implements IEventRepository {
         filters["schedule.timeSlots.collaborators"];
     }
 
+    if (filters.dateRange) {
+      const { start, end } = filters.dateRange;
+      query.$or = [
+        {
+          schedule: {
+            $elemMatch: {
+              startDate: { $lte: end },
+              $or: [
+                { endDate: { $gte: start } },
+                { endDate: { $exists: false } },
+              ],
+            },
+          },
+        },
+        {
+          schedule: {
+            $elemMatch: {
+              startDate: {
+                $gte: start,
+                $lte: end,
+              },
+            },
+          },
+        },
+      ] as any;
+    } else if (filters.$or) {
+      query.$or = filters.$or as any;
+    }
+
+    if (filters["schedule"]) {
+      query.schedule = filters["schedule"] as any;
+    }
+
+    // Pour les autres clés non gérées explicitement
     Object.keys(filters).forEach((key) => {
       if (
         ![
@@ -42,6 +84,9 @@ class MongooseEventRepository implements IEventRepository {
           "deleted",
           "status",
           "schedule.timeSlots.collaborators",
+          "dateRange",
+          "$or",
+          "schedule",
         ].includes(key)
       ) {
         (query as Record<string, unknown>)[key] = (
