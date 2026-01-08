@@ -16,12 +16,19 @@ export interface IEventPeriod {
   timeSlots?: IEventTimeSlot[];
 }
 
+export interface IEventDateRange {
+  firstDate: Date;
+  latestDate: Date;
+}
+
 export interface IEvent extends Document {
   _id: Types.ObjectId;
   name: string;
   description: string;
   status: "cancelled" | "full" | "available";
+  lifecycleStatus: "upcoming" | "ongoing" | "completed" | "unvalid";
   schedule: IEventPeriod[];
+  dateRange: IEventDateRange;
   place: Types.ObjectId | Partial<IPlace>;
   image?: Types.ObjectId | Partial<IImage>;
   rating: number;

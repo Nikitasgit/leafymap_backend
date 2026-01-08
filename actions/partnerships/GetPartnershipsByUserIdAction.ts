@@ -4,7 +4,6 @@ import {
 } from "../../repositories/partnerships/IPartnershipRepository";
 import { IPartnership } from "../../types/models/partnership";
 import { IEvent, IPlace } from "../../types/models";
-import { getEventStatusFromSchedule } from "../../utils/eventDates";
 
 export interface GetPartnershipsByUserIdInput {
   userId: string;
@@ -41,12 +40,16 @@ class GetPartnershipsByUserIdAction implements IGetPartnershipsByUserIdAction {
     "collaborator.email",
     "place._id",
     "place.location",
+    "place.placeCategory.name",
+    "place.followers",
     "event._id",
     "event.name",
     "event.description",
     "event.image",
     "event.schedule",
     "event.status",
+    "event.lifecycleStatus",
+    "event.dateRange",
     "event.image.urls",
   ];
 
@@ -123,12 +126,12 @@ class GetPartnershipsByUserIdAction implements IGetPartnershipsByUserIdAction {
           return true;
         }
         const event = partnership.event as IEvent;
-        if (!event.schedule) {
+        if (!event.lifecycleStatus) {
           return true;
         }
-        const eventStatusResult = getEventStatusFromSchedule(event.schedule);
         return (
-          eventStatusResult === "ongoing" || eventStatusResult === "upcoming"
+          event.lifecycleStatus === "ongoing" ||
+          event.lifecycleStatus === "upcoming"
         );
       });
     }

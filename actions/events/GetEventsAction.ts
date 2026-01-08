@@ -23,7 +23,9 @@ class GetEventsAction implements IGetEventsAction {
     "place",
     "description",
     "status",
+    "lifecycleStatus",
     "schedule",
+    "dateRange",
     "image._id",
     "image.urls",
     "place._id",
@@ -48,6 +50,7 @@ class GetEventsAction implements IGetEventsAction {
       filters: queryFilters,
       project: this.project,
       limit: filters?.limit || 100,
+      sort: { "dateRange.firstDate": 1 },
     });
 
     return events;
