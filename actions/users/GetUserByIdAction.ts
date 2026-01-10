@@ -24,6 +24,7 @@ class GetUserByIdAction implements IGetUserByIdAction {
     "place._id",
     "image.urls",
     "userCategories.name",
+    "userCategories.userCategoryType",
   ];
 
   constructor(private userRepository: IUserRepository) {}

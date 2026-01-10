@@ -22,6 +22,9 @@ class GetUsersAction implements IGetUsersAction {
     "username",
     "image.urls",
     "userCategories.name",
+    "userCategories.userCategoryType",
+    "place.location",
+    "place.placeCategory.name",
   ];
 
   constructor(private userRepository: IUserRepository) {}

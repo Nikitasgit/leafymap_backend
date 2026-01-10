@@ -8,10 +8,14 @@ import CreatePartnershipsAction from "../actions/partnerships/CreatePartnerships
 import UpdatePartnershipsAction from "../actions/partnerships/UpdatePartnershipsAction";
 import GetPartnershipsAction from "../actions/partnerships/GetPartnershipsAction";
 import GetPartnershipsByUserIdAction from "../actions/partnerships/GetPartnershipsByUserIdAction";
+import GetUserPlacesPartnershipsByUserIdAction from "../actions/partnerships/GetUserPlacesPartnershipsByUserIdAction";
+import GetUserEventsPartnershipsByUserIdAction from "../actions/partnerships/GetUserEventsPartnershipsByUserIdAction";
 import CreatePartnershipsController from "../controllers/partnerships/createPartnershipsController";
 import UpdatePartnershipsController from "../controllers/partnerships/updatePartnershipsController";
 import GetPartnershipsController from "../controllers/partnerships/getPartnershipsController";
 import GetPartnershipsByUserIdController from "../controllers/partnerships/getPartnershipsByUserIdController";
+import GetUserPlacesPartnershipsByUserIdController from "../controllers/partnerships/getUserPlacesPartnershipsByUserIdController";
+import GetUserEventsPartnershipsByUserIdController from "../controllers/partnerships/getUserEventsPartnershipsByUserIdController";
 
 // Initialize repositories
 const partnershipRepository = new MongoosePartnershipRepository();
@@ -32,6 +36,10 @@ const getPartnershipsAction = new GetPartnershipsAction(partnershipRepository);
 const getPartnershipsByUserIdAction = new GetPartnershipsByUserIdAction(
   partnershipRepository
 );
+const getUserPlacesPartnershipsByUserIdAction =
+  new GetUserPlacesPartnershipsByUserIdAction(partnershipRepository);
+const getUserEventsPartnershipsByUserIdAction =
+  new GetUserEventsPartnershipsByUserIdAction(partnershipRepository);
 
 // Initialize controllers
 const createPartnershipsController = new CreatePartnershipsController(
@@ -46,6 +54,14 @@ const getPartnershipsController = new GetPartnershipsController(
 const getPartnershipsByUserIdController = new GetPartnershipsByUserIdController(
   getPartnershipsByUserIdAction
 );
+const getUserPlacesPartnershipsByUserIdController =
+  new GetUserPlacesPartnershipsByUserIdController(
+    getUserPlacesPartnershipsByUserIdAction
+  );
+const getUserEventsPartnershipsByUserIdController =
+  new GetUserEventsPartnershipsByUserIdController(
+    getUserEventsPartnershipsByUserIdAction
+  );
 
 const router: Router = express.Router();
 
@@ -54,6 +70,16 @@ router.get(
   "/user/:userId",
   authMiddleware.verifyOptional(),
   getPartnershipsByUserIdController.handle()
+);
+router.get(
+  "/user/:userId/places",
+  authMiddleware.verifyOptional(),
+  getUserPlacesPartnershipsByUserIdController.handle()
+);
+router.get(
+  "/user/:userId/events",
+  authMiddleware.verifyOptional(),
+  getUserEventsPartnershipsByUserIdController.handle()
 );
 router.get(
   "/:placeId/:eventId?",
