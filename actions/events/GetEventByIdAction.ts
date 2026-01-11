@@ -23,6 +23,7 @@ class GetEventByIdAction implements IGetEventByIdAction {
     "place._id",
     "place.location",
     "place.user",
+    "place.user.username",
     "image._id",
     "image.urls",
     "schedule.timeSlots.collaborators",

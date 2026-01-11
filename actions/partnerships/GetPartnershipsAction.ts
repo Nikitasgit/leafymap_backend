@@ -79,27 +79,7 @@ class GetPartnershipsAction implements IGetPartnershipsAction {
       return partnership.status === "accepted";
     });
 
-    const transformedPartnerships = filteredPartnerships
-      .map((partnership: any) => {
-        const collaborator = partnership.collaborator as Partial<IUser>;
-        if (collaborator.deleted) {
-          return null;
-        }
-
-        return {
-          ...partnership,
-          collaborator: {
-            _id: collaborator._id,
-            name: collaborator.username,
-            categories: collaborator.userCategories,
-            image: collaborator.image,
-            deleted: collaborator.deleted,
-          },
-        };
-      })
-      .filter((p) => p !== null);
-
-    return transformedPartnerships as IPartnership[];
+    return filteredPartnerships as IPartnership[];
   }
 }
 
