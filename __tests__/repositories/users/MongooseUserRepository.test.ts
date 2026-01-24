@@ -1,18 +1,18 @@
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import MongooseUserRepository from "../../../repositories/users/MongooseUserRepository";
+import { UserRepository } from "@/repositories";
 import User from "../../../models/User";
 import { Types } from "mongoose";
 
-describe("MongooseUserRepository", () => {
+describe("UserRepository", () => {
   let mongoServer: MongoMemoryServer;
-  let repository: MongooseUserRepository;
+  let repository: UserRepository;
 
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     const mongoUri = mongoServer.getUri();
     await mongoose.connect(mongoUri);
-    repository = new MongooseUserRepository();
+    repository = new UserRepository();
   });
 
   afterAll(async () => {

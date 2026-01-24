@@ -1,11 +1,12 @@
+import "tsconfig-paths/register";
 import app from "./app";
 import "dotenv/config";
-import MongooseEventRepository from "./repositories/events/MongooseEventRepository";
-import EventsCronService from "./services/cron/EventsCronService";
+import { EventRepository } from "@/repositories";
+import EventsCronService from "@/services/cron/EventsCronService";
 
 const PORT = process.env.PORT || 3000;
 
-const eventRepository = new MongooseEventRepository();
+const eventRepository = new EventRepository();
 const eventsCronService = new EventsCronService(eventRepository);
 eventsCronService.start();
 

@@ -2,19 +2,20 @@ import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/db";
 import errorHandler from "./utils/errorHandler";
-import userRoutes from "./routes/userRoutes";
-import categorieRoutes from "./routes/categorieRoutes";
-import authRoutes from "./routes/authRoutes";
-import placeRoutes from "./routes/placeRoutes";
-import eventRoutes from "./routes/eventRoutes";
-import partnershipRoutes from "./routes/partnershipRoutes";
+import userRoutes from "./routes/user.routes";
+import categorieRoutes from "./routes/categorie.routes";
+import authRoutes from "./routes/auth.routes";
+import placeRoutes from "./routes/place.routes";
+import eventRoutes from "./routes/event.routes";
+import partnershipRoutes from "./routes/partnership.routes";
 import cookieParser from "cookie-parser";
-import imageRoutes from "./routes/imageRoutes";
-import reviewRoutes from "./routes/reviewRoutes";
-import commentRoutes from "./routes/commentRoutes";
+import imageRoutes from "./routes/image.routes";
+import reviewRoutes from "./routes/review.routes";
+import commentRoutes from "./routes/comment.routes";
+import messageRoutes from "./routes/message.routes";
 import cors from "cors";
 import helmet from "helmet";
-import RateLimiterMiddleware from "./middlewares/RateLimiterMiddleware";
+import { RateLimiterMiddleware } from "./middlewares";
 
 const rateLimiterMiddleware = new RateLimiterMiddleware();
 
@@ -64,7 +65,7 @@ app.use(cookieParser());
 app.use(helmet());
 
 // Apply rate limiting to all API routes
-app.use("/api/", rateLimiterMiddleware.api());
+// app.use("/api/", rateLimiterMiddleware.api());
 
 app.use("/api/users", userRoutes);
 app.use("/api/categories", categorieRoutes);
@@ -75,6 +76,7 @@ app.use("/api/images", imageRoutes);
 app.use("/api/partnerships", partnershipRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/comments", commentRoutes);
+app.use("/api/messages", messageRoutes);
 
 app.use(errorHandler);
 

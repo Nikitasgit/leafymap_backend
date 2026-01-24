@@ -1,6 +1,6 @@
 import { model, Schema } from "mongoose";
-import { IEventTimeSlot, IEventPeriod, IEvent } from "../types/models/event";
-import EventStatusService from "../services/eventStatusService";
+import { IEventTimeSlot, IEventPeriod, IEvent } from "@/types/models/event";
+import EventStatusService from "@/services/eventStatusService";
 
 const eventStatusService = new EventStatusService();
 

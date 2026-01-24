@@ -8,3 +8,5 @@ export * from "./placeCategory";
 export * from "./partnership";
 export * from "./review";
 export * from "./comment";
+export * from "./message";
+export * from "./conversation";

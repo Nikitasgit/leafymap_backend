@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { IReview, ReviewReferenceType } from "../types/models/review";
+import { IReview, ReviewReferenceType } from "@/types/models/review";
 
 const reviewSchema = new Schema<IReview>(
   {

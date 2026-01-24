@@ -1,5 +1,5 @@
 import { Document, Types } from "mongoose";
-import { ISO_COUNTRIES_ALPHA2 } from "../../utils/constants/countries";
+import { ISO_COUNTRIES_ALPHA2 } from "@/utils/constants/countries";
 import { IPlace } from "./place";
 import { IImage } from "./Image";
 import { IUserCategory } from "./userCategory";

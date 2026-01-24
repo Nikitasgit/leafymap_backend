@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import AwsService from "../services/awsService";
+import AwsService from "@/services/awsService";
 
 const awsService = new AwsService();
 

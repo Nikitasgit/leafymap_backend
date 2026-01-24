@@ -1,17 +1,17 @@
 import { Request, Response } from "express";
-import GetUserByIdController from "../../../controllers/users/getUserByIdController";
-import { IGetUserByIdAction } from "../../../actions/users/GetUserByIdAction";
-import { IUser } from "../../../types/models/user";
+import { GetUserByIdController } from "@/controllers/users";
+import { IGetUserByIdAction } from "@/actions/users";
+import { IUser } from "@/types/models/user";
 import { Types } from "mongoose";
-import { APIResponse } from "../../../utils/response";
+import { APIResponse } from "@/utils/response";
 
 // Mock the APIResponse function
-jest.mock("../../../utils/response", () => ({
+jest.mock("@/utils/response", () => ({
   APIResponse: jest.fn(),
 }));
 
 // Mock the logger
-jest.mock("../../../utils/logger", () => ({
+jest.mock("@/utils/logger", () => ({
   error: jest.fn(),
 }));
 

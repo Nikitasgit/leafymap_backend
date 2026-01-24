@@ -40,7 +40,7 @@ export interface IPlace extends Document {
   user: Types.ObjectId | Pick<IUser, "description">;
   location: ILocation;
   placeCategory: Types.ObjectId;
-  placeType: PlaceType[];
+  placeType: PlaceType[] | string[];
   defaultSchedule: IDefaultSchedule;
   customDates: ICustomDate[];
   rating: number;

@@ -1,6 +1,6 @@
 import { Schema, model, Types } from "mongoose";
-import { ISO_COUNTRIES_ALPHA2 } from "../utils/constants/countries";
-import { ICreatorProfile, IUser, IAddress } from "../types/models/user";
+import { ISO_COUNTRIES_ALPHA2 } from "@/utils/constants/countries";
+import { ICreatorProfile, IUser, IAddress } from "@/types/models/user";
 
 const addressSchema = new Schema<IAddress>({
   number: { type: String },

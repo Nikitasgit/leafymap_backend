@@ -1,7 +1,7 @@
-import { ReviewReferenceType } from "../types/models/review";
-import { IPlaceRepository } from "../repositories/places/IPlaceRepository";
-import { IEventRepository } from "../repositories/events/IEventRepository";
-import { IReviewRepository } from "../repositories/reviews/IReviewRepository";
+import { ReviewReferenceType } from "@/types/models/review";
+import { IPlaceRepository } from "@/types/repositories/place.repository.types";
+import { IEventRepository } from "@/types/repositories/event.repository.types";
+import { IReviewRepository } from "@/types/repositories/review.repository.types";
 
 class ReviewService {
   constructor(

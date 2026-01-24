@@ -1,4 +1,4 @@
-import { IEventPeriod, IEventDateRange } from "../types/models/event";
+import { IEventPeriod, IEventDateRange } from "@/types/models/event";
 
 export type LifecycleStatus = "upcoming" | "ongoing" | "completed" | "unvalid";
 

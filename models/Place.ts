@@ -5,7 +5,7 @@ import {
   ILocation,
   IPlace,
   IPlaceTimeSlot,
-} from "../types/models/place";
+} from "@/types/models/place";
 
 const timeSlotSchema = new Schema<IPlaceTimeSlot>(
   {

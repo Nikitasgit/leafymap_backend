@@ -1,7 +1,7 @@
 import cron from "node-cron";
-import { IEventRepository } from "../../repositories/events/IEventRepository";
-import UpdateEventLifecycleStatusAction from "../../actions/events/UpdateEventLifecycleStatusAction";
-import logger from "../../utils/logger";
+import { IEventRepository } from "@/types/repositories/event.repository.types";
+import { UpdateEventLifecycleStatusAction } from "@/actions/events";
+import logger from "@/utils/logger";
 
 class EventsCronService {
   private updateEventLifecycleStatusAction: UpdateEventLifecycleStatusAction;

@@ -1,5 +1,5 @@
-import { IEventPeriod } from "../types/models/event";
-import { IImage } from "../types/models/Image";
+import { IEventPeriod } from "@/types/models/event";
+import { IImage } from "@/types/models/Image";
 import { Types } from "mongoose";
 
 type WeekDay =

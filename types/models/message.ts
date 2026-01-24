@@ -2,10 +2,12 @@ import { Document, Types } from "mongoose";
 
 export interface IMessage extends Document {
   _id: Types.ObjectId;
-  senderId: Types.ObjectId;
-  recipientId: Types.ObjectId;
-  content: string;
+  conversation: Types.ObjectId;
+  sender: Types.ObjectId;
+  deleted: boolean;
+  content?: string;
   isRead: boolean;
+  partnership?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -1,6 +1,6 @@
-import { IUserRepository } from "../../../repositories/users/IUserRepository";
-import GetUserByIdAction from "../../../actions/users/GetUserByIdAction";
-import { IUser } from "../../../types/models/user";
+import { IUserRepository } from "@/types/repositories/user.repository.types";
+import { GetUserByIdAction } from "@/actions/users";
+import { IUser } from "@/types/models/user";
 import { Types } from "mongoose";
 
 describe("GetUserByIdAction", () => {

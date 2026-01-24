@@ -1,0 +1,10 @@
+export { default as CategoryRepository } from "./category.repository";
+export { default as UserRepository } from "./user.repository";
+export { default as PlaceRepository } from "./place.repository";
+export { default as EventRepository } from "./event.repository";
+export { default as CommentRepository } from "./comment.repository";
+export { default as MessageRepository } from "./message.repository";
+export { default as ConversationRepository } from "./conversation.repository";
+export { default as ImageRepository } from "./image.repository";
+export { default as PartnershipRepository } from "./partnership.repository";
+export { default as ReviewRepository } from "./review.repository";
