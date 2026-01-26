@@ -95,7 +95,7 @@ class CreatePartnershipsAction implements ICreatePartnershipsAction {
           const messageId = await this.messageRepository.create({
             conversation: conversation._id,
             sender: initiatorObjectId,
-            isRead: false,
+            readBy: [],
             partnership: newPartnership._id,
           });
           await this.conversationRepository.updateOne(

@@ -19,7 +19,6 @@ class GetUserByIdAction implements IGetUserByIdAction {
     "phone",
     "description",
     "country",
-    "address",
     "followers",
     "place._id",
     "image.urls",

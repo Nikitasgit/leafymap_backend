@@ -17,8 +17,9 @@ export interface Conversation {
   }[];
   lastMessage: {
     content?: string;
-    type: "text" | "partnership_invite";
-    partnership?: string;
+    partnership?: string | {
+      type?: "place" | "event";
+    };
     createdAt: Date | string;
   };
   unreadCount: number;
@@ -37,8 +38,8 @@ class GetConversationsAction implements IGetConversationsAction {
     "participants.image.urls",
     "lastMessage",
     "lastMessage.content",
-    "lastMessage.type",
     "lastMessage.partnership",
+    "lastMessage.partnership.type",
     "lastMessage.createdAt",
     "updatedAt",
   ];
@@ -59,16 +60,15 @@ class GetConversationsAction implements IGetConversationsAction {
     const result: Conversation[] = [];
 
     for (const conversation of conversations) {
-      const unreadMessages = await this.messageRepository.findAll({
+      const unreadCount = await this.messageRepository.countAll({
         filters: {
           conversation: conversation._id.toString(),
-          isRead: false,
+          readBy: { $nin: [new Types.ObjectId(userId)] },
           sender: { $ne: new Types.ObjectId(userId) },
-        } as any,
-        project: ["_id"],
+        },
       });
 
-      (conversation as any).unreadCount = unreadMessages.length;
+      (conversation as any).unreadCount = unreadCount;
 
       result.push(conversation as unknown as Conversation);
     }

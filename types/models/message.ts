@@ -6,7 +6,7 @@ export interface IMessage extends Document {
   sender: Types.ObjectId;
   deleted: boolean;
   content?: string;
-  isRead: boolean;
+  readBy: Types.ObjectId[];
   partnership?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;

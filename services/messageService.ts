@@ -13,7 +13,6 @@ class MessageService {
    */
   sendPartnershipMessage(params: SendPartnershipMessageParams): string {
     const { initiatorUsername, eventName, placeLabel, type } = params;
-
     if (type === "event" && eventName) {
       return `${initiatorUsername} vous propose de participer à l'événement "${eventName}" au lieu "${placeLabel}".`;
     }

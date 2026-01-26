@@ -2,15 +2,32 @@ import { IMessageRepository } from "@/types/repositories/message.repository.type
 import { IConversationRepository } from "@/types/repositories/conversation.repository.types";
 import { CreateMessageInput } from "../../validations/message.validations";
 import { Types } from "mongoose";
+import { IMessage } from "@/types/models/message";
 
 export interface ICreateMessageAction {
   execute(params: {
     messageData: CreateMessageInput;
     senderId: string;
-  }): Promise<{ _id: string }>;
+  }): Promise<{
+    _id: string;
+    conversationId: string;
+    message: Partial<IMessage>;
+  }>;
 }
 
 class CreateMessageAction implements ICreateMessageAction {
+  private readonly project: (keyof IMessage | string)[] = [
+    "_id",
+    "conversation",
+    "sender",
+    "sender.username",
+    "sender.image.urls",
+    "content",
+    "readBy",
+    "createdAt",
+    "updatedAt",
+  ];
+
   constructor(
     private messageRepository: IMessageRepository,
     private conversationRepository: IConversationRepository
@@ -22,7 +39,11 @@ class CreateMessageAction implements ICreateMessageAction {
   }: {
     messageData: CreateMessageInput;
     senderId: string;
-  }): Promise<{ _id: string }> {
+  }): Promise<{
+    _id: string;
+    conversationId: string;
+    message: Partial<IMessage>;
+  }> {
     const { recipientId, content } = messageData;
 
     const senderObjectId = new Types.ObjectId(senderId);
@@ -51,14 +72,23 @@ class CreateMessageAction implements ICreateMessageAction {
       conversation: conversation._id,
       sender: senderObjectId,
       content,
-      isRead: false,
+      readBy: [],
     });
 
     await this.conversationRepository.updateOne(conversation._id.toString(), {
       lastMessage: messageId,
     });
 
-    return { _id: messageId.toString() };
+    const message = await this.messageRepository.findById(
+      messageId.toString(),
+      this.project
+    );
+
+    return {
+      _id: messageId.toString(),
+      conversationId: conversation._id.toString(),
+      message: message || {},
+    };
   }
 }
 

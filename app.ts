@@ -13,9 +13,12 @@ import imageRoutes from "./routes/image.routes";
 import reviewRoutes from "./routes/review.routes";
 import commentRoutes from "./routes/comment.routes";
 import messageRoutes from "./routes/message.routes";
+import notificationRoutes from "./routes/notification.routes";
 import cors from "cors";
 import helmet from "helmet";
 import { RateLimiterMiddleware } from "./middlewares";
+import logger from "./utils/logger";
+import { Request, Response, NextFunction } from "express";
 
 const rateLimiterMiddleware = new RateLimiterMiddleware();
 
@@ -64,6 +67,23 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(cookieParser());
 app.use(helmet());
 
+// Request logging middleware
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const start = Date.now();
+  const method = req.method;
+  const url = req.originalUrl || req.url;
+  const ip = req.ip || req.socket.remoteAddress;
+
+  logger.info(`${method} ${url}`);
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    const statusCode = res.statusCode;
+    logger.info(`${method} ${url} - ${statusCode} - ${duration}ms`);
+  });
+
+  next();
+});
+
 // Apply rate limiting to all API routes
 // app.use("/api/", rateLimiterMiddleware.api());
 
@@ -77,6 +97,7 @@ app.use("/api/partnerships", partnershipRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.use(errorHandler);
 

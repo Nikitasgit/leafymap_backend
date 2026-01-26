@@ -10,6 +10,7 @@ import {
   DeleteMessageAction,
   GetMessagesAction,
   GetConversationsAction,
+  MarkMessagesAsReadAction,
 } from "@/actions/messages";
 import {
   CreateMessageController,
@@ -17,12 +18,14 @@ import {
   DeleteMessageController,
   GetMessagesController,
   GetConversationsController,
+  MarkMessagesAsReadController,
 } from "@/controllers/messages";
 import {
   AuthMiddleware,
   MessagesMiddleware,
   RateLimiterMiddleware,
 } from "@/middlewares";
+import ConversationMiddleware from "@/middlewares/conversation.middleware";
 
 // Initialize repositories
 const messageRepository = new MessageRepository();
@@ -33,6 +36,9 @@ const conversationRepository = new ConversationRepository();
 // Initialize middlewares
 export const authMiddleware = new AuthMiddleware(userRepository);
 export const messagesMiddleware = new MessagesMiddleware(messageRepository);
+export const conversationMiddleware = new ConversationMiddleware(
+  conversationRepository
+);
 export const rateLimiterMiddleware = new RateLimiterMiddleware();
 
 // Initialize actions
@@ -44,10 +50,14 @@ const updateMessageAction = new UpdateMessageAction(messageRepository);
 const deleteMessageAction = new DeleteMessageAction(messageRepository);
 const getMessagesAction = new GetMessagesAction(
   messageRepository,
-  partnershipRepository
+  partnershipRepository,
+  conversationRepository
 );
 const getConversationsAction = new GetConversationsAction(
   conversationRepository,
+  messageRepository
+);
+const markMessagesAsReadAction = new MarkMessagesAsReadAction(
   messageRepository
 );
 
@@ -58,4 +68,7 @@ export const deleteMessage = new DeleteMessageController(deleteMessageAction);
 export const getMessages = new GetMessagesController(getMessagesAction);
 export const getConversations = new GetConversationsController(
   getConversationsAction
+);
+export const markMessagesAsRead = new MarkMessagesAsReadController(
+  markMessagesAsReadAction
 );

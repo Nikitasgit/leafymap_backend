@@ -21,10 +21,12 @@ const messageSchema = new Schema<IMessage>(
       type: String,
       required: false,
     },
-    isRead: {
-      type: Boolean,
-      default: false,
-    },
+    readBy: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     partnership: {
       type: Schema.Types.ObjectId,
       ref: "Partnership",
@@ -35,7 +37,7 @@ const messageSchema = new Schema<IMessage>(
 );
 
 messageSchema.index({ conversation: 1, createdAt: -1 });
-messageSchema.index({ conversation: 1, isRead: 1 });
+messageSchema.index({ conversation: 1, readBy: 1 });
 messageSchema.index({ partnership: 1 });
 
 export default model<IMessage>("Message", messageSchema);

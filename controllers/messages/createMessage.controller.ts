@@ -5,6 +5,7 @@ import logger from "@/utils/logger";
 import { createMessageSchema } from "../../validations/message.validations";
 import { ICreateMessageAction } from "@/actions/messages";
 import { validateData } from "@/utils/validation";
+import { getSocketService } from "@/services/socket/socketInstance";
 
 class CreateMessageController {
   constructor(private createMessageAction: ICreateMessageAction) {}
@@ -42,12 +43,17 @@ class CreateMessageController {
           return;
         }
 
-        const message = await this.createMessageAction.execute({
+        const result = await this.createMessageAction.execute({
           messageData: createMessageSchema.parse(req.body),
           senderId,
         });
 
-        APIResponse(res, message, "Message créé avec succès", 201);
+        const socketService = getSocketService();
+        if (socketService && result.message) {
+          socketService.emitNewMessage(result.conversationId, result.message);
+        }
+
+        APIResponse(res, { _id: result._id }, "Message créé avec succès", 201);
       } catch (error) {
         logger.error("Erreur lors de la création du message:", error);
         const message =

@@ -8,3 +8,5 @@ export { default as UpdateMessageAction } from "./UpdateMessage.action";
 export type { IUpdateMessageAction } from "./UpdateMessage.action";
 export { default as DeleteMessageAction } from "./DeleteMessage.action";
 export type { IDeleteMessageAction } from "./DeleteMessage.action";
+export { default as MarkMessagesAsReadAction } from "./MarkMessagesAsRead.action";
+export type { IMarkMessagesAsReadAction } from "./MarkMessagesAsRead.action";

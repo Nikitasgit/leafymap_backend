@@ -21,6 +21,7 @@ export interface CustomRequest extends Request {
   review?: IReview;
   comment?: IComment;
   message?: IMessage;
+  conversation?: IConversation;
   reviewReferenceIsOwner?: boolean;
   reviewReference?: IPlace | IEvent | null;
   commentReference?: IImage | IReview | null;

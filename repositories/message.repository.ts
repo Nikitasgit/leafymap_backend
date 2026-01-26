@@ -17,10 +17,34 @@ class MessageRepository implements IMessageRepository {
       query.conversation = new Types.ObjectId(filters.conversation);
     }
     if (filters.sender) {
-      query.sender = new Types.ObjectId(filters.sender);
+      if (typeof filters.sender === "string") {
+        query.sender = new Types.ObjectId(filters.sender);
+      } else if ("$ne" in filters.sender) {
+        query.sender = {
+          $ne: filters.sender.$ne,
+        };
+      } else if ("$in" in filters.sender) {
+        query.sender = {
+          $in: filters.sender.$in.map((id) => new Types.ObjectId(id)),
+        };
+      }
     }
-    if (filters.isRead !== undefined) {
-      query.isRead = filters.isRead;
+    if (filters.readBy) {
+      if (typeof filters.readBy === "string") {
+        query.readBy = new Types.ObjectId(filters.readBy);
+      } else if ("$ne" in filters.readBy) {
+        query.readBy = {
+          $nin: [filters.readBy.$ne],
+        };
+      } else if ("$nin" in filters.readBy) {
+        query.readBy = {
+          $nin: filters.readBy.$nin,
+        };
+      } else if ("$in" in filters.readBy) {
+        query.readBy = {
+          $in: filters.readBy.$in.map((id) => new Types.ObjectId(id)),
+        };
+      }
     }
     if (filters._id) {
       query._id = {
@@ -29,7 +53,7 @@ class MessageRepository implements IMessageRepository {
     }
 
     Object.keys(filters).forEach((key) => {
-      if (!["conversation", "sender", "isRead", "_id"].includes(key)) {
+      if (!["conversation", "sender", "readBy", "_id"].includes(key)) {
         (query as Record<string, unknown>)[key] = (
           filters as Record<string, unknown>
         )[key];
@@ -63,6 +87,12 @@ class MessageRepository implements IMessageRepository {
     }
 
     const message = await query.lean();
+    return message as IMessage | null;
+  }
+
+  async findOne(filters: MessageFilters): Promise<IMessage | null> {
+    const query = this.buildQuery(filters);
+    const message = await Message.findOne(query).lean();
     return message as IMessage | null;
   }
 
@@ -104,8 +134,23 @@ class MessageRepository implements IMessageRepository {
     return messages as Pick<IMessage, K>[];
   }
 
+  async countAll(params: {
+    filters?: MessageFilters;
+  }): Promise<number> {
+    const query = this.buildQuery(params.filters);
+    const count = await Message.countDocuments(query);
+    return count;
+  }
+
   async updateOne(id: string, update: Partial<IMessage>): Promise<void> {
     await Message.updateOne({ _id: id }, update).exec();
+  }
+
+  async markAsReadByUser(messageId: string, userId: string): Promise<void> {
+    await Message.updateOne(
+      { _id: messageId },
+      { $addToSet: { readBy: new Types.ObjectId(userId) } }
+    ).exec();
   }
 
   async deleteOne(id: string): Promise<void> {

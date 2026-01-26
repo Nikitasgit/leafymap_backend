@@ -5,12 +5,19 @@ import {
 import { IMessage } from "@/types/models/message";
 import { IPartnershipRepository } from "@/types/repositories/partnership.repository.types";
 import { IPartnershipPopulated } from "@/types/models/partnership";
+import { IConversationRepository } from "@/types/repositories/conversation.repository.types";
+import { Types } from "mongoose";
 import MessageService from "@/services/messageService";
 
 export interface IGetMessagesAction {
   execute(params: {
     filters?: MessageFilters;
-  }): Promise<IMessage[] | Partial<IMessage>[]>;
+    conversationId?: string;
+    userId?: string;
+  }): Promise<{
+    messages: IMessage[] | Partial<IMessage>[];
+    participants?: any[];
+  }>;
 }
 
 class GetMessagesAction implements IGetMessagesAction {
@@ -21,7 +28,7 @@ class GetMessagesAction implements IGetMessagesAction {
     "sender.username",
     "sender.image.urls",
     "content",
-    "isRead",
+    "readBy",
     "partnership",
     "createdAt",
     "updatedAt",
@@ -31,19 +38,31 @@ class GetMessagesAction implements IGetMessagesAction {
 
   constructor(
     private messageRepository: IMessageRepository,
-    private partnershipRepository: IPartnershipRepository
+    private partnershipRepository: IPartnershipRepository,
+    private conversationRepository: IConversationRepository
   ) {
     this.messageService = new MessageService();
   }
 
   async execute({
     filters,
+    conversationId,
   }: {
     filters?: MessageFilters;
-  }): Promise<IMessage[] | Partial<IMessage>[]> {
+    conversationId?: string;
+    userId?: string;
+  }): Promise<{
+    messages: IMessage[] | Partial<IMessage>[];
+    participants?: any[];
+  }> {
+    if (!conversationId) {
+      throw new Error("Conversation ID is required");
+    }
+
     const messages = await this.messageRepository.findAll({
       filters,
       project: this.project,
+      sort: { createdAt: 1 },
     });
 
     const messagesWithContent = await Promise.all(
@@ -84,7 +103,25 @@ class GetMessagesAction implements IGetMessagesAction {
       })
     );
 
-    return messagesWithContent;
+    const conversation = await this.conversationRepository.findById(
+      conversationId,
+      [
+        "participants",
+        "participants._id",
+        "participants.username",
+        "participants.image.urls",
+        "participants.place",
+        "participants.place.placeCategory",
+        "participants.place.placeCategory.name",
+        "participants.place.location",
+        "participants.place.location.label",
+      ]
+    );
+
+    return {
+      messages: messagesWithContent,
+      participants: conversation?.participants || [],
+    };
   }
 }
 

@@ -3,8 +3,8 @@ import { Types } from "mongoose";
 
 export interface MessageFilters {
   conversation?: string;
-  sender?: string;
-  isRead?: boolean;
+  sender?: string | { $ne: Types.ObjectId } | { $in: string[] };
+  readBy?: string | { $ne: Types.ObjectId } | { $nin: Types.ObjectId[] } | { $in: string[] };
   _id?: { $in: string[] };
   [key: string]: unknown;
 }
@@ -21,6 +21,11 @@ export interface IMessageRepository {
     limit?: number;
     sort?: { [key: string]: 1 | -1 };
   }): Promise<Pick<IMessage, K>[]>;
+  countAll(params: {
+    filters?: MessageFilters;
+  }): Promise<number>;
+  findOne(filters: MessageFilters): Promise<IMessage | null>;
   updateOne(id: string, update: Partial<IMessage>): Promise<void>;
+  markAsReadByUser(messageId: string, userId: string): Promise<void>;
   deleteOne(id: string): Promise<void>;
 }

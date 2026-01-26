@@ -15,7 +15,9 @@ class GetMessagesController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const { conversationId, senderId, isRead } = req.query;
+        const conversationId = req.params.conversationId;
+        const userId = req.decoded?.id;
+        const { senderId, readByUserId } = req.query;
 
         const filters: MessageFilters = {};
         if (conversationId && typeof conversationId === "string") {
@@ -24,13 +26,25 @@ class GetMessagesController {
         if (senderId && typeof senderId === "string") {
           filters.sender = senderId;
         }
-        if (isRead !== undefined && typeof isRead === "string") {
-          filters.isRead = isRead === "true";
+        if (readByUserId && typeof readByUserId === "string") {
+          filters.readBy = readByUserId;
         }
 
-        const messages = await this.getMessagesAction.execute({ filters });
+        const result = await this.getMessagesAction.execute({
+          filters,
+          conversationId,
+          userId,
+        });
 
-        APIResponse(res, { messages }, "Messages récupérés avec succès", 200);
+        APIResponse(
+          res,
+          {
+            messages: result.messages,
+            participants: result.participants,
+          },
+          "Messages récupérés avec succès",
+          200
+        );
       } catch (error) {
         logger.error("Erreur lors de la récupération des messages:", error);
         APIResponse(res, null, "Erreur serveur", 500);

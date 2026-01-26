@@ -15,7 +15,7 @@ class GetEventsController {
     ): Promise<void> => {
       try {
         const { placeId, limit, lifecycleStatus } = req.query;
-
+console.log(placeId, limit, lifecycleStatus);
         const filters: GetEventsInput = {
           placeId: typeof placeId === "string" ? placeId : undefined,
           limit: limit ? parseInt(limit as string) : undefined,
