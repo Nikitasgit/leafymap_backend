@@ -4,6 +4,8 @@ export { default as GetMessagesAction } from "./GetMessages.action";
 export type { IGetMessagesAction } from "./GetMessages.action";
 export { default as GetConversationsAction } from "./GetConversations.action";
 export type { IGetConversationsAction } from "./GetConversations.action";
+export { default as GetConversationWithUserAction } from "./GetConversationWithUser.action";
+export type { IGetConversationWithUserAction } from "./GetConversationWithUser.action";
 export { default as UpdateMessageAction } from "./UpdateMessage.action";
 export type { IUpdateMessageAction } from "./UpdateMessage.action";
 export { default as DeleteMessageAction } from "./DeleteMessage.action";

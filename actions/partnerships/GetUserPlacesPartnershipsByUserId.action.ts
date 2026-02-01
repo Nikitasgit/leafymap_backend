@@ -10,6 +10,7 @@ export interface GetUserPlacesPartnershipsByUserIdInput {
   asCollaborator?: boolean;
   currentUserId?: string;
   onlyAccepted?: boolean;
+  onlyPending?: boolean;
 }
 
 export interface IGetUserPlacesPartnershipsByUserIdAction {
@@ -60,6 +61,10 @@ class GetUserPlacesPartnershipsByUserIdAction
       queryFilters.initiator = filters.userId;
     }
 
+    if (filters.onlyPending) {
+      queryFilters.status = "pending";
+    }
+
     const partnerships = await this.partnershipRepository.findAll({
       filters: queryFilters,
       project: this.project,
@@ -67,6 +72,9 @@ class GetUserPlacesPartnershipsByUserIdAction
     });
 
     const filteredPartnerships = partnerships.filter((partnership: any) => {
+      if (filters.onlyPending) {
+        return true;
+      }
       if (filters.onlyAccepted) {
         return partnership.status === "accepted";
       }

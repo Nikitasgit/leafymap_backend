@@ -33,15 +33,11 @@ class GetMessagesController {
         const result = await this.getMessagesAction.execute({
           filters,
           conversationId,
-          userId,
         });
 
         APIResponse(
           res,
-          {
-            messages: result.messages,
-            participants: result.participants,
-          },
+          { messages: result.messages },
           "Messages récupérés avec succès",
           200
         );

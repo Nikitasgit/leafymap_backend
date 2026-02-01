@@ -3,7 +3,7 @@ import EventStatusService from "@/services/eventStatusService";
 import logger from "@/utils/logger";
 
 export interface IUpdateEventLifecycleStatusAction {
-  execute(): Promise<void>;
+  execute(): Promise<string[]>;
 }
 
 class UpdateEventLifecycleStatusAction
@@ -15,7 +15,7 @@ class UpdateEventLifecycleStatusAction
     this.eventStatusService = new EventStatusService();
   }
 
-  async execute(): Promise<void> {
+  async execute(): Promise<string[]> {
     try {
       const events = await this.eventRepository.findAll({
         filters: { deleted: false },
@@ -24,6 +24,7 @@ class UpdateEventLifecycleStatusAction
       });
 
       let updatedCount = 0;
+      const transitionedToCompletedOrUnvalidIds: string[] = [];
 
       for (const event of events) {
         if (!event.schedule || event.schedule.length === 0) {
@@ -45,12 +46,20 @@ class UpdateEventLifecycleStatusAction
             lifecycleStatus,
           });
           updatedCount++;
+          if (
+            lifecycleStatus === "completed" ||
+            lifecycleStatus === "unvalid"
+          ) {
+            transitionedToCompletedOrUnvalidIds.push(event._id.toString());
+          }
         }
       }
 
       logger.info(
         `Event lifecycle status update completed. Updated ${updatedCount} events.`
       );
+
+      return transitionedToCompletedOrUnvalidIds;
     } catch (error) {
       logger.error("Error updating event lifecycle statuses:", error);
       throw error;

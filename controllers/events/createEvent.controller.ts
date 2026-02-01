@@ -18,7 +18,6 @@ class CreateEventController {
     ): Promise<void> => {
       try {
         const placeId = new Types.ObjectId(req.placeId!);
-        console.log(req.body);
         const errors = validateData(newEventSchema, req.body);
         if (errors) {
           APIResponse(res, errors, "Validation failed", 400);

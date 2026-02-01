@@ -53,7 +53,12 @@ class CreateMessageController {
           socketService.emitNewMessage(result.conversationId, result.message);
         }
 
-        APIResponse(res, { _id: result._id }, "Message créé avec succès", 201);
+        APIResponse(
+          res,
+          { _id: result._id, conversationId: result.conversationId },
+          "Message créé avec succès",
+          201
+        );
       } catch (error) {
         logger.error("Erreur lors de la création du message:", error);
         const message =

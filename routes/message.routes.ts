@@ -5,6 +5,7 @@ import {
   deleteMessage,
   getMessages,
   getConversations,
+  getConversationWithUser,
   markMessagesAsRead,
   authMiddleware,
   messagesMiddleware,
@@ -16,15 +17,20 @@ const router: Router = express.Router();
 
 router.post("/", authMiddleware.verify(), createMessage.handle());
 router.get(
+  "/conversations",
+  authMiddleware.verify(),
+  getConversations.handle()
+);
+router.get(
+  "/conversation/with/:otherUserId",
+  authMiddleware.verify(),
+  getConversationWithUser.handle()
+);
+router.get(
   "/conversation/:conversationId",
   authMiddleware.verify(),
   conversationMiddleware.ownership(),
   getMessages.handle()
-);
-router.get(
-  "/conversations",
-  authMiddleware.verify(),
-  getConversations.handle()
 );
 router.put(
   "/conversation/:conversationId/read",

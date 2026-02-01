@@ -12,6 +12,7 @@ export interface GetUserEventsPartnershipsByUserIdInput {
   includePastEvents?: boolean;
   currentUserId?: string;
   onlyAccepted?: boolean;
+  onlyPending?: boolean;
 }
 
 export interface IGetUserEventsPartnershipsByUserIdAction {
@@ -74,6 +75,10 @@ class GetUserEventsPartnershipsByUserIdAction
       queryFilters.initiator = filters.userId;
     }
 
+    if (filters.onlyPending) {
+      queryFilters.status = "pending";
+    }
+
     const partnerships = await this.partnershipRepository.findAll({
       filters: queryFilters,
       project: this.project,
@@ -81,6 +86,9 @@ class GetUserEventsPartnershipsByUserIdAction
     });
 
     const filteredPartnerships = partnerships.filter((partnership: any) => {
+      if (filters.onlyPending) {
+        return true;
+      }
       if (filters.onlyAccepted) {
         return partnership.status === "accepted";
       }

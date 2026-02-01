@@ -17,7 +17,7 @@ class GetUserPlacesPartnershipsByUserIdController {
     ): Promise<void> => {
       try {
         const { userId } = req.params;
-        const { asCollaborator, onlyAccepted } = req.query;
+        const { asCollaborator, onlyAccepted, onlyPending } = req.query;
         const currentUserId = req.decoded?.id;
 
         const partnerships =
@@ -27,6 +27,7 @@ class GetUserPlacesPartnershipsByUserIdController {
               asCollaborator: asCollaborator === "true",
               currentUserId,
               onlyAccepted: onlyAccepted === "true",
+              onlyPending: onlyPending === "true",
             },
           });
 

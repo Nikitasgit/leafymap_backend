@@ -3,20 +3,13 @@ import {
   MessageFilters,
 } from "@/types/repositories/message.repository.types";
 import { IMessage } from "@/types/models/message";
-import { IPartnershipRepository } from "@/types/repositories/partnership.repository.types";
-import { IPartnershipPopulated } from "@/types/models/partnership";
-import { IConversationRepository } from "@/types/repositories/conversation.repository.types";
-import { Types } from "mongoose";
-import MessageService from "@/services/messageService";
 
 export interface IGetMessagesAction {
   execute(params: {
     filters?: MessageFilters;
     conversationId?: string;
-    userId?: string;
   }): Promise<{
     messages: IMessage[] | Partial<IMessage>[];
-    participants?: any[];
   }>;
 }
 
@@ -26,23 +19,26 @@ class GetMessagesAction implements IGetMessagesAction {
     "conversation",
     "sender",
     "sender.username",
+    "sender.firstname",
+    "sender.lastname",
+    "sender.email",
     "sender.image.urls",
     "content",
     "readBy",
-    "partnership",
+    "partnership.type",
+    "partnership.event.name",
+    "partnership.event.description",
+    "partnership.event.lifecycleStatus",
+    "partnership.event.image.urls",
+    "partnership.event.dateRange",
+    "partnership.place.location",
+    "partnership.place.placeCategory.name",
+    "partnership.place.followers",
     "createdAt",
     "updatedAt",
   ];
 
-  private messageService: MessageService;
-
-  constructor(
-    private messageRepository: IMessageRepository,
-    private partnershipRepository: IPartnershipRepository,
-    private conversationRepository: IConversationRepository
-  ) {
-    this.messageService = new MessageService();
-  }
+  constructor(private messageRepository: IMessageRepository) {}
 
   async execute({
     filters,
@@ -50,10 +46,8 @@ class GetMessagesAction implements IGetMessagesAction {
   }: {
     filters?: MessageFilters;
     conversationId?: string;
-    userId?: string;
   }): Promise<{
     messages: IMessage[] | Partial<IMessage>[];
-    participants?: any[];
   }> {
     if (!conversationId) {
       throw new Error("Conversation ID is required");
@@ -65,63 +59,7 @@ class GetMessagesAction implements IGetMessagesAction {
       sort: { createdAt: 1 },
     });
 
-    const messagesWithContent = await Promise.all(
-      messages.map(async (message) => {
-        if (!message.partnership) {
-          return message;
-        }
-        const partnership = await this.partnershipRepository.findById(
-          message.partnership.toString(),
-          [
-            "_id",
-            "type",
-            "place.location.label",
-            "event.name",
-            "initiator.username",
-          ]
-        );
-        if (!partnership) {
-          return message;
-        }
-        const populatedPartnership = partnership as IPartnershipPopulated;
-
-        const placeLabel = populatedPartnership.place.location.label;
-        const eventName = populatedPartnership.event?.name;
-        const initiatorUsername = populatedPartnership.initiator.username;
-
-        const content = this.messageService.sendPartnershipMessage({
-          initiatorUsername,
-          eventName,
-          placeLabel,
-          type: partnership.type,
-        });
-
-        return {
-          ...message,
-          content,
-        };
-      })
-    );
-
-    const conversation = await this.conversationRepository.findById(
-      conversationId,
-      [
-        "participants",
-        "participants._id",
-        "participants.username",
-        "participants.image.urls",
-        "participants.place",
-        "participants.place.placeCategory",
-        "participants.place.placeCategory.name",
-        "participants.place.location",
-        "participants.place.location.label",
-      ]
-    );
-
-    return {
-      messages: messagesWithContent,
-      participants: conversation?.participants || [],
-    };
+    return { messages };
   }
 }
 

@@ -5,6 +5,7 @@ export interface PartnershipFilters {
   _id?: string;
   place?: string;
   event?: string;
+  eventIn?: string[];
   initiator?: string;
   collaborator?: string;
   type?: "place" | "event";
@@ -31,6 +32,10 @@ export interface IPartnershipRepository {
     sort?: { [key: string]: 1 | -1 };
   }): Promise<Pick<IPartnership, K>[]>;
   updateOne(id: string, update: Partial<IPartnership>): Promise<void>;
+  updateMany(
+    filters: PartnershipFilters,
+    update: Partial<IPartnership>
+  ): Promise<number>;
   deleteOne(id: string): Promise<void>;
   deleteMany(filters: PartnershipFilters): Promise<void>;
 }

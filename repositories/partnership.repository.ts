@@ -19,7 +19,11 @@ class PartnershipRepository implements IPartnershipRepository {
     if (filters.place) {
       query.place = new Types.ObjectId(filters.place);
     }
-    if (filters.event) {
+    if (filters.eventIn && filters.eventIn.length > 0) {
+      query.event = {
+        $in: filters.eventIn.map((id) => new Types.ObjectId(id)),
+      } as any;
+    } else if (filters.event) {
       query.event = new Types.ObjectId(filters.event);
     }
     if (filters.initiator) {
@@ -56,6 +60,7 @@ class PartnershipRepository implements IPartnershipRepository {
           "_id",
           "place",
           "event",
+          "eventIn",
           "initiator",
           "collaborator",
           "type",
@@ -166,6 +171,15 @@ class PartnershipRepository implements IPartnershipRepository {
 
   async updateOne(id: string, update: Partial<IPartnership>): Promise<void> {
     await Partnership.findByIdAndUpdate(id, update as any).exec();
+  }
+
+  async updateMany(
+    filters: PartnershipFilters,
+    update: Partial<IPartnership>
+  ): Promise<number> {
+    const query = this.buildQuery(filters);
+    const result = await Partnership.updateMany(query, update as any).exec();
+    return result.modifiedCount ?? 0;
   }
 
   async deleteOne(id: string): Promise<void> {

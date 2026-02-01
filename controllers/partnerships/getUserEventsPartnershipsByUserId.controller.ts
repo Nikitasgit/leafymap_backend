@@ -22,6 +22,7 @@ class GetUserEventsPartnershipsByUserIdController {
           includeCancelledEvents,
           includePastEvents,
           onlyAccepted,
+          onlyPending,
         } = req.query;
         const currentUserId = req.decoded?.id;
 
@@ -34,6 +35,7 @@ class GetUserEventsPartnershipsByUserIdController {
               includePastEvents: includePastEvents === "true",
               currentUserId,
               onlyAccepted: onlyAccepted === "true",
+              onlyPending: onlyPending === "true",
             },
           });
 

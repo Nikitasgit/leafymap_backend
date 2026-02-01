@@ -7,8 +7,11 @@ export interface Conversation {
   _id: string;
   participants: {
     _id: string;
-    username: string;
-    image: {
+    username?: string;
+    firstname?: string;
+    lastname?: string;
+    email?: string;
+    image?: {
       urls: {
         thumbnail: string;
         medium: string;
@@ -17,9 +20,11 @@ export interface Conversation {
   }[];
   lastMessage: {
     content?: string;
-    partnership?: string | {
-      type?: "place" | "event";
-    };
+    partnership?:
+      | string
+      | {
+          type?: "place" | "event";
+        };
     createdAt: Date | string;
   };
   unreadCount: number;
@@ -35,6 +40,9 @@ class GetConversationsAction implements IGetConversationsAction {
     "participants",
     "participants._id",
     "participants.username",
+    "participants.firstname",
+    "participants.lastname",
+    "participants.email",
     "participants.image.urls",
     "lastMessage",
     "lastMessage.content",

@@ -6,6 +6,7 @@ import {
   EventRepository,
   UserRepository,
   MessageRepository,
+  PartnershipRepository,
 } from "@/repositories";
 import EventsCronService from "@/services/cron/EventsCronService";
 import SocketService from "@/services/socket/socketService";
@@ -25,7 +26,11 @@ const socketService = new SocketService(
 setSocketService(socketService);
 
 const eventRepository = new EventRepository();
-const eventsCronService = new EventsCronService(eventRepository);
+const partnershipRepository = new PartnershipRepository();
+const eventsCronService = new EventsCronService(
+  eventRepository,
+  partnershipRepository
+);
 eventsCronService.start();
 
 httpServer.listen(PORT, () => {
