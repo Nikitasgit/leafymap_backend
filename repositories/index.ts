@@ -7,4 +7,5 @@ export { default as MessageRepository } from "./message.repository";
 export { default as ConversationRepository } from "./conversation.repository";
 export { default as ImageRepository } from "./image.repository";
 export { default as PartnershipRepository } from "./partnership.repository";
+export { default as EventInvitationRepository } from "./eventInvitation.repository";
 export { default as ReviewRepository } from "./review.repository";

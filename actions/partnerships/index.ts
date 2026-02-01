@@ -8,5 +8,3 @@ export { default as GetPartnershipsByUserIdAction } from "./GetPartnershipsByUse
 export type { GetPartnershipsByUserIdInput, IGetPartnershipsByUserIdAction } from "./GetPartnershipsByUserId.action";
 export { default as GetUserPlacesPartnershipsByUserIdAction } from "./GetUserPlacesPartnershipsByUserId.action";
 export type { GetUserPlacesPartnershipsByUserIdInput, IGetUserPlacesPartnershipsByUserIdAction } from "./GetUserPlacesPartnershipsByUserId.action";
-export { default as GetUserEventsPartnershipsByUserIdAction } from "./GetUserEventsPartnershipsByUserId.action";
-export type { GetUserEventsPartnershipsByUserIdInput, IGetUserEventsPartnershipsByUserIdAction } from "./GetUserEventsPartnershipsByUserId.action";

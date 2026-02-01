@@ -5,7 +5,6 @@ import {
   getPartnerships,
   getPartnershipsByUserId,
   getUserPlacesPartnerships,
-  getUserEventsPartnerships,
   authMiddleware,
   placesMiddleware,
 } from "../di/partnership.di";
@@ -21,11 +20,6 @@ router.get(
   "/user/:userId/places",
   authMiddleware.verifyOptional(),
   getUserPlacesPartnerships.handle()
-);
-router.get(
-  "/user/:userId/events",
-  authMiddleware.verifyOptional(),
-  getUserEventsPartnerships.handle()
 );
 router.get(
   "/:placeId/:eventId?",

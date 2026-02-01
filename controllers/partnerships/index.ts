@@ -3,4 +3,3 @@ export { default as UpdatePartnershipsController } from "./updatePartnerships.co
 export { default as GetPartnershipsController } from "./getPartnerships.controller";
 export { default as GetPartnershipsByUserIdController } from "./getPartnershipsByUserId.controller";
 export { default as GetUserPlacesPartnershipsByUserIdController } from "./getUserPlacesPartnershipsByUserId.controller";
-export { default as GetUserEventsPartnershipsByUserIdController } from "./getUserEventsPartnershipsByUserId.controller";

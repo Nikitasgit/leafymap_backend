@@ -2,11 +2,11 @@ import { Response, NextFunction, RequestHandler } from "express";
 import { CustomRequest } from "@/types/custom";
 import { APIResponse } from "@/utils/response";
 import logger from "@/utils/logger";
-import { IGetUserEventsPartnershipsByUserIdAction } from "@/actions/partnerships";
+import { IGetEventInvitationsByUserIdAction } from "@/actions/eventInvitations";
 
-class GetUserEventsPartnershipsByUserIdController {
+class GetEventInvitationsByUserIdController {
   constructor(
-    private getUserEventsPartnershipsByUserIdAction: IGetUserEventsPartnershipsByUserIdAction
+    private getEventInvitationsByUserIdAction: IGetEventInvitationsByUserIdAction
   ) {}
 
   handle(): RequestHandler {
@@ -26,8 +26,8 @@ class GetUserEventsPartnershipsByUserIdController {
         } = req.query;
         const currentUserId = req.decoded?.id;
 
-        const partnerships =
-          await this.getUserEventsPartnershipsByUserIdAction.execute({
+        const eventInvitations =
+          await this.getEventInvitationsByUserIdAction.execute({
             filters: {
               userId,
               asCollaborator: asCollaborator === "true",
@@ -41,23 +41,20 @@ class GetUserEventsPartnershipsByUserIdController {
 
         APIResponse(
           res,
-          partnerships,
-          "User events partnerships retrieved successfully",
+          eventInvitations,
+          "Event invitations retrieved successfully",
           200
         );
       } catch (error) {
-        logger.error(
-          "Error getting user events partnerships by user id:",
-          error
-        );
+        logger.error("Error getting event invitations by user id:", error);
         const message =
           error instanceof Error
             ? error.message
-            : "Failed to get user events partnerships by user id";
+            : "Failed to get event invitations by user id";
         APIResponse(res, null, message, 500);
       }
     };
   }
 }
 
-export default GetUserEventsPartnershipsByUserIdController;
+export default GetEventInvitationsByUserIdController;

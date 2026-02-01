@@ -1,20 +1,20 @@
 import cron from "node-cron";
 import { IEventRepository } from "@/types/repositories/event.repository.types";
-import { IPartnershipRepository } from "@/types/repositories/partnership.repository.types";
+import { IEventInvitationRepository } from "@/types/repositories/eventInvitation.repository.types";
 import { UpdateEventLifecycleStatusAction } from "@/actions/events";
 import logger from "@/utils/logger";
 
 class EventsCronService {
   private updateEventLifecycleStatusAction: UpdateEventLifecycleStatusAction;
-  private partnershipRepository: IPartnershipRepository;
+  private eventInvitationRepo: IEventInvitationRepository;
 
   constructor(
     eventRepository: IEventRepository,
-    partnershipRepository: IPartnershipRepository
+    eventInvitationRepo: IEventInvitationRepository
   ) {
     this.updateEventLifecycleStatusAction =
       new UpdateEventLifecycleStatusAction(eventRepository);
-    this.partnershipRepository = partnershipRepository;
+    this.eventInvitationRepo = eventInvitationRepo;
   }
 
   start(): void {
@@ -25,7 +25,7 @@ class EventsCronService {
           await this.updateEventLifecycleStatusAction.execute();
 
         if (transitionedEventIds.length > 0) {
-          const cancelledCount = await this.partnershipRepository.updateMany(
+          const cancelledCount = await this.eventInvitationRepo.updateMany(
             {
               eventIn: transitionedEventIds,
               status: "pending",
@@ -34,7 +34,7 @@ class EventsCronService {
           );
           if (cancelledCount > 0) {
             logger.info(
-              `Cancelled ${cancelledCount} pending partnerships for ended events.`
+              `Cancelled ${cancelledCount} pending event invitations for ended events.`
             );
           }
         }

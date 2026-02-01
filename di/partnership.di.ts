@@ -11,7 +11,6 @@ import {
   GetPartnershipsAction,
   GetPartnershipsByUserIdAction,
   GetUserPlacesPartnershipsByUserIdAction,
-  GetUserEventsPartnershipsByUserIdAction,
 } from "@/actions/partnerships";
 import {
   CreatePartnershipsController,
@@ -19,7 +18,6 @@ import {
   GetPartnershipsController,
   GetPartnershipsByUserIdController,
   GetUserPlacesPartnershipsByUserIdController,
-  GetUserEventsPartnershipsByUserIdController,
 } from "@/controllers/partnerships";
 import { AuthMiddleware, PlacesMiddleware } from "@/middlewares";
 
@@ -49,8 +47,6 @@ const getPartnershipsByUserIdAction = new GetPartnershipsByUserIdAction(
 );
 const getUserPlacesPartnershipsByUserIdAction =
   new GetUserPlacesPartnershipsByUserIdAction(partnershipRepository);
-const getUserEventsPartnershipsByUserIdAction =
-  new GetUserEventsPartnershipsByUserIdAction(partnershipRepository);
 
 // Initialize controllers
 export const createPartnership = new CreatePartnershipsController(
@@ -68,8 +64,4 @@ export const getPartnershipsByUserId = new GetPartnershipsByUserIdController(
 export const getUserPlacesPartnerships =
   new GetUserPlacesPartnershipsByUserIdController(
     getUserPlacesPartnershipsByUserIdAction
-  );
-export const getUserEventsPartnerships =
-  new GetUserEventsPartnershipsByUserIdController(
-    getUserEventsPartnershipsByUserIdAction
   );
