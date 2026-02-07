@@ -15,31 +15,26 @@ class CreatePartnershipsController {
     ): Promise<void> => {
       try {
         const decoded = req.decoded!;
-        const { placeId, eventId } = req.params;
-        const { partnerships } = req.body;
+        const { partnership } = req.body;
 
-        const createdPartnerships = await this.createPartnershipsAction.execute(
-          {
-            partnerships,
-            placeId,
-            eventId,
-            initiatorId: decoded.id,
-          }
-        );
+        const createdPartnership = await this.createPartnershipsAction.execute({
+          partnership,
+          initiatorId: decoded.id,
+        });
 
         APIResponse(
           res,
-          createdPartnerships,
-          "Partnerships created successfully",
+          createdPartnership,
+          "Partnership created successfully",
           201
         );
       } catch (error) {
         logger.error("Error creating partnership:", error);
+        const err = error as Error & { statusCode?: number };
         const message =
-          error instanceof Error
-            ? error.message
-            : "Failed to create partnership";
-        APIResponse(res, null, message, 500);
+          err instanceof Error ? err.message : "Failed to create partnership";
+        const statusCode = err.statusCode ?? 500;
+        APIResponse(res, null, message, statusCode);
       }
     };
   }

@@ -21,8 +21,8 @@ class GetUsersAction implements IGetUsersAction {
     "lastname",
     "username",
     "image.urls",
-    "userCategories.name",
-    "userCategories.userCategoryType",
+    "userCategory.name",
+    "userCategory.userCategoryType",
     "place.location",
     "place.placeCategory.name",
   ];

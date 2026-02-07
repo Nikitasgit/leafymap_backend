@@ -1,6 +1,5 @@
 import { IEventRepository } from "@/types/repositories/event.repository.types";
 import { IImageRepository } from "@/types/repositories/image.repository.types";
-import { IPartnershipRepository } from "@/types/repositories/partnership.repository.types";
 import { DeleteImagesAction } from "../images";
 import logger from "@/utils/logger";
 
@@ -13,8 +12,7 @@ class DeleteEventAction implements IDeleteEventAction {
 
   constructor(
     private eventRepository: IEventRepository,
-    private imageRepository: IImageRepository,
-    private partnershipRepository: IPartnershipRepository
+    private imageRepository: IImageRepository
   ) {
     this.deleteImagesAction = new DeleteImagesAction(this.imageRepository);
   }
@@ -43,7 +41,6 @@ class DeleteEventAction implements IDeleteEventAction {
     }
 
     await this.eventRepository.deleteOne(eventId);
-    await this.partnershipRepository.deleteMany({ event: eventId });
 
     logger.info(`Event ${eventId} and associated data deleted successfully`);
   }

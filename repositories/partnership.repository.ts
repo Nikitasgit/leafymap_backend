@@ -16,24 +16,11 @@ class PartnershipRepository implements IPartnershipRepository {
     if (filters._id) {
       query._id = new Types.ObjectId(filters._id);
     }
-    if (filters.place) {
-      query.place = new Types.ObjectId(filters.place);
-    }
-    if (filters.eventIn && filters.eventIn.length > 0) {
-      query.event = {
-        $in: filters.eventIn.map((id) => new Types.ObjectId(id)),
-      } as any;
-    } else if (filters.event) {
-      query.event = new Types.ObjectId(filters.event);
-    }
     if (filters.initiator) {
       query.initiator = new Types.ObjectId(filters.initiator);
     }
     if (filters.collaborator) {
       query.collaborator = new Types.ObjectId(filters.collaborator);
-    }
-    if (filters.type) {
-      query.type = filters.type;
     }
     if (filters.status) {
       query.status = filters.status;
@@ -58,12 +45,8 @@ class PartnershipRepository implements IPartnershipRepository {
       if (
         ![
           "_id",
-          "place",
-          "event",
-          "eventIn",
           "initiator",
           "collaborator",
-          "type",
           "status",
           "deleted",
           "$or",

@@ -3,8 +3,7 @@ import { IPartnership } from "@/types/models/partnership";
 
 export interface UpdatePartnershipDTO {
   _id: string;
-  deleted?: boolean;
-  status?: "pending" | "accepted" | "refused" | "cancelled" | "completed";
+  status?: "pending" | "accepted";
 }
 
 export interface UpdatePartnershipsDTO {
@@ -42,21 +41,32 @@ class UpdatePartnershipsAction implements IUpdatePartnershipsAction {
         const isCollaborator =
           existingPartnership.collaborator.toString() === userId;
 
-        let updateData: Partial<IPartnership> = {};
+        const isTryingToAccept =
+          partnership.status === "accepted" &&
+          partnership.status !== existingPartnership.status;
 
-        if (isInitiator) {
-          updateData.deleted = partnership.deleted;
-        } else if (isCollaborator) {
-          if (partnership.status) {
-            updateData.status = partnership.status;
-          }
-        } else {
+        if (isTryingToAccept && !isCollaborator) {
+          throw new Error("Seul le collaborateur peut accepter l'invitation");
+        }
+
+        if (!isInitiator && !isCollaborator) {
           throw new Error(
             "You don't have permission to update this partnership"
           );
         }
 
-        await this.partnershipRepository.updateOne(partnership._id, updateData);
+        if (!partnership.status) return;
+
+        const updateData: Partial<IPartnership> = {
+          status: partnership.status,
+        };
+
+        if (Object.keys(updateData).length > 0) {
+          await this.partnershipRepository.updateOne(
+            partnership._id,
+            updateData
+          );
+        }
       }
     );
 

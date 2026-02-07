@@ -3,7 +3,6 @@ import {
   UserRepository,
   ImageRepository,
   EventRepository,
-  PartnershipRepository,
 } from "@/repositories";
 import {
   CreatePlaceAction,
@@ -32,7 +31,6 @@ const placeRepository = new PlaceRepository();
 const userRepository = new UserRepository();
 const imageRepository = new ImageRepository();
 const eventRepository = new EventRepository();
-const partnershipRepository = new PartnershipRepository();
 
 // Initialize middlewares
 export const authMiddleware = new AuthMiddleware(userRepository);
@@ -49,8 +47,7 @@ const deletePlaceAction = new DeletePlaceAction(
   placeRepository,
   userRepository,
   imageRepository,
-  eventRepository,
-  partnershipRepository
+  eventRepository
 );
 const getPlaceByIdAction = new GetPlaceByIdAction(
   placeRepository,
@@ -65,4 +62,6 @@ export const updatePlace = new UpdatePlaceController(updatePlaceAction);
 export const deletePlace = new DeletePlaceController(deletePlaceAction);
 export const getPlaceById = new GetPlaceByIdController(getPlaceByIdAction);
 export const getPlaces = new GetPlacesController(getPlacesAction);
-export const getPlacesInView = new GetPlacesInViewController(getPlacesInViewAction);
+export const getPlacesInView = new GetPlacesInViewController(
+  getPlacesInViewAction
+);

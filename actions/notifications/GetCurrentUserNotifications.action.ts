@@ -1,7 +1,12 @@
 import NotificationService from "@/services/notificationService";
+import { NotificationWithSender } from "@/types/repositories/notification.repository.types";
+
+export type GetCurrentUserNotificationsResult = NotificationWithSender[];
 
 export interface IGetCurrentUserNotificationsAction {
-  execute(params: { userId: string }): Promise<{ messages: number }>;
+  execute(params: {
+    userId: string;
+  }): Promise<GetCurrentUserNotificationsResult>;
 }
 
 class GetCurrentUserNotificationsAction
@@ -13,13 +18,8 @@ class GetCurrentUserNotificationsAction
     userId,
   }: {
     userId: string;
-  }): Promise<{ messages: number }> {
-    const unreadConversationsCount =
-      await this.notificationService.countUserUnreadConversations(userId);
-
-    return {
-      messages: unreadConversationsCount,
-    };
+  }): Promise<GetCurrentUserNotificationsResult> {
+    return this.notificationService.findAllForUser(userId, { limit: 50 });
   }
 }
 

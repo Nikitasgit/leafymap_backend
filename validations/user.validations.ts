@@ -17,14 +17,14 @@ export const usernameSchema = z
     "Le nom ne peut contenir que des lettres, chiffres, espaces et le caractère '"
   );
 
-const userCategoriesSchema = z
-  .array(z.string())
+const userCategorySchema = z
+  .string()
   .min(1, "Veuillez sélectionner une catégorie");
 
 export const newCreatorSchema = z.object({
   userType: z.literal("creator"),
   username: usernameSchema,
-  userCategories: userCategoriesSchema,
+  userCategory: userCategorySchema,
   description: descriptionSchema,
   website: websiteSchema.optional(),
   phone: phoneSchema.optional(),

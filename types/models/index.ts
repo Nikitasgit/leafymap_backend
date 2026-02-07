@@ -11,3 +11,4 @@ export * from "./review";
 export * from "./comment";
 export * from "./message";
 export * from "./conversation";
+export * from "./notification";

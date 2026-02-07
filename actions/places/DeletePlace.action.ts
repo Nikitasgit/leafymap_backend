@@ -2,7 +2,6 @@ import { IPlaceRepository } from "@/types/repositories/place.repository.types";
 import { IUserRepository } from "@/types/repositories/user.repository.types";
 import { IImageRepository } from "@/types/repositories/image.repository.types";
 import { IEventRepository } from "@/types/repositories/event.repository.types";
-import { IPartnershipRepository } from "@/types/repositories/partnership.repository.types";
 import { DeleteImagesAction } from "../images";
 import logger from "@/utils/logger";
 
@@ -17,8 +16,7 @@ class DeletePlaceAction implements IDeletePlaceAction {
     private placeRepository: IPlaceRepository,
     private userRepository: IUserRepository,
     private imageRepository: IImageRepository,
-    private eventRepository: IEventRepository,
-    private partnershipRepository: IPartnershipRepository
+    private eventRepository: IEventRepository
   ) {
     this.deleteImagesAction = new DeleteImagesAction(this.imageRepository);
   }
@@ -62,7 +60,6 @@ class DeletePlaceAction implements IDeletePlaceAction {
 
     await this.placeRepository.deleteOne(placeId);
     await this.eventRepository.deleteMany({ place: placeId });
-    await this.partnershipRepository.deleteMany({ place: placeId });
 
     await this.userRepository.updateOne(place.user.toString(), {
       $unset: { place: "" },

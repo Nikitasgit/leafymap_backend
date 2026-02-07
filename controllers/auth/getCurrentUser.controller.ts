@@ -24,8 +24,8 @@ class GetCurrentUserController {
     "place.location",
     "place.placeCategory",
     "place.rating",
-    "userCategories",
-    "userCategories.name",
+    "userCategory",
+    "userCategory.name",
   ];
 
   constructor(private getUserByIdAction: IGetUserByIdAction) {}

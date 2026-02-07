@@ -3,7 +3,6 @@ import {
   ImageRepository,
   PlaceRepository,
   UserRepository,
-  PartnershipRepository,
 } from "@/repositories";
 import {
   CreateEventAction,
@@ -31,11 +30,13 @@ const eventRepository = new EventRepository();
 const imageRepository = new ImageRepository();
 const placeRepository = new PlaceRepository();
 const userRepository = new UserRepository();
-const partnershipRepository = new PartnershipRepository();
 
 // Initialize middlewares
 export const authMiddleware = new AuthMiddleware(userRepository);
-export const eventsMiddleware = new EventsMiddleware(eventRepository, placeRepository);
+export const eventsMiddleware = new EventsMiddleware(
+  eventRepository,
+  placeRepository
+);
 export const placesMiddleware = new PlacesMiddleware(placeRepository);
 export const rateLimiterMiddleware = new RateLimiterMiddleware();
 
@@ -44,8 +45,7 @@ const createEventAction = new CreateEventAction(eventRepository);
 const updateEventAction = new UpdateEventAction(eventRepository);
 const deleteEventAction = new DeleteEventAction(
   eventRepository,
-  imageRepository,
-  partnershipRepository
+  imageRepository
 );
 const getEventByIdAction = new GetEventByIdAction(eventRepository);
 const getEventsAction = new GetEventsAction(eventRepository);

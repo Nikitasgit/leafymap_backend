@@ -3,13 +3,12 @@ import {
   PartnershipFilters,
 } from "@/types/repositories/partnership.repository.types";
 import { IPartnership } from "@/types/models/partnership";
-import { IEvent, IPlace } from "@/types/models";
 
 export interface GetPartnershipsByUserIdInput {
   userId: string;
   asCollaborator?: boolean;
-  includeCancelledEvents?: boolean;
-  includePastEvents?: boolean;
+  asInitiator?: boolean;
+  status?: "pending" | "accepted" | "refused" | "cancelled" | "completed";
   currentUserId?: string;
 }
 
@@ -22,7 +21,6 @@ export interface IGetPartnershipsByUserIdAction {
 class GetPartnershipsByUserIdAction implements IGetPartnershipsByUserIdAction {
   private readonly project: (keyof IPartnership | string)[] = [
     "_id",
-    "type",
     "initiator",
     "collaborator",
     "status",
@@ -31,23 +29,11 @@ class GetPartnershipsByUserIdAction implements IGetPartnershipsByUserIdAction {
     "initiator._id",
     "initiator.username",
     "initiator.image.urls",
+    "initiator.userCategory.name",
     "collaborator._id",
     "collaborator.username",
     "collaborator.image.urls",
-    "collaborator.userCategories.name",
-    "place._id",
-    "place.location",
-    "place.placeCategory.name",
-    "place.followers",
-    "event._id",
-    "event.name",
-    "event.description",
-    "event.image",
-    "event.schedule",
-    "event.status",
-    "event.lifecycleStatus",
-    "event.dateRange",
-    "event.image.urls",
+    "collaborator.userCategory.name",
   ];
 
   constructor(private partnershipRepository: IPartnershipRepository) {}
@@ -61,10 +47,20 @@ class GetPartnershipsByUserIdAction implements IGetPartnershipsByUserIdAction {
       deleted: false,
     };
 
-    if (filters.asCollaborator) {
+    if (filters.asCollaborator === true) {
       queryFilters.collaborator = filters.userId;
-    } else {
+    } else if (filters.asInitiator === true) {
       queryFilters.initiator = filters.userId;
+    } else {
+      // Pas de filtre : retourner toutes les partnerships (initiator OU collaborator)
+      queryFilters.$or = [
+        { initiator: filters.userId },
+        { collaborator: filters.userId },
+      ];
+    }
+
+    if (filters.status) {
+      queryFilters.status = filters.status;
     }
 
     const partnerships = await this.partnershipRepository.findAll({
@@ -96,44 +92,7 @@ class GetPartnershipsByUserIdAction implements IGetPartnershipsByUserIdAction {
       return partnership.status === "accepted";
     });
 
-    let validPartnerships = filteredPartnerships.filter((partnership: any) => {
-      const place = partnership.place as Partial<IPlace> | null;
-      if (!place) {
-        return false;
-      }
-      if (partnership.type === "event" && !partnership.event) {
-        return false;
-      }
-      return true;
-    });
-
-    if (filters.includeCancelledEvents !== true) {
-      validPartnerships = validPartnerships.filter((partnership: any) => {
-        if (!partnership.event) {
-          return true;
-        }
-        const event = partnership.event as Partial<IEvent>;
-        return event.status !== "cancelled";
-      });
-    }
-
-    if (filters.includePastEvents !== true) {
-      validPartnerships = validPartnerships.filter((partnership: any) => {
-        if (!partnership.event) {
-          return true;
-        }
-        const event = partnership.event as IEvent;
-        if (!event.lifecycleStatus) {
-          return true;
-        }
-        return (
-          event.lifecycleStatus === "ongoing" ||
-          event.lifecycleStatus === "upcoming"
-        );
-      });
-    }
-
-    return validPartnerships as IPartnership[];
+    return filteredPartnerships as IPartnership[];
   }
 }
 

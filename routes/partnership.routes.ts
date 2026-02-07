@@ -2,11 +2,9 @@ import express, { Router } from "express";
 import {
   createPartnership,
   updatePartnership,
-  getPartnerships,
   getPartnershipsByUserId,
-  getUserPlacesPartnerships,
+  deletePartnership,
   authMiddleware,
-  placesMiddleware,
 } from "../di/partnership.di";
 
 const router: Router = express.Router();
@@ -16,26 +14,12 @@ router.get(
   authMiddleware.verifyOptional(),
   getPartnershipsByUserId.handle()
 );
-router.get(
-  "/user/:userId/places",
-  authMiddleware.verifyOptional(),
-  getUserPlacesPartnerships.handle()
-);
-router.get(
-  "/:placeId/:eventId?",
-  authMiddleware.verifyOptional(),
-  getPartnerships.handle()
-);
-router.put(
-  "/:placeId/:eventId?",
+router.put("/update", authMiddleware.verify(), updatePartnership.handle());
+router.post("/", authMiddleware.verify(), createPartnership.handle());
+router.delete(
+  "/:partnershipId",
   authMiddleware.verify(),
-  updatePartnership.handle()
-);
-router.post(
-  "/:placeId/:eventId?",
-  authMiddleware.verify(),
-  placesMiddleware.ownership(),
-  createPartnership.handle()
+  deletePartnership.handle()
 );
 
 export default router;

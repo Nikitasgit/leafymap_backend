@@ -37,7 +37,7 @@ class GetEventInvitationsByUserIdAction
     "collaborator._id",
     "collaborator.username",
     "collaborator.image.urls",
-    "collaborator.userCategories.name",
+    "collaborator.userCategory.name",
     "event._id",
     "event.name",
     "event.description",

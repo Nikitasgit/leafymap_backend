@@ -3,12 +3,8 @@ import { Types } from "mongoose";
 
 export interface PartnershipFilters {
   _id?: string;
-  place?: string;
-  event?: string;
-  eventIn?: string[];
   initiator?: string;
   collaborator?: string;
-  type?: "place" | "event";
   status?: "pending" | "accepted" | "refused" | "cancelled" | "completed";
   deleted?: boolean;
   $or?: Array<{ initiator?: string; collaborator?: string }>;

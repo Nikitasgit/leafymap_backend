@@ -26,11 +26,11 @@ class GetEventInvitationsAction implements IGetEventInvitationsAction {
     "initiator._id",
     "collaborator._id",
     "collaborator.username",
-    "collaborator.userCategories",
+    "collaborator.userCategory",
     "collaborator.image",
     "collaborator.deleted",
     "collaborator.image.urls",
-    "collaborator.userCategories.name",
+    "collaborator.userCategory.name",
   ];
 
   constructor(private eventInvitationRepository: IEventInvitationRepository) {}
