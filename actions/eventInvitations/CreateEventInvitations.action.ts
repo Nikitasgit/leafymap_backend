@@ -2,6 +2,7 @@ import { IEventInvitationRepository } from "@/types/repositories/eventInvitation
 import { IEventInvitation } from "@/types/models/eventInvitation";
 import { EventInvitationDTO } from "@/types/api/eventInvitation.dto";
 import { Types } from "mongoose";
+import NotificationService from "@/services/notificationService";
 
 export interface CreateEventInvitationsDTO {
   eventInvitations: EventInvitationDTO[];
@@ -16,7 +17,10 @@ export interface ICreateEventInvitationsAction {
 }
 
 class CreateEventInvitationsAction implements ICreateEventInvitationsAction {
-  constructor(private eventInvitationRepository: IEventInvitationRepository) {}
+  constructor(
+    private eventInvitationRepository: IEventInvitationRepository,
+    private notificationService: NotificationService
+  ) {}
 
   async execute({
     eventInvitations,
@@ -40,13 +44,27 @@ class CreateEventInvitationsAction implements ICreateEventInvitationsAction {
           return;
         }
 
+        const collaboratorId = eventInvitation.collaborator._id;
+
+        if (!collaboratorId) {
+          return;
+        }
+
         await this.eventInvitationRepository.create({
           event: new Types.ObjectId(eventId),
           initiator: new Types.ObjectId(initiatorId),
-          collaborator: new Types.ObjectId(eventInvitation.collaborator._id!),
+          collaborator: new Types.ObjectId(collaboratorId),
           status: "pending",
           deleted: false,
         } as Partial<IEventInvitation>);
+
+        await this.notificationService.createNotification({
+          sender: initiatorId,
+          receiver: collaboratorId,
+          action: "event_invitation",
+          reference: eventId,
+          referenceType: "Event",
+        });
       }
     );
 

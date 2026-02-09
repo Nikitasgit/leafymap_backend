@@ -1,4 +1,8 @@
-import { EventInvitationRepository, UserRepository } from "@/repositories";
+import {
+  EventInvitationRepository,
+  EventRepository,
+  UserRepository,
+} from "@/repositories";
 import {
   CreateEventInvitationsAction,
   UpdateEventInvitationAction,
@@ -12,17 +16,28 @@ import {
   GetEventInvitationsByUserIdController,
 } from "@/controllers/eventInvitations";
 import { AuthMiddleware } from "@/middlewares";
+import { notificationService } from "@/di/notification.di";
+import EventInvitationService from "@/services/eventInvitationService";
 
 const eventInvitationRepository = new EventInvitationRepository();
+const eventRepository = new EventRepository();
 const userRepository = new UserRepository();
+
+export const eventInvitationService = new EventInvitationService(
+  eventInvitationRepository,
+  eventRepository
+);
 
 export const authMiddleware = new AuthMiddleware(userRepository);
 
 const createEventInvitationsAction = new CreateEventInvitationsAction(
-  eventInvitationRepository
+  eventInvitationRepository,
+  notificationService
 );
 const updateEventInvitationAction = new UpdateEventInvitationAction(
-  eventInvitationRepository
+  eventInvitationRepository,
+  notificationService,
+  eventInvitationService
 );
 const getEventInvitationsAction = new GetEventInvitationsAction(
   eventInvitationRepository

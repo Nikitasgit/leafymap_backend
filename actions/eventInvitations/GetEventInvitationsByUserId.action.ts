@@ -34,6 +34,7 @@ class GetEventInvitationsByUserIdAction
     "initiator._id",
     "initiator.username",
     "initiator.image.urls",
+    "initiator.userCategory.name",
     "collaborator._id",
     "collaborator.username",
     "collaborator.image.urls",

@@ -17,14 +17,14 @@ class GetCurrentUserNotificationsController {
     ): Promise<void> => {
       try {
         const decoded = req.decoded!;
-        const notifications =
+        const result =
           await this.getCurrentUserNotificationsAction.execute({
             userId: decoded.id,
           });
 
         APIResponse(
           res,
-          notifications,
+          result,
           "Notifications récupérées avec succès",
           200
         );

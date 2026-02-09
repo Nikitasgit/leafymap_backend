@@ -1,5 +1,7 @@
 import { IEventInvitationRepository } from "@/types/repositories/eventInvitation.repository.types";
 import { IEventInvitation } from "@/types/models/eventInvitation";
+import NotificationService from "@/services/notificationService";
+import EventInvitationService from "@/services/eventInvitationService";
 
 export interface UpdateEventInvitationDTO {
   _id: string;
@@ -19,7 +21,11 @@ export interface IUpdateEventInvitationAction {
 }
 
 class UpdateEventInvitationAction implements IUpdateEventInvitationAction {
-  constructor(private eventInvitationRepository: IEventInvitationRepository) {}
+  constructor(
+    private eventInvitationRepository: IEventInvitationRepository,
+    private notificationService: NotificationService,
+    private eventInvitationService: EventInvitationService
+  ) {}
 
   async execute({
     eventInvitations,
@@ -74,10 +80,54 @@ class UpdateEventInvitationAction implements IUpdateEventInvitationAction {
           }
         }
 
+        const isRefusedOrCancelled =
+          (eventInvitation.status === "refused" &&
+            eventInvitation.status !== existingInvitation.status) ||
+          (eventInvitation.status === "cancelled" &&
+            eventInvitation.status !== existingInvitation.status) ||
+          (isInitiator && eventInvitation.deleted === true);
+
+        if (isRefusedOrCancelled) {
+          if (
+            isCollaborator &&
+            eventInvitation.status === "refused"
+          ) {
+            const initiatorId = existingInvitation.initiator.toString();
+            const eventId = existingInvitation.event.toString();
+            await this.notificationService.createNotification({
+              sender: userId,
+              receiver: initiatorId,
+              action: "event_refused",
+              reference: eventId,
+              referenceType: "Event",
+            });
+          }
+          await this.eventInvitationService.deleteEventInvitation(
+            eventInvitation._id
+          );
+          return;
+        }
+
         await this.eventInvitationRepository.updateOne(
           eventInvitation._id,
           updateData
         );
+
+        if (
+          isCollaborator &&
+          eventInvitation.status === "accepted" &&
+          eventInvitation.status !== existingInvitation.status
+        ) {
+          const initiatorId = existingInvitation.initiator.toString();
+          const eventId = existingInvitation.event.toString();
+          await this.notificationService.createNotification({
+            sender: userId,
+            receiver: initiatorId,
+            action: "event_accepted",
+            reference: eventId,
+            referenceType: "Event",
+          });
+        }
       }
     );
 

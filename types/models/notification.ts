@@ -13,6 +13,7 @@ export type NotificationActionType =
   | "partnership_accepted"
   | "event_invitation"
   | "event_accepted"
+  | "event_refused"
   | "review"
   | "other";
 

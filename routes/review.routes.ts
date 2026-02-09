@@ -2,6 +2,8 @@ import express, { Router } from "express";
 import {
   createReview,
   getReviews,
+  getMyReviews,
+  getReceivedReviews,
   updateReview,
   deleteReview,
   authMiddleware,
@@ -18,6 +20,8 @@ router.post(
   createReview.handle()
 );
 router.get("/", getReviews.handle());
+router.get("/my-reviews", authMiddleware.verify(), getMyReviews.handle());
+router.get("/received", authMiddleware.verify(), getReceivedReviews.handle());
 router.put(
   "/:reviewId",
   authMiddleware.verify(),

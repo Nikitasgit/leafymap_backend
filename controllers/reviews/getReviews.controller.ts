@@ -2,7 +2,10 @@ import { Response, NextFunction, RequestHandler } from "express";
 import { CustomRequest } from "@/types/custom";
 import { APIResponse } from "@/utils/response";
 import logger from "@/utils/logger";
-import { IGetReviewsAction } from "@/actions/reviews";
+import {
+  IGetReviewsAction,
+  DEFAULT_REVIEWS_PROJECT,
+} from "@/actions/reviews";
 import { ReviewFilters } from "@/types/repositories/review.repository.types";
 import { ReviewReferenceType } from "@/types/models/review";
 
@@ -42,7 +45,10 @@ class GetReviewsController {
           filters.author = author;
         }
 
-        const reviews = await this.getReviewsAction.execute({ filters });
+        const reviews = await this.getReviewsAction.execute({
+          filters,
+          project: DEFAULT_REVIEWS_PROJECT,
+        });
 
         APIResponse(res, { reviews }, "Reviews récupérées avec succès", 200);
       } catch (error) {

@@ -30,6 +30,7 @@ const notificationSchema = new Schema<INotification>(
         "partnership_accepted",
         "event_invitation",
         "event_accepted",
+        "event_refused",
         "review",
         "other",
       ] as NotificationActionType[],

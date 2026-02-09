@@ -13,6 +13,8 @@ import {
 import {
   CreateReviewController,
   GetReviewsController,
+  GetMyReviewsController,
+  GetReceivedReviewsController,
   UpdateReviewController,
   DeleteReviewController,
 } from "@/controllers/reviews";
@@ -63,5 +65,10 @@ const getReviewsAction = new GetReviewsAction(reviewRepository);
 // Initialize controllers
 export const createReview = new CreateReviewController(createReviewAction);
 export const getReviews = new GetReviewsController(getReviewsAction);
+export const getMyReviews = new GetMyReviewsController(getReviewsAction);
+export const getReceivedReviews = new GetReceivedReviewsController(
+  getReviewsAction,
+  userRepository
+);
 export const updateReview = new UpdateReviewController(updateReviewAction);
 export const deleteReview = new DeleteReviewController(deleteReviewAction);
