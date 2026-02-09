@@ -149,7 +149,7 @@ class PartnershipRepository implements IPartnershipRepository {
     }
 
     const partnerships = (await mongooseQuery.lean()) as any;
-    return partnerships as Pick<IPartnership, K>[];
+    return partnerships as unknown as Pick<IPartnership, K>[];
   }
 
   async updateOne(id: string, update: Partial<IPartnership>): Promise<void> {

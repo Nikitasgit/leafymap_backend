@@ -1,6 +1,7 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { Request } from "express";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import logger from "@/utils/logger";
 import { IGetEventByIdAction } from "@/actions/events";
 
@@ -14,7 +15,7 @@ class GetEventByIdController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const { eventId } = req.params;
+        const eventId = getParam(req.params, "eventId");
 
         if (!eventId) {
           APIResponse(res, null, "Event ID is required", 400);

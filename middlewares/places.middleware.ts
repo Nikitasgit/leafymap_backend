@@ -1,5 +1,6 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import { CustomRequest } from "@/types/custom";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
 
@@ -14,7 +15,7 @@ class PlacesMiddleware {
     ): Promise<void> => {
       try {
         const decoded = req.decoded!;
-        const placeId = req.params.placeId;
+        const placeId = getParam(req.params, "placeId");
 
         if (!placeId) {
           APIResponse(res, null, "Place ID is required", 400);

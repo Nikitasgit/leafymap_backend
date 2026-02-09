@@ -1,5 +1,6 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import { CustomRequest } from "@/types/custom";
 import { isValidObjectId } from "mongoose";
 import { ICommentRepository } from "@/types/repositories/comment.repository.types";
@@ -24,7 +25,7 @@ class CommentsMiddleware {
     ): Promise<void> => {
       try {
         const decoded = req.decoded!;
-        const commentId = req.params.commentId;
+        const commentId = getParam(req.params, "commentId");
 
         if (!commentId) {
           APIResponse(res, null, "Commentaire ID requis", 400);

@@ -56,7 +56,6 @@ describe("UserRepository", () => {
         acceptedAt: new Date(),
         firstname: "John",
         lastname: "Doe",
-        creatorName: "John Creator",
         description: "I am a creator",
       };
 
@@ -64,7 +63,6 @@ describe("UserRepository", () => {
       const user = await User.findById(userId);
       expect(user?.firstname).toBe(userData.firstname);
       expect(user?.lastname).toBe(userData.lastname);
-      expect(user?.creatorName).toBe(userData.creatorName);
       expect(user?.description).toBe(userData.description);
     });
   });

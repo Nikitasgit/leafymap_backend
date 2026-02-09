@@ -1,5 +1,6 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import { CustomRequest } from "@/types/custom";
 import { IEventRepository } from "@/types/repositories/event.repository.types";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
@@ -18,7 +19,7 @@ class EventsMiddleware {
     ): Promise<void> => {
       try {
         const decoded = req.decoded!;
-        const { eventId } = req.params;
+        const eventId = getParam(req.params, "eventId");
 
         if (!eventId) {
           APIResponse(res, null, "Event ID is required", 400);

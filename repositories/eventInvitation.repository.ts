@@ -162,7 +162,7 @@ class EventInvitationRepository implements IEventInvitationRepository {
     }
 
     const eventInvitations = (await mongooseQuery.lean()) as any;
-    return eventInvitations as Pick<IEventInvitation, K>[];
+    return eventInvitations as unknown as Pick<IEventInvitation, K>[];
   }
 
   async updateOne(

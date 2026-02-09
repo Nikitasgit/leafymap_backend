@@ -1,6 +1,7 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { CustomRequest } from "@/types/custom";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import logger from "@/utils/logger";
 import { IGetConversationWithUserAction } from "@/actions/messages/GetConversationWithUser.action";
 
@@ -16,7 +17,11 @@ class GetConversationWithUserController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const { otherUserId } = req.params;
+        const otherUserId = getParam(req.params, "otherUserId");
+        if (!otherUserId) {
+          APIResponse(res, null, "Missing otherUserId", 400);
+          return;
+        }
         const userId = req.decoded?.id;
 
         if (!userId) {

@@ -1,6 +1,7 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { CustomRequest } from "@/types/custom";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import logger from "@/utils/logger";
 import { updateReviewSchema } from "../../validations/review.validations";
 import { IUpdateReviewAction } from "@/actions/reviews";
@@ -16,7 +17,11 @@ class UpdateReviewController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const { reviewId } = req.params;
+        const reviewId = getParam(req.params, "reviewId");
+        if (!reviewId) {
+          APIResponse(res, null, "Missing reviewId", 400);
+          return;
+        }
 
         const errors = validateData(updateReviewSchema, req.body);
         if (errors) {

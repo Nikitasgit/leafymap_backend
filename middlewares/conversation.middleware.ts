@@ -2,6 +2,7 @@ import { CustomRequest } from "@/types/custom";
 import { IConversation } from "@/types/models";
 import { IConversationRepository } from "@/types/repositories/conversation.repository.types";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import { NextFunction, RequestHandler, Response } from "express";
 import { isValidObjectId } from "mongoose";
 
@@ -15,7 +16,7 @@ class ConversationMiddleware {
     ): Promise<void> => {
       try {
         const decoded = req.decoded!;
-        const conversationId = req.params.conversationId;
+        const conversationId = getParam(req.params, "conversationId");
 
         if (!conversationId) {
           APIResponse(res, null, "Conversation ID requis", 400);

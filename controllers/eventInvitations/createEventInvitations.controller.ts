@@ -1,6 +1,7 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { CustomRequest } from "@/types/custom";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import logger from "@/utils/logger";
 import { ICreateEventInvitationsAction } from "@/actions/eventInvitations";
 
@@ -17,8 +18,13 @@ class CreateEventInvitationsController {
     ): Promise<void> => {
       try {
         const decoded = req.decoded!;
-        const { eventId } = req.params;
+        const eventId = getParam(req.params, "eventId");
         const { eventInvitations } = req.body;
+
+        if (!eventId) {
+          APIResponse(res, null, "Event ID is required", 400);
+          return;
+        }
 
         await this.createEventInvitationsAction.execute({
           eventInvitations,

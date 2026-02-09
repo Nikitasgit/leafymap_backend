@@ -2,6 +2,7 @@ import { RequestHandler, Response, NextFunction } from "express";
 import { CustomRequest } from "@/types/custom";
 import { IMarkMessagesAsReadAction } from "@/actions/messages/MarkMessagesAsRead.action";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 
 class MarkMessagesAsReadController {
   constructor(private markMessagesAsReadAction: IMarkMessagesAsReadAction) {}
@@ -13,7 +14,7 @@ class MarkMessagesAsReadController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const conversationId = req.params.conversationId;
+        const conversationId = getParam(req.params, "conversationId");
         const userId = req.decoded?.id;
 
         if (!userId) {

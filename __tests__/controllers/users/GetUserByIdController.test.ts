@@ -44,7 +44,7 @@ describe("GetUserByIdController", () => {
 
   describe("handle", () => {
     it("should return user data on success", async () => {
-      const userId = mockRequest.params!.userId;
+      const userId = (mockRequest.params!.userId as string) ?? "";
       const mockUser: Partial<IUser> = {
         _id: new Types.ObjectId(userId),
         username: "testuser",
@@ -56,10 +56,8 @@ describe("GetUserByIdController", () => {
         password: "hashed",
         acceptedCGU: true,
         acceptedAt: new Date(),
-        rating: 0,
         followers: [],
         interests: [],
-        places: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -79,7 +77,7 @@ describe("GetUserByIdController", () => {
     });
 
     it("should handle errors correctly", async () => {
-      const userId = mockRequest.params!.userId;
+      const userId = mockRequest.params!.userId as string;
       const errorMessage = "User not found";
 
       mockAction.execute = jest.fn().mockRejectedValue(new Error(errorMessage));
@@ -97,7 +95,7 @@ describe("GetUserByIdController", () => {
     });
 
     it("should handle non-Error exceptions", async () => {
-      const userId = mockRequest.params!.userId;
+      const userId = mockRequest.params!.userId as string;
 
       mockAction.execute = jest.fn().mockRejectedValue("Unexpected error");
 
@@ -126,10 +124,8 @@ describe("GetUserByIdController", () => {
         password: "hashed",
         acceptedCGU: true,
         acceptedAt: new Date(),
-        rating: 0,
         followers: [],
         interests: [],
-        places: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       };

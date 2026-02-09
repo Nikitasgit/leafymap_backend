@@ -1,6 +1,7 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { CustomRequest } from "@/types/custom";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import logger from "@/utils/logger";
 import { updateMessageSchema } from "../../validations/message.validations";
 import { IUpdateMessageAction } from "@/actions/messages";
@@ -16,7 +17,11 @@ class UpdateMessageController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const { messageId } = req.params;
+        const messageId = getParam(req.params, "messageId");
+        if (!messageId) {
+          APIResponse(res, null, "Missing messageId", 400);
+          return;
+        }
 
         const errors = validateData(updateMessageSchema, req.body);
         if (errors) {

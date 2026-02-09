@@ -1,6 +1,7 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { Request } from "express";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import logger from "@/utils/logger";
 import { IGetPlaceByIdAction } from "@/actions/places";
 
@@ -14,8 +15,13 @@ class GetPlaceByIdController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const { placeId } = req.params;
+        const placeId = getParam(req.params, "placeId");
         const { scheduleWithEvents } = req.query;
+
+        if (!placeId) {
+          APIResponse(res, null, "Place ID is required", 400);
+          return;
+        }
 
         const place = await this.getPlaceByIdAction.execute({
           placeId,

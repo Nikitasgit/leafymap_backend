@@ -127,7 +127,7 @@ class ConversationRepository implements IConversationRepository {
     }
 
     const conversations = await mongooseQuery.lean();
-    return conversations as Pick<IConversation, K>[];
+    return conversations as unknown as Pick<IConversation, K>[];
   }
 
   async updateOne(id: string, update: Partial<IConversation>): Promise<void> {

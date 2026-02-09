@@ -179,7 +179,7 @@ class EventRepository implements IEventRepository {
     }
 
     const events = await mongooseQuery.lean();
-    return events as Pick<IEvent, K>[];
+    return events as unknown as Pick<IEvent, K>[];
   }
 
   async updateOne(id: string, update: Partial<IEvent>): Promise<void> {

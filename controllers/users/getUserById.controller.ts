@@ -1,5 +1,6 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import logger from "@/utils/logger";
 import { IGetUserByIdAction } from "@/actions/users";
 
@@ -13,7 +14,11 @@ class GetUserByIdController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const userId = req.params.userId;
+        const userId = getParam(req.params, "userId");
+        if (!userId) {
+          APIResponse(res, null, "User ID is required", 400);
+          return;
+        }
         const user = await this.getUserByIdAction.execute({ userId });
 
         APIResponse(res, { user }, "User fetched successfully", 200);

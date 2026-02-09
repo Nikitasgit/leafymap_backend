@@ -1,6 +1,7 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { CustomRequest } from "@/types/custom";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import logger from "@/utils/logger";
 import { IGetMessagesAction } from "@/actions/messages";
 import { MessageFilters } from "@/types/repositories/message.repository.types";
@@ -15,12 +16,12 @@ class GetMessagesController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const conversationId = req.params.conversationId;
+        const conversationId = getParam(req.params, "conversationId");
         const userId = req.decoded?.id;
         const { senderId, readByUserId } = req.query;
 
         const filters: MessageFilters = {};
-        if (conversationId && typeof conversationId === "string") {
+        if (conversationId) {
           filters.conversation = conversationId;
         }
         if (senderId && typeof senderId === "string") {

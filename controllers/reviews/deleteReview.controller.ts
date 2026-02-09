@@ -1,6 +1,7 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { CustomRequest } from "@/types/custom";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import logger from "@/utils/logger";
 import { IDeleteReviewAction } from "@/actions/reviews";
 
@@ -14,7 +15,11 @@ class DeleteReviewController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const { reviewId } = req.params;
+        const reviewId = getParam(req.params, "reviewId");
+        if (!reviewId) {
+          APIResponse(res, null, "Missing reviewId", 400);
+          return;
+        }
 
         await this.deleteReviewAction.execute({ reviewId });
 

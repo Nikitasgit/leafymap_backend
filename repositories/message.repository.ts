@@ -131,7 +131,7 @@ class MessageRepository implements IMessageRepository {
     }
 
     const messages = await mongooseQuery.lean();
-    return messages as Pick<IMessage, K>[];
+    return messages as unknown as Pick<IMessage, K>[];
   }
 
   async countAll(params: {

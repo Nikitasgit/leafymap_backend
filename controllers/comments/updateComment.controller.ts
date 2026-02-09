@@ -1,6 +1,7 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { CustomRequest } from "@/types/custom";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import logger from "@/utils/logger";
 import { updateCommentSchema } from "../../validations/comment.validations";
 import { IUpdateCommentAction } from "@/actions/comments";
@@ -17,7 +18,7 @@ class UpdateCommentController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const { commentId } = req.params;
+        const commentId = getParam(req.params, "commentId");
         const userId = req.decoded?.id;
 
         if (!userId) {
@@ -25,7 +26,7 @@ class UpdateCommentController {
           return;
         }
 
-        if (!isValidObjectId(commentId)) {
+        if (!commentId || !isValidObjectId(commentId)) {
           APIResponse(res, null, "ID de commentaire invalide", 400);
           return;
         }

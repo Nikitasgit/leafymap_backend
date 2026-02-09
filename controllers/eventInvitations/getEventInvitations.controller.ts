@@ -1,6 +1,7 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { CustomRequest } from "@/types/custom";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import logger from "@/utils/logger";
 import { IGetEventInvitationsAction } from "@/actions/eventInvitations";
 
@@ -14,7 +15,11 @@ class GetEventInvitationsController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const { eventId } = req.params;
+        const eventId = getParam(req.params, "eventId");
+        if (!eventId) {
+          APIResponse(res, null, "Missing eventId", 400);
+          return;
+        }
         const { onlyAccepted } = req.query;
         const currentUserId = req.decoded?.id;
 

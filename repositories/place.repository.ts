@@ -141,7 +141,7 @@ class PlaceRepository implements IPlaceRepository {
     }
 
     const places = await mongooseQuery.lean();
-    return places as Pick<IPlace, K>[];
+    return places as unknown as Pick<IPlace, K>[];
   }
 
   async updateOne(id: string, update: Partial<IPlace>): Promise<void> {

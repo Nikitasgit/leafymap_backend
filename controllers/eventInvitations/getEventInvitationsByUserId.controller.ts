@@ -1,6 +1,7 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { CustomRequest } from "@/types/custom";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import logger from "@/utils/logger";
 import { IGetEventInvitationsByUserIdAction } from "@/actions/eventInvitations";
 
@@ -16,7 +17,11 @@ class GetEventInvitationsByUserIdController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const { userId } = req.params;
+        const userId = getParam(req.params, "userId");
+        if (!userId) {
+          APIResponse(res, null, "Missing userId", 400);
+          return;
+        }
         const {
           asCollaborator,
           includeCancelledEvents,

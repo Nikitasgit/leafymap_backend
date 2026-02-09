@@ -1,6 +1,7 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { CustomRequest } from "@/types/custom";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import logger from "@/utils/logger";
 import { IDeletePartnershipAction } from "@/actions/partnerships";
 
@@ -14,7 +15,11 @@ class DeletePartnershipController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const { partnershipId } = req.params;
+        const partnershipId = getParam(req.params, "partnershipId");
+        if (!partnershipId) {
+          APIResponse(res, null, "Missing partnershipId", 400);
+          return;
+        }
         const userId = req.decoded?.id;
 
         if (!userId) {

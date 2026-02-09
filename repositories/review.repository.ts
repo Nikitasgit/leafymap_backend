@@ -101,7 +101,7 @@ class ReviewRepository implements IReviewRepository {
     }
 
     const reviews = await mongooseQuery.lean();
-    return reviews as Pick<IReview, K>[];
+    return reviews as unknown as Pick<IReview, K>[];
   }
 
   async updateOne(id: string, update: Partial<IReview>): Promise<void> {

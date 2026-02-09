@@ -1,5 +1,6 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import { CustomRequest } from "@/types/custom";
 import { IReviewRepository } from "@/types/repositories/review.repository.types";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
@@ -23,7 +24,7 @@ class ReviewsMiddleware {
     ): Promise<void> => {
       try {
         const decoded = req.decoded!;
-        const reviewId = req.params.reviewId;
+        const reviewId = getParam(req.params, "reviewId");
 
         if (!reviewId) {
           APIResponse(res, null, "Review ID requis", 400);

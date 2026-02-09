@@ -101,7 +101,7 @@ class CommentRepository implements ICommentRepository {
     }
 
     const comments = await mongooseQuery.lean();
-    return comments as Pick<IComment, K>[];
+    return comments as unknown as Pick<IComment, K>[];
   }
 
   async updateOne(id: string, update: Partial<IComment>): Promise<void> {

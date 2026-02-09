@@ -1,6 +1,7 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { CustomRequest } from "@/types/custom";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import logger from "@/utils/logger";
 import { IUpdateEventAction } from "@/actions/events";
 import { updateEventSchema } from "@/validations/event.validations";
@@ -16,7 +17,7 @@ class UpdateEventController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const { eventId } = req.params;
+        const eventId = getParam(req.params, "eventId");
 
         if (!eventId) {
           APIResponse(res, null, "Event ID is required", 400);

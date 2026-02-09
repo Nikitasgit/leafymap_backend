@@ -1,5 +1,6 @@
 import { Response, NextFunction, RequestHandler } from "express";
 import { APIResponse } from "@/utils/response";
+import { getParam } from "@/utils/request";
 import { CustomRequest } from "@/types/custom";
 import { IMessageRepository } from "@/types/repositories/message.repository.types";
 import { isValidObjectId, Types } from "mongoose";
@@ -15,7 +16,7 @@ class MessagesMiddleware {
     ): Promise<void> => {
       try {
         const decoded = req.decoded!;
-        const messageId = req.params.messageId;
+        const messageId = getParam(req.params, "messageId");
 
         if (!messageId) {
           APIResponse(res, null, "Message ID requis", 400);

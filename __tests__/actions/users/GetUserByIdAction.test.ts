@@ -34,10 +34,8 @@ describe("GetUserByIdAction", () => {
         password: "hashed",
         acceptedCGU: true,
         acceptedAt: new Date(),
-        rating: 0,
         followers: [],
         interests: [],
-        places: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -67,10 +65,8 @@ describe("GetUserByIdAction", () => {
         password: "hashed",
         acceptedCGU: true,
         acceptedAt: new Date(),
-        rating: 0,
         followers: [],
         interests: [],
-        places: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -112,10 +108,8 @@ describe("GetUserByIdAction", () => {
         password: "hashed",
         acceptedCGU: true,
         acceptedAt: new Date(),
-        rating: 0,
         followers: [],
         interests: [],
-        places: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -133,7 +127,7 @@ describe("GetUserByIdAction", () => {
       expect(projectFields).toContain("username");
       expect(projectFields).toContain("firstname");
       expect(projectFields).toContain("lastname");
-      expect(projectFields).toContain("creatorName");
+      expect(projectFields).toContain("description");
     });
   });
 });
