@@ -32,6 +32,7 @@ const notificationSchema = new Schema<INotification>(
         "event_accepted",
         "event_refused",
         "review",
+        "new_follower",
         "other",
       ] as NotificationActionType[],
     },
@@ -49,6 +50,7 @@ const notificationSchema = new Schema<INotification>(
         "Partnership",
         "Conversation",
         "Message",
+        "Follow",
       ] as NotificationReferenceType[],
     },
     read: {

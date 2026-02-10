@@ -10,3 +10,4 @@ export { default as PartnershipRepository } from "./partnership.repository";
 export { default as EventInvitationRepository } from "./eventInvitation.repository";
 export { default as ReviewRepository } from "./review.repository";
 export { default as NotificationRepository } from "./notification.repository";
+export { default as FollowRepository } from "./follow.repository";

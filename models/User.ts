@@ -30,7 +30,7 @@ const userSchema = new Schema<IUser>(
     description: { type: String, maxlength: 300 },
     country: { type: String, enum: ISO_COUNTRIES_ALPHA2 },
     image: { type: Types.ObjectId, ref: "Image" },
-    followers: [{ type: Types.ObjectId, ref: "User" }],
+    followers: { type: Number, default: 0 },
     interests: [{ type: Types.ObjectId, ref: "UserCategory" }],
     place: { type: Types.ObjectId, ref: "Place" },
     acceptedCGU: { type: Boolean, required: true, default: false },

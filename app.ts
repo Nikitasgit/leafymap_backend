@@ -15,6 +15,7 @@ import reviewRoutes from "./routes/review.routes";
 import commentRoutes from "./routes/comment.routes";
 import messageRoutes from "./routes/message.routes";
 import notificationRoutes from "./routes/notification.routes";
+import followRoutes from "./routes/follow.routes";
 import cors from "cors";
 import helmet from "helmet";
 import { RateLimiterMiddleware } from "./middlewares";
@@ -100,6 +101,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/follows", followRoutes);
 
 app.use(errorHandler);
 

@@ -5,7 +5,8 @@ export type NotificationReferenceType =
   | "Event"
   | "Partnership"
   | "Conversation"
-  | "Message";
+  | "Message"
+  | "Follow";
 
 export type NotificationActionType =
   | "message"
@@ -15,6 +16,7 @@ export type NotificationActionType =
   | "event_accepted"
   | "event_refused"
   | "review"
+  | "new_follower"
   | "other";
 
 export interface INotification extends Document {
