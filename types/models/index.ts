@@ -12,3 +12,5 @@ export * from "./comment";
 export * from "./message";
 export * from "./conversation";
 export * from "./notification";
+export * from "./productCategory";
+export * from "./product";

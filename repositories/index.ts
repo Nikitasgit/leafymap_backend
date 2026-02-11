@@ -11,3 +11,5 @@ export { default as EventInvitationRepository } from "./eventInvitation.reposito
 export { default as ReviewRepository } from "./review.repository";
 export { default as NotificationRepository } from "./notification.repository";
 export { default as FollowRepository } from "./follow.repository";
+export { default as ProductRepository } from "./product.repository";
+export { default as ProductCategoryRepository } from "./productCategory.repository";

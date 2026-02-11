@@ -21,8 +21,8 @@ export const setTokenCookie = (res: any, token: string): void => {
   res.cookie("token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    sameSite: "lax",
     maxAge: 86400000, // 1 day
-    domain: process.env.NODE_ENV === "production" ? undefined : undefined, // Let browser handle domain
+    domain: undefined, // Let browser handle domain
   });
 };
