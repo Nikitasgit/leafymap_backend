@@ -14,7 +14,7 @@ class UpdateUserController {
     return async (
       req: CustomRequest,
       res: Response,
-      next: NextFunction
+      next: NextFunction,
     ): Promise<void> => {
       try {
         const decoded = req.decoded!;
@@ -27,12 +27,18 @@ class UpdateUserController {
           }
         }
 
-        const { token } = await this.updateUserAction.execute({
-          userId: decoded.id,
+        if (!decoded.id) {
+          APIResponse(res, null, "Unauthorized", 401);
+          return;
+        }
+        const result = await this.updateUserAction.execute({
+          userId: decoded.id as string,
           updateData: req.body,
         });
 
-        setTokenCookie(res, token);
+        if (result.token) {
+          setTokenCookie(res, result.token);
+        }
         APIResponse(res, null, "User updated successfully", 200);
       } catch (error) {
         logger.error("Error updating user:", error);

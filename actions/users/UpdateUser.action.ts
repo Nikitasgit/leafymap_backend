@@ -6,7 +6,7 @@ export interface IUpdateUserAction {
   execute(params: {
     userId: string;
     updateData: Partial<IUser>;
-  }): Promise<{ token: string }>;
+  }): Promise<{ token?: string }>;
 }
 
 class UpdateUserAction implements IUpdateUserAction {
@@ -18,7 +18,7 @@ class UpdateUserAction implements IUpdateUserAction {
   }: {
     userId: string;
     updateData: Partial<IUser>;
-  }): Promise<{ token: string }> {
+  }): Promise<{ token?: string }> {
     const {
       password,
       email,
@@ -38,21 +38,22 @@ class UpdateUserAction implements IUpdateUserAction {
       sanitizedData.lastname = sanitizedData.lastname.toLowerCase().trim();
     }
 
-    const updatedUser = await this.userRepository.updateOne(
-      userId,
-      sanitizedData
-    );
+    await this.userRepository.updateOne(userId, sanitizedData);
 
-    if (!updatedUser) {
-      throw new Error("User not found");
+    if (sanitizedData.userType) {
+      const user = await this.userRepository.findById(userId, [
+        "_id",
+        "userType",
+      ]);
+      if (user) {
+        const token = generateToken({
+          id: user._id.toString(),
+          userType: user.userType,
+        });
+        return { token };
+      }
     }
-
-    const token = generateToken({
-      id: updatedUser._id,
-      userType: updatedUser.userType,
-    });
-
-    return { token };
+    return {};
   }
 }
 

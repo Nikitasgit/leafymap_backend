@@ -26,9 +26,6 @@ export interface IUserRepository {
     limit?: number;
     sort?: { [key: string]: 1 | -1 };
   }): Promise<Pick<IUser, K>[]>;
-  updateOne(
-    id: string,
-    update: Partial<IUser>
-  ): Promise<{ _id: string; userType: "creator" | "guest" } | null>;
+  updateOne(id: string, update: Partial<IUser>): Promise<void>;
   deleteOne(id: string): Promise<void>;
 }

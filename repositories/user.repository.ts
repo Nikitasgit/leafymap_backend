@@ -71,7 +71,7 @@ class UserRepository implements IUserRepository {
 
   async findById(
     id: string,
-    project?: (keyof IUser | string)[]
+    project?: (keyof IUser | string)[],
   ): Promise<IUser | null> {
     let query = User.findById(id);
 
@@ -92,7 +92,7 @@ class UserRepository implements IUserRepository {
 
   async findOne(
     filter: Partial<IUser> | { $or: Partial<IUser>[] },
-    project?: (keyof IUser | string)[]
+    project?: (keyof IUser | string)[],
   ): Promise<IUser | null> {
     let query: any = User.findOne(filter as FilterQuery<IUser>);
 
@@ -139,7 +139,7 @@ class UserRepository implements IUserRepository {
 
       mongooseQuery = PopulateParser.applyPopulate(
         mongooseQuery,
-        populateConfig
+        populateConfig,
       ) as any;
     }
 
@@ -147,25 +147,8 @@ class UserRepository implements IUserRepository {
     return users as unknown as Pick<IUser, K>[];
   }
 
-  async updateOne(
-    id: string,
-    update: Partial<IUser>
-  ): Promise<{ _id: string; userType: "creator" | "guest" } | null> {
-    const updatedUser = await User.findByIdAndUpdate(id, update, {
-      new: true,
-      select: "_id userType",
-    })
-      .lean()
-      .exec();
-
-    if (!updatedUser) {
-      return null;
-    }
-
-    return {
-      _id: updatedUser._id.toString(),
-      userType: updatedUser.userType,
-    };
+  async updateOne(id: string, update: Partial<IUser>): Promise<void> {
+    await User.findByIdAndUpdate(id, update).exec();
   }
 
   async deleteOne(id: string): Promise<void> {

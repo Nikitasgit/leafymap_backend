@@ -11,19 +11,10 @@ import {
 
 const router: Router = express.Router();
 
-router.post(
-  "/",
-  authMiddleware.verify(),
-  rateLimiterMiddleware.strict(),
-  createFollow.handle()
-);
+router.post("/", authMiddleware.verify(), createFollow.handle());
 router.get("/check", authMiddleware.verify(), findOneFollow.handle());
 router.get("/followers/:userId", findFollowers.handle());
 router.get("/following/:userId", findFollowing.handle());
-router.delete(
-  "/:followId",
-  authMiddleware.verify(),
-  deleteFollow.handle()
-);
+router.delete("/:followId", authMiddleware.verify(), deleteFollow.handle());
 
 export default router;
