@@ -4,3 +4,7 @@ export { default as SignOutController } from "./signOut.controller";
 export { default as GetCurrentUserController } from "./getCurrentUser.controller";
 export { default as RequestPasswordResetController } from "./requestPasswordReset.controller";
 export { default as ResetPasswordController } from "./resetPassword.controller";
+export { default as GoogleAuthController } from "./googleAuth.controller";
+export { default as AcceptCguController } from "./acceptCgu.controller";
+export { default as VerifyEmailController } from "./verifyEmail.controller";
+export { default as ResendVerificationEmailController } from "./resendVerificationEmail.controller";

@@ -1,6 +1,7 @@
 import { IUserRepository } from "@/types/repositories/user.repository.types";
-import { Types } from "mongoose";
 import bcrypt from "bcrypt";
+import EmailService from "@/services/emailService";
+import { generateTokenWithExpiry } from "@/utils/tokenHash";
 
 export interface RegisterInput {
   email: string;
@@ -13,7 +14,11 @@ export interface IRegisterAction {
 }
 
 class RegisterAction implements IRegisterAction {
-  constructor(private userRepository: IUserRepository) {}
+  private emailService: EmailService;
+
+  constructor(private userRepository: IUserRepository) {
+    this.emailService = new EmailService();
+  }
 
   async execute({
     registerData,
@@ -22,12 +27,22 @@ class RegisterAction implements IRegisterAction {
   }): Promise<{ _id: string }> {
     const { email, password, acceptedCGU } = registerData;
 
-    const emailExists = await this.userRepository.findOne({ email });
-    if (emailExists) {
-      throw new Error("Cet email est déjà utilisé");
+    const existingUser = await this.userRepository.findOne({ email });
+    if (existingUser) {
+      if (existingUser.emailVerified !== false) {
+        throw new Error("Cet email est déjà utilisé");
+      }
+      const { token, tokenHash, expiresAt } = generateTokenWithExpiry();
+      await this.userRepository.updateOne(existingUser._id.toString(), {
+        emailVerificationTokenHash: tokenHash,
+        emailVerificationExpiresAt: expiresAt,
+      });
+      await this.emailService.sendEmailVerification(email, token);
+      return { _id: existingUser._id.toString() };
     }
 
     const hashed = await bcrypt.hash(password, 10);
+    const { token, tokenHash, expiresAt } = generateTokenWithExpiry();
 
     const userId = await this.userRepository.create({
       email,
@@ -36,7 +51,12 @@ class RegisterAction implements IRegisterAction {
       acceptedAt: new Date(),
       userType: "guest",
       deleted: false,
+      emailVerified: false,
+      emailVerificationTokenHash: tokenHash,
+      emailVerificationExpiresAt: expiresAt,
     });
+
+    await this.emailService.sendEmailVerification(email, token);
 
     return { _id: userId.toString() };
   }

@@ -40,6 +40,12 @@ class SignInAction implements ISignInAction {
       throw new Error("Les identifiants sont incorrects");
     }
 
+    if (user.emailVerified === false) {
+      throw new Error(
+        "Veuillez vérifier votre adresse email avant de vous connecter. Consultez votre boîte de réception ou demandez un nouveau lien."
+      );
+    }
+
     const userWithoutPassword = await this.userRepository.findById(
       user._id.toString(),
       ["email", "username"]

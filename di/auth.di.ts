@@ -4,6 +4,10 @@ import {
   SignInAction,
   RequestPasswordResetAction,
   ResetPasswordAction,
+  GoogleAuthAction,
+  AcceptCguAction,
+  VerifyEmailAction,
+  ResendVerificationEmailAction,
 } from "@/actions/auth";
 import { GetUserByIdAction } from "@/actions/users";
 import {
@@ -13,6 +17,10 @@ import {
   GetCurrentUserController,
   RequestPasswordResetController,
   ResetPasswordController,
+  GoogleAuthController,
+  AcceptCguController,
+  VerifyEmailController,
+  ResendVerificationEmailController,
 } from "@/controllers/auth";
 import { AuthMiddleware, RateLimiterMiddleware } from "@/middlewares";
 
@@ -28,6 +36,12 @@ const registerAction = new RegisterAction(userRepository);
 const signInAction = new SignInAction(userRepository);
 const requestPasswordResetAction = new RequestPasswordResetAction(userRepository);
 const resetPasswordAction = new ResetPasswordAction(userRepository);
+const googleAuthAction = new GoogleAuthAction(userRepository);
+const acceptCguAction = new AcceptCguAction(userRepository);
+const verifyEmailAction = new VerifyEmailAction(userRepository);
+const resendVerificationEmailAction = new ResendVerificationEmailAction(
+  userRepository
+);
 const getUserByIdAction = new GetUserByIdAction(userRepository);
 
 // Initialize controllers
@@ -39,3 +53,9 @@ export const requestPasswordReset = new RequestPasswordResetController(
   requestPasswordResetAction
 );
 export const resetPassword = new ResetPasswordController(resetPasswordAction);
+export const googleAuth = new GoogleAuthController(googleAuthAction);
+export const acceptCgu = new AcceptCguController(acceptCguAction);
+export const verifyEmail = new VerifyEmailController(verifyEmailAction);
+export const resendVerificationEmail = new ResendVerificationEmailController(
+  resendVerificationEmailAction
+);

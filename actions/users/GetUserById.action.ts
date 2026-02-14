@@ -25,6 +25,7 @@ class GetUserByIdAction implements IGetUserByIdAction {
     "place.placeCategory.name",
     "place.location",
     "image.urls",
+    "googlePictureUrl",
     "userCategory.name",
     "userCategory.userCategoryType",
   ];

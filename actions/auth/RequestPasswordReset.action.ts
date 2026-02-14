@@ -1,7 +1,6 @@
 import { IUserRepository } from "@/types/repositories/user.repository.types";
-import { randomBytes } from "crypto";
-import bcrypt from "bcrypt";
 import EmailService from "@/services/emailService";
+import { generateTokenWithExpiry } from "@/utils/tokenHash";
 
 export interface RequestPasswordResetInput {
   email: string;
@@ -32,29 +31,18 @@ class RequestPasswordResetAction implements IRequestPasswordResetAction {
       return;
     }
 
-    const token = randomBytes(32).toString("hex");
-    const hashedToken = await bcrypt.hash(token, 10);
-    const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 1);
-    const storedValue = `${expiresAt.getTime()}:${hashedToken}`;
+    const { token, tokenHash, expiresAt } = generateTokenWithExpiry(60);
 
     await this.userRepository.updateOne(user._id.toString(), {
-      resetPasswordToken: storedValue,
+      resetPasswordTokenHash: tokenHash,
+      resetPasswordExpiresAt: expiresAt,
     });
 
-    const frontendUrl = process.env.FRONTEND_URL;
-    const userId = user._id.toString();
-    const resetUrl = `${frontendUrl}/auth/reset-password?id=${userId}&token=${token}`;
-
     try {
-      await this.emailService.sendPasswordResetEmail(
-        user.email,
-        token,
-        resetUrl,
-      );
+      await this.emailService.sendPasswordResetEmail(user.email, token);
     } catch (error) {
       await this.userRepository.updateOne(user._id.toString(), {
-        $unset: { resetPasswordToken: 1 },
+        $unset: { resetPasswordTokenHash: 1, resetPasswordExpiresAt: 1 },
       });
       throw error;
     }

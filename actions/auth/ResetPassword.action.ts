@@ -1,8 +1,8 @@
 import { IUserRepository } from "@/types/repositories/user.repository.types";
 import bcrypt from "bcrypt";
+import { hashToken } from "@/utils/tokenHash";
 
 export interface ResetPasswordInput {
-  userId: string;
   token: string;
   newPassword: string;
 }
@@ -13,6 +13,9 @@ export interface IResetPasswordAction {
   }): Promise<void>;
 }
 
+const INVALID_TOKEN_MESSAGE =
+  "Le lien de réinitialisation est invalide ou a expiré. Veuillez faire une nouvelle demande.";
+
 class ResetPasswordAction implements IResetPasswordAction {
   constructor(private userRepository: IUserRepository) {}
 
@@ -21,38 +24,25 @@ class ResetPasswordAction implements IResetPasswordAction {
   }: {
     resetData: ResetPasswordInput;
   }): Promise<void> {
-    const { userId, token, newPassword } = resetData;
+    const { token, newPassword } = resetData;
+    const hashed = hashToken(token);
 
-    const user = await this.userRepository.findById(userId);
+    const user = await this.userRepository.findOne({
+      resetPasswordTokenHash: hashed,
+    });
 
-    if (!user || !user.resetPasswordToken) {
-      throw new Error(
-        "Le lien de réinitialisation est invalide ou a expiré. Veuillez faire une nouvelle demande."
-      );
+    if (!user || !user.resetPasswordExpiresAt) {
+      throw new Error(INVALID_TOKEN_MESSAGE);
     }
-
-    const colonIndex = user.resetPasswordToken.indexOf(":");
-    const expiryStr = user.resetPasswordToken.slice(0, colonIndex);
-    const hashedToken = user.resetPasswordToken.slice(colonIndex + 1);
-    const expiryMs = parseInt(expiryStr, 10);
-    if (Number.isNaN(expiryMs) || Date.now() > expiryMs) {
-      throw new Error(
-        "Le lien de réinitialisation est invalide ou a expiré. Veuillez faire une nouvelle demande."
-      );
-    }
-
-    const tokenMatches = await bcrypt.compare(token, hashedToken);
-    if (!tokenMatches) {
-      throw new Error(
-        "Le lien de réinitialisation est invalide ou a expiré. Veuillez faire une nouvelle demande."
-      );
+    if (new Date() > user.resetPasswordExpiresAt) {
+      throw new Error(INVALID_TOKEN_MESSAGE);
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     await this.userRepository.updateOne(user._id.toString(), {
-      $set: { password: hashedPassword },
-      $unset: { resetPasswordToken: 1 },
+      password: hashedPassword,
+      $unset: { resetPasswordTokenHash: 1, resetPasswordExpiresAt: 1 },
     });
   }
 }

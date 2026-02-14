@@ -38,7 +38,13 @@ export interface IUser extends Document {
   place?: Types.ObjectId | IPlace;
   acceptedCGU: boolean;
   acceptedAt: Date;
-  resetPasswordToken?: string;
+  emailVerified?: boolean;
+  emailVerificationTokenHash?: string;
+  emailVerificationExpiresAt?: Date;
+  resetPasswordTokenHash?: string;
+  resetPasswordExpiresAt?: Date;
+  googleId?: string;
+  googlePictureUrl?: string;
   createdAt: Date;
   updatedAt: Date;
 }

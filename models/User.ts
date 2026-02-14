@@ -35,7 +35,13 @@ const userSchema = new Schema<IUser>(
     place: { type: Types.ObjectId, ref: "Place" },
     acceptedCGU: { type: Boolean, required: true, default: false },
     acceptedAt: { type: Date, required: true },
-    resetPasswordToken: { type: String },
+    emailVerified: { type: Boolean, default: true },
+    emailVerificationTokenHash: { type: String },
+    emailVerificationExpiresAt: { type: Date },
+    resetPasswordTokenHash: { type: String },
+    resetPasswordExpiresAt: { type: Date },
+    googleId: { type: String, sparse: true },
+    googlePictureUrl: { type: String },
   },
   { timestamps: true }
 );
