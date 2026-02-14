@@ -38,6 +38,7 @@ export interface IUser extends Document {
   place?: Types.ObjectId | IPlace;
   acceptedCGU: boolean;
   acceptedAt: Date;
+  resetPasswordToken?: string;
   createdAt: Date;
   updatedAt: Date;
 }

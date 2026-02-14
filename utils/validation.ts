@@ -11,8 +11,8 @@ export const validateData = <T extends z.ZodTypeAny>(
   data: unknown
 ): null | Record<string, string> => {
   const result = schema.safeParse(data);
-  if (!result.success) {
-    return result.error.errors.reduce((acc, err) => {
+  if (!result.success && result.error?.issues) {
+    return result.error.issues.reduce((acc, err) => {
       acc[err.path[0] as string] = err.message;
       return acc;
     }, {} as Record<string, string>);

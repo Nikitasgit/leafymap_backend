@@ -1,5 +1,5 @@
 import { IUser } from "../models/user";
-import { Types } from "mongoose";
+import { Types, FilterQuery } from "mongoose";
 
 export interface UserFilters {
   _id?: string | { $in: string[] } | { $nin: string[] };
@@ -17,7 +17,7 @@ export interface IUserRepository {
     project?: (keyof IUser | string)[]
   ): Promise<IUser | null>;
   findOne(
-    filter: Partial<IUser> | { $or: Partial<IUser>[] },
+    filter: FilterQuery<IUser>,
     project?: (keyof IUser | string)[]
   ): Promise<IUser | null>;
   findAll<K extends keyof IUser>(params: {
@@ -26,6 +26,11 @@ export interface IUserRepository {
     limit?: number;
     sort?: { [key: string]: 1 | -1 };
   }): Promise<Pick<IUser, K>[]>;
-  updateOne(id: string, update: Partial<IUser>): Promise<void>;
+  updateOne(
+    id: string,
+    update:
+      | Partial<IUser>
+      | { $set?: Partial<IUser>; $unset?: Record<string, 1> }
+  ): Promise<void>;
   deleteOne(id: string): Promise<void>;
 }

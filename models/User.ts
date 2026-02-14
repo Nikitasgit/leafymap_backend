@@ -35,6 +35,7 @@ const userSchema = new Schema<IUser>(
     place: { type: Types.ObjectId, ref: "Place" },
     acceptedCGU: { type: Boolean, required: true, default: false },
     acceptedAt: { type: Date, required: true },
+    resetPasswordToken: { type: String },
   },
   { timestamps: true }
 );

@@ -147,7 +147,10 @@ class UserRepository implements IUserRepository {
     return users as unknown as Pick<IUser, K>[];
   }
 
-  async updateOne(id: string, update: Partial<IUser>): Promise<void> {
+  async updateOne(
+    id: string,
+    update: Partial<IUser> | { $set?: Partial<IUser>; $unset?: Record<string, 1> }
+  ): Promise<void> {
     await User.findByIdAndUpdate(id, update).exec();
   }
 
