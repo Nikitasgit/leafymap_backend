@@ -1,8 +1,14 @@
 import { OAuth2Client } from "google-auth-library";
 
+const GOOGLE_PICTURE_HIGH_RES_SIZE = 400;
+
 function toHighResGooglePictureUrl(url: string | undefined): string | undefined {
   if (!url || !url.includes("googleusercontent.com")) return url;
-  return `${url}${url.endsWith("=s0") ? "" : "=s0"}`;
+  const highResParam = `=s${GOOGLE_PICTURE_HIGH_RES_SIZE}-c`;
+  if (url.includes("=s")) {
+    return url.replace(/=s\d+-c?=?.*$/, highResParam);
+  }
+  return `${url.replace(/=.*$/, "")}${highResParam}`;
 }
 
 export interface GoogleTokenPayload {
