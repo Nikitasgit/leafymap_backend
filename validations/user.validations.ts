@@ -7,6 +7,9 @@ import {
   phoneSchema,
 } from "./common.validations";
 
+const emptyToUndefined = (val: unknown) =>
+  val === "" || val === null ? undefined : val;
+
 export const usernameSchema = z
   .string()
   .min(1, "Le nom est requis")
@@ -14,7 +17,7 @@ export const usernameSchema = z
   .max(30, "Le nom ne peut pas dépasser 30 caractères")
   .regex(
     /^[a-zA-ZÀ-ÿ0-9\s']+$/,
-    "Le nom ne peut contenir que des lettres, chiffres, espaces et le caractère '"
+    "Le nom ne peut contenir que des lettres, chiffres, espaces et le caractère '",
   );
 
 const userCategorySchema = z
@@ -26,8 +29,8 @@ export const newCreatorSchema = z.object({
   username: usernameSchema,
   userCategory: userCategorySchema,
   description: descriptionSchema,
-  website: websiteSchema.optional(),
+  website: z.preprocess(emptyToUndefined, websiteSchema.optional()),
   phone: phoneSchema.optional(),
-  firstname: firstnameSchema,
-  lastname: lastnameSchema,
+  firstname: z.preprocess(emptyToUndefined, firstnameSchema),
+  lastname: z.preprocess(emptyToUndefined, lastnameSchema),
 });

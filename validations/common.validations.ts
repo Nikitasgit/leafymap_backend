@@ -7,8 +7,10 @@ export interface ValidationResult {
 
 export const phoneSchema = z
   .string()
-  .min(1, "Le téléphone est requis")
-  .regex(/^[0-9]{10}$/, "Le numéro de téléphone doit contenir 10 chiffres");
+  .refine((val) => !val || val.trim() === "" || /^[0-9]{10}$/.test(val), {
+    message: "Le numéro de téléphone doit contenir 10 chiffres",
+  })
+  .transform((val) => (val?.trim() === "" ? undefined : val));
 
 export const emailSchema = z
   .string()
@@ -40,7 +42,7 @@ export const websiteSchema = z
     },
     {
       message: "L'URL du site web n'est pas valide",
-    }
+    },
   );
 
 export const descriptionSchema = z
@@ -53,7 +55,7 @@ export const firstnameSchema = z
   .max(50, "Le prénom ne peut pas dépasser 50 caractères")
   .regex(
     /^[a-zA-ZÀ-ÿ\s'-]+$/,
-    "Le prénom ne peut contenir que des lettres, espaces, tirets et apostrophes"
+    "Le prénom ne peut contenir que des lettres, espaces, tirets et apostrophes",
   )
   .optional();
 
@@ -62,7 +64,7 @@ export const lastnameSchema = z
   .max(50, "Le nom ne peut pas dépasser 50 caractères")
   .regex(
     /^[a-zA-ZÀ-ÿ\s'-]+$/,
-    "Le nom ne peut contenir que des lettres, espaces, tirets et apostrophes"
+    "Le nom ne peut contenir que des lettres, espaces, tirets et apostrophes",
   )
   .optional();
 
@@ -71,7 +73,7 @@ export const addressSchema = z.object({
     .string()
     .min(
       1,
-      "Le numéro est requis, veuillez indiquer zéro si vous n'avez pas de numéro"
+      "Le numéro est requis, veuillez indiquer zéro si vous n'avez pas de numéro",
     ),
   street: z.string().min(2, "La rue doit contenir au moins 2 caractères"),
   code: z.string().min(5, "Le code postal doit contenir au moins 5 caractères"),
