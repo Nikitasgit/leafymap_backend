@@ -20,12 +20,12 @@ class SocketService {
   constructor(
     httpServer: HTTPServer,
     userRepository: IUserRepository,
-    messageRepository: IMessageRepository
+    messageRepository: IMessageRepository,
   ) {
     const allowedOrigins =
       process.env.NODE_ENV === "production"
-        ? ["https://spotlight-project.vercel.app"]
-        : ["http://localhost:3001", "https://spotlight-project.vercel.app"];
+        ? ["https://locallyz.com"]
+        : ["http://localhost:3001", "https://locallyz.com"];
 
     this.io = new SocketIOServer(httpServer, {
       cors: {
@@ -46,7 +46,7 @@ class SocketService {
     this.io.use(async (socket: Socket, next: (err?: Error) => void) => {
       try {
         const parseCookies = (
-          cookieHeader: string | undefined
+          cookieHeader: string | undefined,
         ): Record<string, string> => {
           const cookies: Record<string, string> = {};
           if (!cookieHeader) return cookies;
@@ -132,19 +132,19 @@ class SocketService {
           for (const message of unreadMessages) {
             await this.messageRepository.markAsReadByUser(
               message._id.toString(),
-              userId
+              userId,
             );
           }
 
           if (unreadMessages.length > 0) {
             logger.info(
-              `Marked ${unreadMessages.length} message(s) as read for user ${userId} in conversation ${conversationId}`
+              `Marked ${unreadMessages.length} message(s) as read for user ${userId} in conversation ${conversationId}`,
             );
           }
         } catch (error) {
           logger.error(
             `Error marking messages as read for user ${userId} in conversation ${conversationId}:`,
-            error
+            error,
           );
         }
       });
