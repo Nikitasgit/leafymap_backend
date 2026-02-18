@@ -31,21 +31,29 @@ connectDB();
 
 const app = express();
 
-const allowedOrigins =
+const defaultProductionOrigins = [
+  "https://locallyz.com",
+  "https://www.locallyz.com",
+  "http://locallyz.com",
+  "http://www.locallyz.com",
+];
+const allowedOrigins: string[] =
   process.env.NODE_ENV === "production"
-    ? ["https://locallyz.com"]
-    : ["http://localhost:3001", "https://spotlight-project.vercel.app"];
+    ? process.env.CORS_ORIGINS
+      ? process.env.CORS_ORIGINS.split(",").map((o) => o.trim())
+      : defaultProductionOrigins
+    : [
+        "http://localhost:3001",
 
-const corsOptions = {
-  origin: (origin: string | undefined, callback: Function) => {
-    if (!origin) {
-      return callback(null, true);
-    }
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
+        "https://locallyz.com",
+        "https://www.locallyz.com",
+      ];
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -61,6 +69,15 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  }
+  next();
+});
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(cookieParser());
