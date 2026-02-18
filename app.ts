@@ -33,17 +33,14 @@ const app = express();
 
 const allowedOrigins =
   process.env.NODE_ENV === "production"
-    ? ["https://spotlight-project.vercel.app"]
+    ? ["https://locallyz.com"]
     : ["http://localhost:3001", "https://spotlight-project.vercel.app"];
 
 const corsOptions = {
   origin: (origin: string | undefined, callback: Function) => {
+    // Allow requests with no origin (like mobile apps, Postman, or direct browser access)
     if (!origin) {
-      if (process.env.NODE_ENV === "development") {
-        return callback(null, true);
-      } else {
-        return callback(new Error("Origin required in production"), false);
-      }
+      return callback(null, true);
     }
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
