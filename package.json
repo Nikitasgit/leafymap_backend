@@ -4,9 +4,9 @@
   "description": "Backend for Innovastay application",
   "main": "dist/server.js",
   "scripts": {
-    "start": "node dist/server.js",
+    "start": "node -r tsconfig-paths/register dist/server.js",
     "dev": "nodemon",
-    "build": "tsc",
+    "build": "tsc && tsc-alias -p tsconfig.json",
     "watch": "tsc -w",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -36,7 +36,8 @@
     "sharp": "^0.34.3",
     "socket.io": "^4.8.3",
     "winston": "^3.17.0",
-    "zod": "^3.25.73"
+    "zod": "^3.25.73",
+    "tsconfig-paths": "^4.2.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -58,7 +59,7 @@
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0",
+    "tsc-alias": "^1.8.16",
     "typescript": "^5.8.3"
   },
   "engines": {
