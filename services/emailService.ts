@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
+import { APP_NAME, FRONTEND_URL } from "../utils/constants/common";
 
 function getTransport(): Transporter {
   const host = process.env.SMTP_HOST;
@@ -27,7 +28,7 @@ function getTransport(): Transporter {
 }
 
 function getFrontendUrl(): string {
-  const url = process.env.FRONTEND_URL;
+  const url = FRONTEND_URL;
   if (!url) {
     throw new Error("FRONTEND_URL is not configured");
   }
@@ -44,9 +45,9 @@ class EmailService {
     }
 
     const verificationLink = `${getFrontendUrl()}/auth/verify-email?token=${token}`;
-    const subject = "Vérifiez votre adresse email - SpotLight";
+    const subject = `Vérifiez votre adresse email - ${APP_NAME}`; 
     const html = this.getEmailVerificationTemplate(verificationLink);
-    const text = `Bonjour,\n\nVeuillez cliquer sur le lien suivant pour vérifier votre adresse email et activer votre compte :\n\n${verificationLink}\n\nCe lien est valide pendant 15 minutes.\n\nSi vous n'avez pas créé de compte, ignorez cet email.\n\nCordialement,\nL'équipe SpotLight`;
+    const text = `Bonjour,\n\nVeuillez cliquer sur le lien suivant pour vérifier votre adresse email et activer votre compte :\n\n${verificationLink}\n\nCe lien est valide pendant 15 minutes.\n\nSi vous n'avez pas créé de compte, ignorez cet email.\n\nCordialement,\nL'équipe ${APP_NAME}`;
 
     try {
       const transporter = getTransport();
@@ -78,7 +79,7 @@ class EmailService {
             
             <p>Bonjour,</p>
             
-            <p>Cliquez sur le lien ci-dessous pour vérifier votre adresse email et activer votre compte SpotLight.</p>
+            <p>Cliquez sur le lien ci-dessous pour vérifier votre adresse email et activer votre compte ${APP_NAME}.</p>
             
             <p style="margin: 30px 0;">
               <a href="${verificationLink}" 
@@ -104,7 +105,7 @@ class EmailService {
             
             <p style="color: #95a5a6; font-size: 12px; margin-bottom: 0;">
               Cordialement,<br>
-              L'équipe SpotLight
+              L'équipe ${APP_NAME}
             </p>
           </div>
         </body>
@@ -121,9 +122,9 @@ class EmailService {
     }
 
     const resetUrl = `${getFrontendUrl()}/auth/reset-password?token=${token}`;
-    const subject = "Réinitialisation de votre mot de passe - Loocalizy";
+    const subject = `Réinitialisation de votre mot de passe - ${APP_NAME}`;
     const html = this.getPasswordResetEmailTemplate(resetUrl);
-    const text = `Bonjour,\n\nVous avez demandé à réinitialiser votre mot de passe. Cliquez sur le lien suivant pour procéder :\n\n${resetUrl}\n\nCe lien est valide pendant 1 heure.\n\nSi vous n'avez pas demandé cette réinitialisation, ignorez cet email.\n\nCordialement,\nL'équipe Loocalizy`;
+    const text = `Bonjour,\n\nVous avez demandé à réinitialiser votre mot de passe. Cliquez sur le lien suivant pour procéder :\n\n${resetUrl}\n\nCe lien est valide pendant 1 heure.\n\nSi vous n'avez pas demandé cette réinitialisation, ignorez cet email.\n\nCordialement,\nL'équipe ${APP_NAME}`;
 
     try {
       const transporter = getTransport();
@@ -157,7 +158,7 @@ class EmailService {
             
             <p>Bonjour,</p>
             
-            <p>Vous avez demandé à réinitialiser votre mot de passe pour votre compte Loocalizy.</p>
+            <p>Vous avez demandé à réinitialiser votre mot de passe pour votre compte ${APP_NAME}.</p>
             
             <p style="margin: 30px 0;">
               <a href="${resetUrl}" 
@@ -183,7 +184,7 @@ class EmailService {
             
             <p style="color: #95a5a6; font-size: 12px; margin-bottom: 0;">
               Cordialement,<br>
-              L'équipe Loocalizy
+              L'équipe ${APP_NAME}
             </p>
           </div>
         </body>

@@ -1,5 +1,4 @@
 import express from "express";
-import dotenv from "dotenv";
 import connectDB from "./config/db";
 import errorHandler from "./utils/errorHandler";
 import userRoutes from "./routes/user.routes";
@@ -22,19 +21,15 @@ import helmet from "helmet";
 import { RateLimiterMiddleware } from "./middlewares";
 import logger from "./utils/logger";
 import { Request, Response, NextFunction } from "express";
+import { ALLOWED_ORIGINS } from "./utils/constants/common";
 
 const rateLimiterMiddleware = new RateLimiterMiddleware();
-
-dotenv.config();
 
 connectDB();
 
 const app = express();
 
-const allowedOrigins =
-  process.env.NODE_ENV === "production"
-    ? ["https://locallyz.com"]
-    : ["http://localhost:3001", "https://spotlight-project.vercel.app"];
+const allowedOrigins = ALLOWED_ORIGINS;
 
 const corsOptions = {
   origin: (origin: string | undefined, callback: Function) => {
@@ -84,7 +79,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // Apply rate limiting to all API routes
-// app.use("/api/", rateLimiterMiddleware.api());
+app.use("/api/", rateLimiterMiddleware.api());
 
 app.use("/api/users", userRoutes);
 app.use("/api/categories", categorieRoutes);

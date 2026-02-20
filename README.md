@@ -1,4 +1,4 @@
-# Documentation Backend - Spotlight
+# Documentation Backend - Leafy Map
 
 ## Table des matières
 
