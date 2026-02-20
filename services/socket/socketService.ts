@@ -6,6 +6,7 @@ import { IUserRepository } from "@/types/repositories/user.repository.types";
 import { IMessageRepository } from "@/types/repositories/message.repository.types";
 import { Types } from "mongoose";
 import logger from "@/utils/logger";
+import { ALLOWED_ORIGINS } from "@/utils/constants/common";
 
 interface SocketData {
   userId: string;
@@ -20,12 +21,9 @@ class SocketService {
   constructor(
     httpServer: HTTPServer,
     userRepository: IUserRepository,
-    messageRepository: IMessageRepository,
+    messageRepository: IMessageRepository
   ) {
-    const allowedOrigins =
-      process.env.NODE_ENV === "production"
-        ? ["https://locallyz.com"]
-        : ["http://localhost:3001", "https://locallyz.com"];
+    const allowedOrigins = ALLOWED_ORIGINS;
 
     this.io = new SocketIOServer(httpServer, {
       cors: {
@@ -46,7 +44,7 @@ class SocketService {
     this.io.use(async (socket: Socket, next: (err?: Error) => void) => {
       try {
         const parseCookies = (
-          cookieHeader: string | undefined,
+          cookieHeader: string | undefined
         ): Record<string, string> => {
           const cookies: Record<string, string> = {};
           if (!cookieHeader) return cookies;
@@ -132,19 +130,19 @@ class SocketService {
           for (const message of unreadMessages) {
             await this.messageRepository.markAsReadByUser(
               message._id.toString(),
-              userId,
+              userId
             );
           }
 
           if (unreadMessages.length > 0) {
             logger.info(
-              `Marked ${unreadMessages.length} message(s) as read for user ${userId} in conversation ${conversationId}`,
+              `Marked ${unreadMessages.length} message(s) as read for user ${userId} in conversation ${conversationId}`
             );
           }
         } catch (error) {
           logger.error(
             `Error marking messages as read for user ${userId} in conversation ${conversationId}:`,
-            error,
+            error
           );
         }
       });
