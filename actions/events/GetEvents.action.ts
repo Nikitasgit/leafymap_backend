@@ -8,6 +8,8 @@ export interface GetEventsInput {
   placeId?: string;
   limit?: number;
   lifecycleStatus?: ("upcoming" | "ongoing" | "completed" | "unvalid")[];
+  sortBy?: "createdAt" | "dateRange.firstDate";
+  order?: "asc" | "desc";
 }
 
 export interface IGetEventsAction {
@@ -30,6 +32,8 @@ class GetEventsAction implements IGetEventsAction {
     "image._id",
     "image.urls",
     "place._id",
+    "place.name",
+    "place.location",
   ];
 
   constructor(private eventRepository: IEventRepository) {}
@@ -57,11 +61,15 @@ class GetEventsAction implements IGetEventsAction {
       };
     }
 
+    const sortBy = filters?.sortBy || "dateRange.firstDate";
+    const order = filters?.order === "desc" ? -1 : 1;
+    const sort: { [key: string]: 1 | -1 } = { [sortBy]: order };
+
     const events = await this.eventRepository.findAll({
       filters: queryFilters,
       project: this.project,
       limit: filters?.limit || 100,
-      sort: { "dateRange.firstDate": 1 },
+      sort,
     });
 
     return events;

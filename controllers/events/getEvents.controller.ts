@@ -14,7 +14,7 @@ class GetEventsController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const { placeId, limit, lifecycleStatus } = req.query;
+        const { placeId, limit, lifecycleStatus, sortBy, order } = req.query;
         const filters: GetEventsInput = {
           placeId: typeof placeId === "string" ? placeId : undefined,
           limit: limit ? parseInt(limit as string) : undefined,
@@ -28,6 +28,12 @@ class GetEventsController {
                 | "unvalid"
               )[])
             : undefined,
+          sortBy:
+            sortBy === "createdAt" || sortBy === "dateRange.firstDate"
+              ? sortBy
+              : undefined,
+          order:
+            order === "asc" || order === "desc" ? order : undefined,
         };
 
         const events = await this.getEventsAction.execute({ filters });

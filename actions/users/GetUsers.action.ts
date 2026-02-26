@@ -6,6 +6,7 @@ import { IUser } from "@/types/models/user";
 
 export interface GetUsersInput {
   username?: string;
+  userType?: "creator" | "guest";
   limit?: number;
   excludeIds?: string[];
 }
@@ -20,6 +21,8 @@ class GetUsersAction implements IGetUsersAction {
     "firstname",
     "lastname",
     "username",
+    "userType",
+    "description",
     "image.urls",
     "userCategory.name",
     "userCategory.userCategoryType",
@@ -46,6 +49,10 @@ class GetUsersAction implements IGetUsersAction {
         ? filters.excludeIds
         : [filters.excludeIds];
       queryFilters._id = { $nin: excludeArray };
+    }
+
+    if (filters?.userType) {
+      queryFilters.userType = filters.userType;
     }
 
     const users = await this.userRepository.findAll({

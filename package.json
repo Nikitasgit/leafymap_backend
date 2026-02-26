@@ -6,14 +6,14 @@
   "scripts": {
     "start": "node -r tsconfig-paths/register dist/server.js",
     "dev": "nodemon",
+    "dev:prod": "cross-env DOTENV_CONFIG_PATH=.env.prod nodemon",
     "build": "tsc && tsc-alias -p tsconfig.json",
     "render:build": "npm install --include=dev && npm run build",
     "watch": "tsc -w",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "seed": "ts-node -r tsconfig-paths/register scripts/seed-paris.ts",
-    "seed:productCategories": "ts-node -r tsconfig-paths/register scripts/seed-productCategories.ts"
+    "seed:users": "ts-node -r tsconfig-paths/register scripts/seed-paris.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.817.0",
@@ -41,6 +41,7 @@
     "tsconfig-paths": "^4.2.0"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.18",
