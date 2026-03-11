@@ -27,12 +27,9 @@ class GetPlacesController {
 
         const places = await this.getPlacesAction.execute({ filters });
 
-        let message = "Places retrieved successfully";
-        if (categoryId) {
-          message = "Places by category retrieved successfully";
-        } else {
-          message = "Latest places retrieved successfully";
-        }
+        const message = categoryId
+          ? "Places by category retrieved successfully"
+          : "Latest places retrieved successfully";
 
         APIResponse(res, places, message, 200);
       } catch (error) {

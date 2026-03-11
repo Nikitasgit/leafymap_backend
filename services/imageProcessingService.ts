@@ -1,5 +1,6 @@
 import sharp from "sharp";
 import path from "path";
+import logger from "@/utils/logger";
 
 export interface ProcessedImageUrls {
   original: string;
@@ -64,7 +65,7 @@ class ImageProcessingService {
         medium: { buffer: mediumBuffer, key: mediumKey },
       };
     } catch (error) {
-      console.error("Erreur lors du traitement de l'image:", error);
+      logger.error("Erreur lors du traitement de l'image:", error);
       throw new Error("Erreur lors du traitement de l'image");
     }
   }

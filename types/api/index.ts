@@ -4,3 +4,6 @@ export * from "./event.dto";
 export * from "./category.dto";
 export * from "./collaborator.dto";
 export * from "./common.dto";
+export * from "./image.dto";
+export * from "./partnership.dto";
+export * from "./eventInvitation.dto";

@@ -25,8 +25,8 @@ router.patch("/accept-cgu", authMiddleware.verify(), acceptCgu.handle());
 router.get("/verify-email", rateLimiterMiddleware.auth(), verifyEmail.handle());
 router.post(
   "/resend-verification-email",
-
-  resendVerificationEmail.handle(),
+  rateLimiterMiddleware.auth(),
+  resendVerificationEmail.handle()
 );
 router.post(
   "/forgot-password",

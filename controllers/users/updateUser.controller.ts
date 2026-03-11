@@ -2,6 +2,7 @@ import { Response, NextFunction, RequestHandler } from "express";
 import { CustomRequest } from "@/types/custom";
 import { APIResponse } from "@/utils/response";
 import logger from "@/utils/logger";
+import { validateData } from "@/utils/validation";
 import { newCreatorSchema } from "../../validations/user.validations";
 import { IUpdateUserAction } from "@/actions/users";
 import { setTokenCookie } from "@/utils/jwt";
@@ -21,24 +22,15 @@ class UpdateUserController {
 
         let updateData: Partial<IUser> = req.body;
         if (req.body.userType === "creator") {
-          const parseResult = newCreatorSchema.safeParse(req.body);
-          if (!parseResult.success && parseResult.error?.issues) {
-            const errors = parseResult.error.issues.reduce(
-              (acc, err) => {
-                acc[err.path[0] as string] = err.message;
-                return acc;
-              },
-              {} as Record<string, string>
-            );
+          const errors = validateData(newCreatorSchema, req.body);
+          if (errors) {
             APIResponse(res, errors, "Validation error", 400);
             return;
           }
-          if (parseResult.success && parseResult.data) {
-            const parsed = parseResult.data;
-            updateData = Object.fromEntries(
-              Object.entries(parsed).filter(([, v]) => v !== undefined)
-            ) as Partial<IUser>;
-          }
+          const parsed = newCreatorSchema.parse(req.body);
+          updateData = Object.fromEntries(
+            Object.entries(parsed).filter(([, v]) => v !== undefined)
+          ) as Partial<IUser>;
         }
 
         if (!decoded.id) {

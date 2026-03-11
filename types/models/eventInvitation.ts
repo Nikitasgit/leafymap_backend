@@ -2,7 +2,6 @@ import { Types } from "mongoose";
 import { IUser } from "./user";
 import { IEvent } from "./event";
 
-type Populated<T> = T | Types.ObjectId;
 export interface IEventInvitation {
   _id: Types.ObjectId;
   event: Types.ObjectId | Partial<IEvent>;

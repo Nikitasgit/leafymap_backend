@@ -37,9 +37,14 @@ class ConversationMiddleware {
           return;
         }
 
+        const getParticipantId = (p: unknown): string =>
+          p && typeof p === "object" && "_id" in p
+            ? String((p as { _id: unknown })._id)
+            : String(p);
+
         if (
           conversation.participants.every(
-            (participant) => participant._id.toString() !== decoded.id
+            (participant) => getParticipantId(participant) !== decoded.id
           )
         ) {
           APIResponse(

@@ -1,11 +1,6 @@
-import { Schema, model, Types, Document } from "mongoose";
-import "../models/Category"; 
-export interface ISubCategory extends Document {
-  name: string;
-  category: Types.ObjectId;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { Schema, model } from "mongoose";
+import "../models/Category";
+import { ISubCategory } from "@/types/models/subCategory";
 
 const subcategorySchema = new Schema<ISubCategory>({
   name: {

@@ -3,6 +3,7 @@ import { CustomRequest } from "@/types/custom";
 import { IMarkMessagesAsReadAction } from "@/actions/messages/MarkMessagesAsRead.action";
 import { APIResponse } from "@/utils/response";
 import { getParam } from "@/utils/request";
+import logger from "@/utils/logger";
 
 class MarkMessagesAsReadController {
   constructor(private markMessagesAsReadAction: IMarkMessagesAsReadAction) {}
@@ -39,7 +40,10 @@ class MarkMessagesAsReadController {
           200
         );
       } catch (error) {
-        next(error);
+        logger.error("Error marking messages as read:", error);
+        const message =
+          error instanceof Error ? error.message : "Server error";
+        APIResponse(res, null, message, 500);
       }
     };
   }

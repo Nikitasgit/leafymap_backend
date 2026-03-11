@@ -16,7 +16,3 @@ export interface PlaceCategory extends BaseEntity {
   types: PlaceType[];
 }
 type PlaceType = "art" | "craft" | "food";
-
-export interface CategoryWithSubCategories extends Category {
-  subCategories: UserCategory[];
-}

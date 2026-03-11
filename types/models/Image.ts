@@ -16,11 +16,3 @@ export interface IImage extends Document {
   size: number;
   mimetype: string;
 }
-
-export interface IImageAWS {
-  originalName: string;
-  urls: IImageUrls;
-  signedUrls: IImageUrls;
-  size: number;
-  mimetype: string;
-}

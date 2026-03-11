@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose";
 import AwsService from "@/services/awsService";
+import logger from "@/utils/logger";
 
 const awsService = new AwsService();
 
@@ -58,7 +59,7 @@ imageSchema.post(
             doc.urls.medium
           );
         } catch (error) {
-          console.error("Error signing image URLs:", error);
+          logger.error("Error signing image URLs:", error);
         }
       }
     };

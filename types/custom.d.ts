@@ -4,7 +4,7 @@ import { IReview } from "./models/review";
 import { IComment } from "./models/comment";
 import { IMessage } from "./models/message";
 import { IImage } from "./models/Image";
-import { IPlace, IEvent } from "./models";
+import { IPlace, IEvent, IConversation } from "./models";
 
 export interface IDecodedToken {
   id: string;

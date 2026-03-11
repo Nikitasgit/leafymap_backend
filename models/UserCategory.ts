@@ -1,13 +1,6 @@
-import { Schema, model, Types, Document } from "mongoose";
+import { Schema, model } from "mongoose";
 import "../models/Category";
-
-export interface IUserCategory extends Document {
-  name: string;
-  category: Types.ObjectId;
-  userCategoryType: "creation" | "organization";
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { IUserCategory } from "@/types/models/userCategory";
 
 const userCategorySchema = new Schema<IUserCategory>(
   {

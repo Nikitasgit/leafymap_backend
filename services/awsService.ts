@@ -32,6 +32,18 @@ class AwsService {
   }
 
   /**
+   * Extracts the S3 object key from a full S3 URL.
+   * Handles signed URLs by removing query parameters before extraction.
+   */
+  private extractKeyFromUrl(fullUrl: string): string {
+    const cleanUrl = fullUrl.split("?")[0];
+    return cleanUrl.replace(
+      `https://${this.bucketName}.s3.${this.region}.amazonaws.com/`,
+      ""
+    );
+  }
+
+  /**
    * Generates a temporary signed URL from a full S3 URL.
    * Signed URLs expire after 10 minutes for security.
    * @param fullUrl - The full S3 URL (e.g., https://bucket.s3.region.amazonaws.com/key)
@@ -42,14 +54,7 @@ class AwsService {
       throw new Error("Invalid URL provided to generateSignedUrlFromFullUrl");
     }
 
-    // Remove query parameters (e.g., signed URL params) before extracting the key
-    const cleanUrl = fullUrl.split("?")[0];
-
-    // Extract the S3 key from the full URL
-    const key = cleanUrl.replace(
-      `https://${this.bucketName}.s3.${this.region}.amazonaws.com/`,
-      ""
-    );
+    const key = this.extractKeyFromUrl(fullUrl);
 
     const command = new GetObjectCommand({
       Bucket: this.bucketName,
@@ -134,12 +139,7 @@ class AwsService {
    */
   async deleteObjectFromS3(fullUrl: string): Promise<boolean> {
     try {
-      // Remove query parameters (e.g., signed URL params)
-      const cleanUrl = fullUrl.split("?")[0];
-      const key = cleanUrl.replace(
-        `https://${this.bucketName}.s3.${this.region}.amazonaws.com/`,
-        ""
-      );
+      const key = this.extractKeyFromUrl(fullUrl);
 
       const command = new DeleteObjectCommand({
         Bucket: this.bucketName,

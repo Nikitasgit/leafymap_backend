@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
 import { APP_NAME, FRONTEND_URL } from "../utils/constants/common";
+import logger from "@/utils/logger";
 
 function getTransport(): Transporter {
   const host = process.env.SMTP_HOST;
@@ -59,7 +60,7 @@ class EmailService {
         text,
       });
     } catch (error) {
-      console.error("Error sending email verification:", error);
+      logger.error("Error sending email verification:", error);
       throw new Error("Erreur lors de l'envoi de l'email de vérification");
     }
   }
@@ -136,7 +137,7 @@ class EmailService {
         text,
       });
     } catch (error) {
-      console.error("Error sending password reset email:", error);
+      logger.error("Error sending password reset email:", error);
       throw new Error(
         "Erreur lors de l'envoi de l'email de réinitialisation"
       );
