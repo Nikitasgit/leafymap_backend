@@ -3,10 +3,7 @@ export interface ISignOutAction {
 }
 
 class SignOutAction implements ISignOutAction {
-  execute(): Promise<void> {
-    // No action needed, controller will clear cookies
-    return Promise.resolve();
-  }
+  execute = async (): Promise<void> => {};
 }
 
 export default SignOutAction;

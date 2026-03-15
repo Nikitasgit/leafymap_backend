@@ -23,20 +23,15 @@ class SignInAction implements ISignInAction {
   }): Promise<{ user: any; token: string }> {
     const { identifier, password } = signInData;
 
-    const user = await this.userRepository.findOne({
-      $or: [{ email: identifier }, { username: identifier }],
-    });
-
-    const isDev = process.env.NODE_ENV === "development";
-    const skipPasswordCheck = isDev;
+    const user = await this.userRepository.findOne(
+      { $or: [{ email: identifier }, { username: identifier }] },
+      ["_id", "email", "username", "password", "userType", "emailVerified"]
+    );
 
     if (!user) {
       throw new Error("Les identifiants sont incorrects");
     }
-    if (
-      !skipPasswordCheck &&
-      (!password || !(await bcrypt.compare(password, user.password)))
-    ) {
+    if (!password || !(await bcrypt.compare(password, user.password))) {
       throw new Error("Les identifiants sont incorrects");
     }
 
@@ -46,22 +41,13 @@ class SignInAction implements ISignInAction {
       );
     }
 
-    const userWithoutPassword = await this.userRepository.findById(
-      user._id.toString(),
-      ["email", "username"]
-    );
-
-    if (!userWithoutPassword) {
-      throw new Error("User not found");
-    }
-
     const token = generateToken({
       id: user._id.toString(),
       userType: user.userType,
     });
 
     return {
-      user: userWithoutPassword,
+      user: { _id: user._id, email: user.email, username: user.username },
       token,
     };
   }

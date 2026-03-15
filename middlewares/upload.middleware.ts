@@ -19,13 +19,15 @@ class UploadMiddleware {
         "image/png",
         "image/gif",
         "image/webp",
+        "image/heic",
+        "image/heif",
       ];
       if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
       } else {
         cb(
           new Error(
-            "Invalid file type. Only JPEG, PNG, GIF and WebP are allowed."
+            "Invalid file type. Only JPEG, PNG, GIF, WebP, HEIC and HEIF are allowed."
           )
         );
       }

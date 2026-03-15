@@ -8,13 +8,17 @@ export function hashToken(rawToken: string): string {
   return createHash("sha256").update(rawToken).digest("hex");
 }
 
+export function isTokenExpired(expiresAt: Date | undefined): boolean {
+  return !expiresAt || new Date() > expiresAt;
+}
+
 export interface TokenWithExpiry {
   token: string;
   tokenHash: string;
   expiresAt: Date;
 }
 
-  const DEFAULT_EXPIRY_MINUTES = 15;
+const DEFAULT_EXPIRY_MINUTES = 15;
 
 export function generateTokenWithExpiry(
   expiryMinutes: number = DEFAULT_EXPIRY_MINUTES,

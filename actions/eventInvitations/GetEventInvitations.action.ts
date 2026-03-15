@@ -30,6 +30,7 @@ class GetEventInvitationsAction implements IGetEventInvitationsAction {
     "collaborator.image",
     "collaborator.deleted",
     "collaborator.image.urls",
+    "collaborator.googlePictureUrl",
     "collaborator.userCategory.name",
   ];
 

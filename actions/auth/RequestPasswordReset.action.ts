@@ -1,5 +1,6 @@
 import { IUserRepository } from "@/types/repositories/user.repository.types";
 import EmailService from "@/services/emailService";
+import { delay } from "@/utils/delay";
 import { generateTokenWithExpiry } from "@/utils/tokenHash";
 
 export interface RequestPasswordResetInput {
@@ -27,7 +28,7 @@ class RequestPasswordResetAction implements IRequestPasswordResetAction {
     const user = await this.userRepository.findOne({ email });
 
     if (!user) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await delay(100);
       return;
     }
 

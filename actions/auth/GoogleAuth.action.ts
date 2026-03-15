@@ -1,6 +1,7 @@
+import { IUser } from "@/types/models/user";
 import { IUserRepository } from "@/types/repositories/user.repository.types";
-import { generateToken } from "@/utils/jwt";
 import { verifyGoogleIdToken } from "@/utils/googleAuth";
+import { generateToken } from "@/utils/jwt";
 import bcrypt from "bcrypt";
 import { randomBytes } from "crypto";
 
@@ -8,9 +9,21 @@ export interface GoogleAuthInput {
   idToken: string;
 }
 
+type GoogleAuthUser = Pick<
+  IUser,
+  | "_id"
+  | "email"
+  | "username"
+  | "firstname"
+  | "lastname"
+  | "userType"
+  | "acceptedCGU"
+  | "googlePictureUrl"
+>;
+
 export interface IGoogleAuthAction {
   execute(params: { googleAuthData: GoogleAuthInput }): Promise<{
-    user: any;
+    user: GoogleAuthUser;
     token: string;
     mergedUnverifiedAccount?: boolean;
   }>;
@@ -30,11 +43,62 @@ const USER_PROJECT = [
 class GoogleAuthAction implements IGoogleAuthAction {
   constructor(private userRepository: IUserRepository) {}
 
+  private async buildAuthResponse(
+    userId: string,
+    userType: IUser["userType"],
+    mergedUnverifiedAccount?: boolean
+  ): Promise<{
+    user: GoogleAuthUser;
+    token: string;
+    mergedUnverifiedAccount?: boolean;
+  }>;
+
+  private async buildAuthResponse(
+    user: GoogleAuthUser
+  ): Promise<{ user: GoogleAuthUser; token: string }>;
+
+  private async buildAuthResponse(
+    userOrId: string | GoogleAuthUser,
+    userType?: IUser["userType"],
+    mergedUnverifiedAccount?: boolean
+  ): Promise<{
+    user: GoogleAuthUser;
+    token: string;
+    mergedUnverifiedAccount?: boolean;
+  }> {
+    if (typeof userOrId === "string") {
+      const user = await this.userRepository.findById(userOrId, [
+        ...USER_PROJECT,
+      ]);
+      if (!user) {
+        throw new Error("User not found");
+      }
+      const token = generateToken({ id: userOrId, userType: userType! });
+      return {
+        user,
+        token,
+        ...(mergedUnverifiedAccount !== undefined && {
+          mergedUnverifiedAccount,
+        }),
+      };
+    }
+    const user = userOrId;
+    const token = generateToken({
+      id: user._id.toString(),
+      userType: user.userType,
+    });
+    return { user, token };
+  }
+
   async execute({
     googleAuthData,
   }: {
     googleAuthData: GoogleAuthInput;
-  }): Promise<{ user: any; token: string; mergedUnverifiedAccount?: boolean }> {
+  }): Promise<{
+    user: GoogleAuthUser;
+    token: string;
+    mergedUnverifiedAccount?: boolean;
+  }> {
     const payload = await verifyGoogleIdToken(googleAuthData.idToken);
     const { email, sub: googleId, picture, given_name, family_name } = payload;
 
@@ -43,14 +107,10 @@ class GoogleAuthAction implements IGoogleAuthAction {
       [...USER_PROJECT]
     );
     if (existingByGoogleId) {
-      const token = generateToken({
-        id: existingByGoogleId._id.toString(),
-        userType: existingByGoogleId.userType,
-      });
-      return {
-        user: existingByGoogleId,
-        token,
-      };
+      return this.buildAuthResponse(
+        existingByGoogleId._id.toString(),
+        existingByGoogleId.userType
+      );
     }
 
     const existingByEmail = await this.userRepository.findOne(
@@ -59,46 +119,39 @@ class GoogleAuthAction implements IGoogleAuthAction {
     );
     if (existingByEmail) {
       const isUnverified = existingByEmail.emailVerified === false;
+      const updatePayload: Record<string, unknown> = {
+        googleId,
+        ...(picture && { googlePictureUrl: picture }),
+      };
       if (isUnverified) {
-        const randomPassword = randomBytes(32).toString("hex");
-        const hashedPassword = await bcrypt.hash(randomPassword, 10);
-        await this.userRepository.updateOne(existingByEmail._id.toString(), {
+        const hashedPassword = await bcrypt.hash(
+          randomBytes(32).toString("hex"),
+          10
+        );
+        Object.assign(updatePayload, {
           password: hashedPassword,
-          googleId,
-          ...(picture && { googlePictureUrl: picture }),
           emailVerified: true,
           $unset: {
             emailVerificationTokenHash: 1,
             emailVerificationExpiresAt: 1,
           },
         });
-      } else {
-        await this.userRepository.updateOne(existingByEmail._id.toString(), {
-          googleId,
-          ...(picture && { googlePictureUrl: picture }),
-        });
       }
-      const userWithoutPassword = await this.userRepository.findById(
+      await this.userRepository.updateOne(
         existingByEmail._id.toString(),
-        [...USER_PROJECT]
+        updatePayload
       );
-      if (!userWithoutPassword) {
-        throw new Error("User not found");
-      }
-      const token = generateToken({
-        id: existingByEmail._id.toString(),
-        userType: existingByEmail.userType,
-      });
-      return {
-        user: userWithoutPassword,
-        token,
-        mergedUnverifiedAccount: isUnverified,
-      };
+      return this.buildAuthResponse(
+        existingByEmail._id.toString(),
+        existingByEmail.userType,
+        isUnverified
+      );
     }
 
-    const randomPassword = randomBytes(32).toString("hex");
-    const hashedPassword = await bcrypt.hash(randomPassword, 10);
-
+    const hashedPassword = await bcrypt.hash(
+      randomBytes(32).toString("hex"),
+      10
+    );
     const userId = await this.userRepository.create({
       email,
       password: hashedPassword,
@@ -112,23 +165,7 @@ class GoogleAuthAction implements IGoogleAuthAction {
       ...(picture && { googlePictureUrl: picture }),
     });
 
-    const userWithoutPassword = await this.userRepository.findById(
-      userId.toString(),
-      [...USER_PROJECT]
-    );
-    if (!userWithoutPassword) {
-      throw new Error("User not found");
-    }
-
-    const token = generateToken({
-      id: userId.toString(),
-      userType: "guest",
-    });
-
-    return {
-      user: userWithoutPassword,
-      token,
-    };
+    return this.buildAuthResponse(userId.toString(), "guest");
   }
 }
 

@@ -21,18 +21,17 @@ class RegisterAction implements IRegisterAction {
   }
 
   async execute({
-    registerData,
+    registerData: { email, password, acceptedCGU },
   }: {
     registerData: RegisterInput;
   }): Promise<{ _id: string }> {
-    const { email, password, acceptedCGU } = registerData;
+    const { token, tokenHash, expiresAt } = generateTokenWithExpiry();
 
     const existingUser = await this.userRepository.findOne({ email });
     if (existingUser) {
       if (existingUser.emailVerified !== false) {
         throw new Error("Cet email est déjà utilisé");
       }
-      const { token, tokenHash, expiresAt } = generateTokenWithExpiry();
       await this.userRepository.updateOne(existingUser._id.toString(), {
         emailVerificationTokenHash: tokenHash,
         emailVerificationExpiresAt: expiresAt,
@@ -42,7 +41,6 @@ class RegisterAction implements IRegisterAction {
     }
 
     const hashed = await bcrypt.hash(password, 10);
-    const { token, tokenHash, expiresAt } = generateTokenWithExpiry();
 
     const userId = await this.userRepository.create({
       email,
@@ -50,8 +48,6 @@ class RegisterAction implements IRegisterAction {
       acceptedCGU,
       acceptedAt: new Date(),
       userType: "guest",
-      deleted: false,
-      emailVerified: false,
       emailVerificationTokenHash: tokenHash,
       emailVerificationExpiresAt: expiresAt,
     });

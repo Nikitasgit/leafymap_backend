@@ -24,6 +24,7 @@ class GetUsersAction implements IGetUsersAction {
     "userType",
     "description",
     "image.urls",
+    "googlePictureUrl",
     "userCategory.name",
     "userCategory.userCategoryType",
     "place.location",

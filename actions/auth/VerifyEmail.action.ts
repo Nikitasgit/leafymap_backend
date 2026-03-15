@@ -1,5 +1,5 @@
 import { IUserRepository } from "@/types/repositories/user.repository.types";
-import { hashToken } from "@/utils/tokenHash";
+import { hashToken, isTokenExpired } from "@/utils/tokenHash";
 
 export interface VerifyEmailInput {
   token: string;
@@ -8,6 +8,8 @@ export interface VerifyEmailInput {
 export interface IVerifyEmailAction {
   execute(params: { verifyData: VerifyEmailInput }): Promise<void>;
 }
+
+const INVALID_TOKEN_MESSAGE = "Lien invalide ou expiré.";
 
 class VerifyEmailAction implements IVerifyEmailAction {
   constructor(private userRepository: IUserRepository) {}
@@ -24,11 +26,8 @@ class VerifyEmailAction implements IVerifyEmailAction {
       emailVerificationTokenHash: hashed,
     });
 
-    if (!user || !user.emailVerificationExpiresAt) {
-      throw new Error("Lien invalide ou expiré.");
-    }
-    if (new Date() > user.emailVerificationExpiresAt) {
-      throw new Error("Lien invalide ou expiré.");
+    if (!user || isTokenExpired(user.emailVerificationExpiresAt)) {
+      throw new Error(INVALID_TOKEN_MESSAGE);
     }
 
     await this.userRepository.updateOne(user._id.toString(), {

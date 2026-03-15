@@ -1,6 +1,6 @@
 import { IUserRepository } from "@/types/repositories/user.repository.types";
 import bcrypt from "bcrypt";
-import { hashToken } from "@/utils/tokenHash";
+import { hashToken, isTokenExpired } from "@/utils/tokenHash";
 
 export interface ResetPasswordInput {
   token: string;
@@ -31,10 +31,7 @@ class ResetPasswordAction implements IResetPasswordAction {
       resetPasswordTokenHash: hashed,
     });
 
-    if (!user || !user.resetPasswordExpiresAt) {
-      throw new Error(INVALID_TOKEN_MESSAGE);
-    }
-    if (new Date() > user.resetPasswordExpiresAt) {
+    if (!user || isTokenExpired(user.resetPasswordExpiresAt)) {
       throw new Error(INVALID_TOKEN_MESSAGE);
     }
 

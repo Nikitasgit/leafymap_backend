@@ -1,5 +1,6 @@
 import { IUserRepository } from "@/types/repositories/user.repository.types";
 import EmailService from "@/services/emailService";
+import { delay } from "@/utils/delay";
 import { generateTokenWithExpiry } from "@/utils/tokenHash";
 
 export interface ResendVerificationEmailInput {
@@ -32,7 +33,7 @@ class ResendVerificationEmailAction implements IResendVerificationEmailAction {
     });
 
     if (!user) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await delay(100);
       return;
     }
 
