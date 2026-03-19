@@ -8,5 +8,5 @@ export { default as GetPlaceByIdAction } from "./GetPlaceById.action";
 export type { IGetPlaceByIdAction } from "./GetPlaceById.action";
 export { default as GetPlacesAction } from "./GetPlaces.action";
 export type { GetPlacesInput, IGetPlacesAction } from "./GetPlaces.action";
-export { default as GetPlacesInViewAction } from "./GetPlacesInView.action";
+export { default as GetPlacesInViewAction, MAX_IDS } from "./GetPlacesInView.action";
 export type { GetPlacesInViewInput, IGetPlacesInViewAction } from "./GetPlacesInView.action";

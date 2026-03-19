@@ -15,6 +15,7 @@ import commentRoutes from "./routes/comment.routes";
 import messageRoutes from "./routes/message.routes";
 import notificationRoutes from "./routes/notification.routes";
 import followRoutes from "./routes/follow.routes";
+import favoriteRoutes from "./routes/favorite.routes";
 import productRoutes from "./routes/product.routes";
 import cors from "cors";
 import helmet from "helmet";
@@ -94,6 +95,7 @@ app.use("/api/comments", commentRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/follows", followRoutes);
+app.use("/api/favorites", favoriteRoutes);
 app.use("/api/products", productRoutes);
 
 app.use(errorHandler);

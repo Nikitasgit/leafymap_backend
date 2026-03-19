@@ -6,6 +6,7 @@ export interface UserFilters {
   email?: string;
   username?: string | { $regex: string; $options: string };
   userType?: "creator" | "guest";
+  userCategory?: string | { $in: string[] };
   deleted?: boolean;
   [key: string]: unknown;
 }

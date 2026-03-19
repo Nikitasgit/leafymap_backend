@@ -1,86 +1,204 @@
-import {
-  IPlaceRepository,
-  PlaceFilters,
-} from "@/types/repositories/place.repository.types";
-import { IPlace, PlaceType } from "@/types/models/place";
+import { IPlaceRepository } from "@/types/repositories/place.repository.types";
+import { IPlace } from "@/types/models/place";
 import { parseJson } from "@/utils/jsonHandlers";
+import { Types } from "mongoose";
+
+export const MAX_IDS = 500;
+export const MAX_LIMIT_BOUNDS = 100;
 
 export interface GetPlacesInViewInput {
-  ne: string;
-  sw: string;
-  filters?: string;
+  ne?: number[];
+  sw?: number[];
+  ids?: string[];
+  /** JSON-encoded client-side filter string */
+  clientFilters?: string;
   limit?: number;
 }
 
 export interface IGetPlacesInViewAction {
   execute(params: {
     filters: GetPlacesInViewInput;
-  }): Promise<IPlace[] | Partial<IPlace>[]>;
+  }): Promise<Partial<IPlace>[]>;
 }
 
-class GetPlacesInViewAction implements IGetPlacesInViewAction {
-  private readonly project: (keyof IPlace | string)[] = [
-    "location",
-    "placeCategory",
-    "placeCategory.name",
-    "user",
-    "user.username",
-    "rating",
-  ];
+interface ClientFilters {
+  placeTypes: string[];
+  placeCategories: string[];
+  minRating?: number | null;
+  userCategoryIds?: string[];
+  productCategoryIds?: string[];
+}
 
+const CLIENT_FILTERS_DEFAULTS: ClientFilters = {
+  placeTypes: [],
+  placeCategories: [],
+};
+
+const toObjectIds = (ids: string[]) => ids.map((id) => new Types.ObjectId(id));
+
+class GetPlacesInViewAction implements IGetPlacesInViewAction {
   constructor(private placeRepository: IPlaceRepository) {}
+
+  /**
+   * Builds a single aggregation pipeline that:
+   *  1. Narrows by geo bounds / IDs (indexed)
+   *  2. Applies simple field filters (placeType, placeCategory, rating)
+   *  3. Conditionally $lookup users   — only on the geo-narrowed set
+   *  4. Conditionally $lookup products — only on the geo-narrowed set
+   *  5. Limits, then populates display fields (placeCategory.name, user.username)
+   */
+  private buildPipeline(
+    input: GetPlacesInViewInput,
+    client: ClientFilters,
+    limit: number
+  ): unknown[] {
+    const {
+      placeTypes,
+      placeCategories,
+      minRating,
+      userCategoryIds = [],
+      productCategoryIds = [],
+    } = client;
+
+    const pipeline: Record<string, unknown>[] = [];
+
+    // ── 1. Base filter (geo bounds or explicit IDs) ──
+    if (input.ids?.length) {
+      pipeline.push({ $match: { _id: { $in: toObjectIds(input.ids) } } });
+    } else {
+      pipeline.push({
+        $match: {
+          location: {
+            $geoWithin: { $box: [input.sw!, input.ne!] },
+          },
+        },
+      });
+    }
+
+    // ── 2. Simple field filters (all uniform: empty = no filter) ──
+    if (placeTypes.length > 0) {
+      pipeline.push({ $match: { placeType: { $in: placeTypes } } });
+    }
+
+    if (placeCategories.length > 0) {
+      pipeline.push({
+        $match: { placeCategory: { $in: toObjectIds(placeCategories) } },
+      });
+    }
+
+    if (minRating != null) {
+      pipeline.push({ $match: { rating: { $gte: minRating } } });
+    }
+
+    // ── 3. User category filter ──
+    // $lookup joins only the ~N places surviving the geo + field stages above,
+    // NOT the entire users collection.
+    if (userCategoryIds.length > 0) {
+      pipeline.push(
+        {
+          $lookup: {
+            from: "users",
+            localField: "user",
+            foreignField: "_id",
+            as: "_userDoc",
+          },
+        },
+        { $unwind: "$_userDoc" },
+        {
+          $match: {
+            "_userDoc.userCategory": {
+              $in: toObjectIds(userCategoryIds),
+            },
+          },
+        }
+      );
+    }
+
+    // ── 4. Product category filter ──
+    if (productCategoryIds.length > 0) {
+      pipeline.push(
+        {
+          $lookup: {
+            from: "products",
+            localField: "user",
+            foreignField: "user",
+            as: "_userProducts",
+          },
+        },
+        {
+          $match: {
+            "_userProducts.productCategory": {
+              $in: toObjectIds(productCategoryIds),
+            },
+          },
+        }
+      );
+    }
+
+    // ── 5. Limit before display lookups ──
+    pipeline.push({ $limit: limit });
+
+    // ── 6. Populate display fields (placeCategory.name, user.username) ──
+    pipeline.push(
+      {
+        $lookup: {
+          from: "placecategories",
+          localField: "placeCategory",
+          foreignField: "_id",
+          pipeline: [{ $project: { name: 1 } }],
+          as: "_placeCat",
+        },
+      },
+      {
+        $unwind: { path: "$_placeCat", preserveNullAndEmptyArrays: true },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          pipeline: [{ $project: { username: 1 } }],
+          as: "_userDisplay",
+        },
+      },
+      {
+        $unwind: {
+          path: "$_userDisplay",
+          preserveNullAndEmptyArrays: true,
+        },
+      }
+    );
+
+    // ── 7. Project final shape (matches the old populate output) ──
+    pipeline.push({
+      $project: {
+        location: 1,
+        rating: 1,
+        placeCategory: "$_placeCat",
+        user: "$_userDisplay",
+      },
+    });
+
+    return pipeline;
+  }
 
   async execute({
     filters,
   }: {
     filters: GetPlacesInViewInput;
-  }): Promise<IPlace[] | Partial<IPlace>[]> {
-    let bounds;
-    try {
-      bounds = {
-        ne: JSON.parse(filters.ne),
-        sw: JSON.parse(filters.sw),
-      };
-    } catch (error) {
-      throw new Error("Invalid coordinate format");
-    }
+  }): Promise<Partial<IPlace>[]> {
+    const clientFilters = parseJson<ClientFilters>(
+      filters.clientFilters,
+      CLIENT_FILTERS_DEFAULTS
+    );
 
-    const maxLimit = 100;
-    const queryLimit = Math.min(filters.limit || 20, maxLimit);
+    const limit = filters.ids?.length
+      ? Math.min(filters.limit ?? filters.ids.length, MAX_IDS)
+      : Math.min(filters.limit ?? 20, MAX_LIMIT_BOUNDS);
 
-    const { placeType, placeCategories } = parseJson(filters.filters, {
-      placeType: "all",
-      placeCategories: [],
-    });
+    const pipeline = this.buildPipeline(filters, clientFilters, limit);
 
-    const placeFilters: PlaceFilters = {
-      location: {
-        $geoWithin: {
-          $box: [bounds.sw, bounds.ne],
-        },
-      },
-    };
-
-    // Filter by place type; "art-craft" is a special case that includes both "art" and "craft"
-    if (placeType && placeType !== "all") {
-      if (placeType === "art-craft") {
-        placeFilters.placeType = { $in: ["art", "craft"] as PlaceType[] };
-      } else {
-        placeFilters.placeType = placeType as PlaceType;
-      }
-    }
-
-    if (placeCategories && placeCategories.length > 0) {
-      placeFilters.placeCategory = { $in: placeCategories };
-    }
-
-    const places = await this.placeRepository.findAll({
-      filters: placeFilters,
-      project: this.project,
-      limit: queryLimit,
-    });
-
-    return places;
+    return this.placeRepository.aggregate<Partial<IPlace>>(pipeline);
   }
 }
 

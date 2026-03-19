@@ -4,7 +4,7 @@ import {
   IPlaceRepository,
   PlaceFilters,
 } from "@/types/repositories/place.repository.types";
-import { Types, FilterQuery } from "mongoose";
+import { Types, FilterQuery, PipelineStage } from "mongoose";
 import { PopulateParser } from "./utils/PopulateParser";
 
 class PlaceRepository implements IPlaceRepository {
@@ -23,7 +23,13 @@ class PlaceRepository implements IPlaceRepository {
       }
     }
     if (filters.user) {
-      query.user = new Types.ObjectId(filters.user);
+      if (typeof filters.user === "string") {
+        query.user = new Types.ObjectId(filters.user);
+      } else if ("$in" in filters.user) {
+        query.user = {
+          $in: (filters.user.$in as string[]).map((id) => new Types.ObjectId(id)),
+        };
+      }
     }
     if (filters.placeCategory) {
       // Handle $in operator for placeCategory
@@ -155,6 +161,10 @@ class PlaceRepository implements IPlaceRepository {
   async deleteMany(filters: PlaceFilters): Promise<void> {
     const query = this.buildQuery(filters);
     await Place.deleteMany(query).exec();
+  }
+
+  async aggregate<T = unknown>(pipeline: unknown[]): Promise<T[]> {
+    return Place.aggregate<T>(pipeline as PipelineStage[]).exec();
   }
 }
 

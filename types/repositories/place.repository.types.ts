@@ -3,9 +3,10 @@ import { Types } from "mongoose";
 
 export interface PlaceFilters {
   _id?: string | { $in: string[] };
-  user?: string;
+  user?: string | { $in: string[] };
   placeCategory?: string | { $in: string[] };
   placeType?: PlaceType | { $in: PlaceType[] };
+  rating?: { $gte: number };
   location?: {
     $geoWithin: {
       $box: [[number, number], [number, number]];
@@ -29,4 +30,5 @@ export interface IPlaceRepository {
   updateOne(id: string, update: Partial<IPlace>): Promise<void>;
   deleteOne(id: string): Promise<void>;
   deleteMany(filters: PlaceFilters): Promise<void>;
+  aggregate<T = unknown>(pipeline: unknown[]): Promise<T[]>;
 }
