@@ -26,4 +26,5 @@ export interface IFavoriteRepository {
     sort?: { [key: string]: 1 | -1 };
   }): Promise<Pick<IFavorite, K>[]>;
   deleteOne(id: string): Promise<void>;
+  deleteMany(filters: FavoriteFilters): Promise<void>;
 }

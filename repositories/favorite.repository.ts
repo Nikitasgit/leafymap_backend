@@ -125,6 +125,11 @@ class FavoriteRepository implements IFavoriteRepository {
   async deleteOne(id: string): Promise<void> {
     await Favorite.findByIdAndDelete(id).exec();
   }
+
+  async deleteMany(filters: FavoriteFilters): Promise<void> {
+    const query = this.buildQuery(filters);
+    await Favorite.deleteMany(query).exec();
+  }
 }
 
 export default FavoriteRepository;

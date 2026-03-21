@@ -1,6 +1,16 @@
+import dns from "node:dns";
+import https from "node:https";
 import { OAuth2Client } from "google-auth-library";
 
 const GOOGLE_PICTURE_HIGH_RES_SIZE = 400;
+
+/** Gaxios uses node-fetch; it can ignore process DNS order and still pick AAAA (broken IPv6 on some LANs). */
+const googleOAuthHttpsAgent = new https.Agent({
+  keepAlive: true,
+  lookup(hostname, options, callback) {
+    dns.lookup(hostname, { ...options, family: 4 }, callback);
+  },
+});
 
 function toHighResGooglePictureUrl(url: string | undefined): string | undefined {
   if (!url || !url.includes("googleusercontent.com")) return url;
@@ -28,7 +38,10 @@ export async function verifyGoogleIdToken(
   if (!clientId) {
     throw new Error("GOOGLE_CLIENT_ID is not configured");
   }
-  const client = new OAuth2Client(clientId);
+  const client = new OAuth2Client({
+    clientId,
+    transporterOptions: { agent: googleOAuthHttpsAgent },
+  });
   const ticket = await client.verifyIdToken({
     idToken,
     audience: clientId,

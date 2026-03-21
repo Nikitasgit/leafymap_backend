@@ -3,6 +3,9 @@ import {
   UserRepository,
   ImageRepository,
   EventRepository,
+  ReviewRepository,
+  CommentRepository,
+  FavoriteRepository,
 } from "@/repositories";
 import {
   CreatePlaceAction,
@@ -31,6 +34,9 @@ const placeRepository = new PlaceRepository();
 const userRepository = new UserRepository();
 const imageRepository = new ImageRepository();
 const eventRepository = new EventRepository();
+const reviewRepository = new ReviewRepository();
+const commentRepository = new CommentRepository();
+const favoriteRepository = new FavoriteRepository();
 
 // Initialize middlewares
 export const authMiddleware = new AuthMiddleware(userRepository);
@@ -47,7 +53,10 @@ const deletePlaceAction = new DeletePlaceAction(
   placeRepository,
   userRepository,
   imageRepository,
-  eventRepository
+  eventRepository,
+  reviewRepository,
+  commentRepository,
+  favoriteRepository
 );
 const getPlaceByIdAction = new GetPlaceByIdAction(
   placeRepository,

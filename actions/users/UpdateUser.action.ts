@@ -38,7 +38,7 @@ class UpdateUserAction implements IUpdateUserAction {
       sanitizedData.lastname = sanitizedData.lastname.toLowerCase().trim();
     }
 
-    await this.userRepository.updateOne(userId, sanitizedData);
+  await this.userRepository.updateOne(userId, sanitizedData);
 
     if (sanitizedData.userType) {
       const user = await this.userRepository.findById(userId, [

@@ -13,8 +13,18 @@ class ReviewRepository implements IReviewRepository {
 
     if (!filters) return query;
 
-    if (filters.reference) {
-      query.reference = new Types.ObjectId(filters.reference);
+    if (filters.reference !== undefined) {
+      if (
+        typeof filters.reference === "object" &&
+        filters.reference !== null &&
+        "$in" in filters.reference
+      ) {
+        query.reference = {
+          $in: filters.reference.$in.map((id) => new Types.ObjectId(id)),
+        };
+      } else if (typeof filters.reference === "string") {
+        query.reference = new Types.ObjectId(filters.reference);
+      }
     }
     if (filters.referenceType) {
       query.referenceType = filters.referenceType;
@@ -110,6 +120,11 @@ class ReviewRepository implements IReviewRepository {
 
   async deleteOne(id: string): Promise<void> {
     await Review.deleteOne({ _id: id }).exec();
+  }
+
+  async deleteMany(filters: ReviewFilters): Promise<void> {
+    const query = this.buildQuery(filters);
+    await Review.deleteMany(query).exec();
   }
 }
 

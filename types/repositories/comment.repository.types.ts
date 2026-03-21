@@ -2,7 +2,7 @@ import { IComment, CommentReferenceType } from "../models/comment";
 import { Types } from "mongoose";
 
 export interface CommentFilters {
-  reference?: string;
+  reference?: string | { $in: string[] };
   referenceType?: CommentReferenceType;
   author?: string;
   _id?: { $in: string[] };
@@ -23,4 +23,5 @@ export interface ICommentRepository {
   }): Promise<Pick<IComment, K>[]>;
   updateOne(id: string, update: Partial<IComment>): Promise<void>;
   deleteOne(id: string): Promise<void>;
+  deleteMany(filters: CommentFilters): Promise<void>;
 }

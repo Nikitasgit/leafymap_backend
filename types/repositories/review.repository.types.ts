@@ -2,7 +2,7 @@ import { IReview, ReviewReferenceType } from "../models/review";
 import { Types } from "mongoose";
 
 export interface ReviewFilters {
-  reference?: string;
+  reference?: string | { $in: string[] };
   referenceType?: ReviewReferenceType;
   author?: string;
   _id?: { $in: string[] };
@@ -23,4 +23,5 @@ export interface IReviewRepository {
   }): Promise<Pick<IReview, K>[]>;
   updateOne(id: string, update: Partial<IReview>): Promise<void>;
   deleteOne(id: string): Promise<void>;
+  deleteMany(filters: ReviewFilters): Promise<void>;
 }

@@ -1,4 +1,5 @@
 import "tsconfig-paths/register";
+import dns from "node:dns";
 import app from "./app";
 import "dotenv/config";
 import { createServer } from "http";
@@ -11,6 +12,8 @@ import {
 import EventsCronService from "@/services/cron/EventsCronService";
 import SocketService from "@/services/socket/socketService";
 import { setSocketService } from "@/services/socket/socketInstance";
+
+dns.setDefaultResultOrder("ipv4first");
 
 const PORT = process.env.PORT || 3000;
 
