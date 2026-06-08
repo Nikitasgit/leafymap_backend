@@ -1,5 +1,7 @@
 # Documentation Backend - Leafy Map
 
+Plateforme de **découverte d'événements locaux** : carte interactive, lieux, organisateurs et gestion d'événements.
+
 ## Table des matières
 
 1. [Commandes de base](#-commandes-de-base)
@@ -51,7 +53,7 @@ npm start
 ## Architecture du projet
 
 ```
-innovastay-backend/
+leafymap-backend/
 ├── app.ts                 # Configuration Express et middlewares
 ├── server.ts              # Point d'entrée de l'application
 ├── config/                # Configuration (DB, AWS, etc.)
@@ -99,9 +101,9 @@ innovastay-backend/
 
 #### Types d'utilisateurs
 
-- **Guest** : Utilisateur de base, peut consulter le contenu
-- **Creator** : Artisan/créateur avec profil public
-- **Organizer** : Organisateur d'événements et de lieux
+- **Guest** : Utilisateur de base, peut consulter les événements et la carte
+- **Creator** : Organisateur ou hôte d'événements avec profil public et lieu associé
+- **Organizer** : Responsable de lieu qui accueille et publie des événements (documentation legacy)
 
 #### Limitations par rôle
 

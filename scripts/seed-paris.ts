@@ -133,7 +133,7 @@ async function seed() {
         deleted: false,
         firstname: userNames[i].split(" ")[0],
         lastname: userNames[i].split(" ")[1],
-        description: `Créateur parisien ${i + 1} - Art et culture`,
+        description: `Organisateur parisien ${i + 1} - Événements locaux`,
       });
       users.push(user._id);
       console.log(`User ${i + 1} created: ${user.email}`);
@@ -175,7 +175,7 @@ async function seed() {
 
         const event = await Event.create({
           name: eventNames[(i + e) % eventNames.length] + ` #${i + 1}`,
-          description: `Événement culturel à Paris - ${
+          description: `Événement local à Paris - ${
             eventNames[(i + e) % eventNames.length]
           }`,
           place: places[i],

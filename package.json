@@ -1,7 +1,7 @@
 {
-  "name": "innovastay-backend",
+  "name": "leafymap-backend",
   "version": "1.0.0",
-  "description": "Backend for Innovastay application",
+  "description": "Backend for Leafy Map - local events discovery platform",
   "main": "dist/server.js",
   "scripts": {
     "start": "node -r tsconfig-paths/register dist/server.js",

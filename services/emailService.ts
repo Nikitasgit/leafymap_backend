@@ -37,6 +37,10 @@ function getFrontendUrl(): string {
 }
 
 class EmailService {
+  private getProductTagline(): string {
+    return `${APP_NAME} — découvrez les événements locaux autour de vous`;
+  }
+
   async sendEmailVerification(email: string, token: string): Promise<void> {
     const mailFrom = process.env.MAIL_FROM;
     if (!mailFrom) {
@@ -48,7 +52,7 @@ class EmailService {
     const verificationLink = `${getFrontendUrl()}/auth/verify-email?token=${token}`;
     const subject = `Vérifiez votre adresse email - ${APP_NAME}`; 
     const html = this.getEmailVerificationTemplate(verificationLink);
-    const text = `Bonjour,\n\nVeuillez cliquer sur le lien suivant pour vérifier votre adresse email et activer votre compte :\n\n${verificationLink}\n\nCe lien est valide pendant 15 minutes.\n\nSi vous n'avez pas créé de compte, ignorez cet email.\n\nCordialement,\nL'équipe ${APP_NAME}`;
+    const text = `Bonjour,\n\nVeuillez cliquer sur le lien suivant pour vérifier votre adresse email et activer votre compte :\n\n${verificationLink}\n\nCe lien est valide pendant 15 minutes.\n\nSi vous n'avez pas créé de compte, ignorez cet email.\n\nCordialement,\nL'équipe ${APP_NAME}\n${this.getProductTagline()}`;
 
     try {
       const transporter = getTransport();
@@ -106,7 +110,8 @@ class EmailService {
             
             <p style="color: #95a5a6; font-size: 12px; margin-bottom: 0;">
               Cordialement,<br>
-              L'équipe ${APP_NAME}
+              L'équipe ${APP_NAME}<br>
+              <span style="color: #bdc3c7;">${this.getProductTagline()}</span>
             </p>
           </div>
         </body>
@@ -125,7 +130,7 @@ class EmailService {
     const resetUrl = `${getFrontendUrl()}/auth/reset-password?token=${token}`;
     const subject = `Réinitialisation de votre mot de passe - ${APP_NAME}`;
     const html = this.getPasswordResetEmailTemplate(resetUrl);
-    const text = `Bonjour,\n\nVous avez demandé à réinitialiser votre mot de passe. Cliquez sur le lien suivant pour procéder :\n\n${resetUrl}\n\nCe lien est valide pendant 1 heure.\n\nSi vous n'avez pas demandé cette réinitialisation, ignorez cet email.\n\nCordialement,\nL'équipe ${APP_NAME}`;
+    const text = `Bonjour,\n\nVous avez demandé à réinitialiser votre mot de passe. Cliquez sur le lien suivant pour procéder :\n\n${resetUrl}\n\nCe lien est valide pendant 1 heure.\n\nSi vous n'avez pas demandé cette réinitialisation, ignorez cet email.\n\nCordialement,\nL'équipe ${APP_NAME}\n${this.getProductTagline()}`;
 
     try {
       const transporter = getTransport();
@@ -185,7 +190,8 @@ class EmailService {
             
             <p style="color: #95a5a6; font-size: 12px; margin-bottom: 0;">
               Cordialement,<br>
-              L'équipe ${APP_NAME}
+              L'équipe ${APP_NAME}<br>
+              <span style="color: #bdc3c7;">${this.getProductTagline()}</span>
             </p>
           </div>
         </body>
