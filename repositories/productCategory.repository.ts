@@ -11,8 +11,8 @@ class ProductCategoryRepository implements IProductCategoryRepository {
     const project = params?.project ?? [
       "_id",
       "name",
-      "category",
-      "category.name",
+      "type",
+      "type.name",
     ];
     const sort = params?.sort ?? { name: 1 };
 

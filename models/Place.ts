@@ -58,7 +58,7 @@ export const customDateSchema = new Schema<ICustomDate>(
   { _id: false }
 );
 
-const locationSchema = new Schema<ILocation>(
+export const locationSchema = new Schema<ILocation>(
   {
     type: { type: String, enum: ["Point"], required: true },
     coordinates: {

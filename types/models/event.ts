@@ -1,6 +1,8 @@
 import { Document, Types } from "mongoose";
-import { IPlace } from "./place";
+import { ILocation, IPlace } from "./place";
 import { IImage } from "./Image";
+import { IUser } from "./user";
+import { IEventCategory } from "./eventCategory";
 
 export interface IEventTimeSlot {
   _id: Types.ObjectId;
@@ -29,7 +31,11 @@ export interface IEvent extends Document {
   lifecycleStatus: "upcoming" | "ongoing" | "completed" | "unvalid";
   schedule: IEventPeriod[];
   dateRange: IEventDateRange;
-  place: Types.ObjectId | Partial<IPlace>;
+  eventCategory: Types.ObjectId | Partial<IEventCategory>;
+  user: Types.ObjectId | Partial<IUser>;
+  place?: Types.ObjectId | Partial<IPlace> | null;
+  location?: ILocation | null;
+  online: boolean;
   image?: Types.ObjectId | Partial<IImage>;
   rating: number;
   deleted: boolean;

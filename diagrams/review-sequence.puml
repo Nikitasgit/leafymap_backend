@@ -1,0 +1,77 @@
+@startuml
+!pragma layout smetana
+
+skinparam shadowing false
+autonumber
+
+actor "Utilisateur" as user
+participant "Frontend" as fe
+participant "Middleware" as mw
+participant "Controller" as ctrl
+participant "CreateReviewAction" as action
+participant "ReviewRepository" as repo
+participant "ReviewService" as svc
+participant "Place/Event\nRepository" as entityRepo
+
+autonumber stop
+user -> fe : Publie un avis
+activate fe
+autonumber resume
+
+fe -> mw : POST /reviews
+activate mw
+
+mw -> mw : verify auth
+mw -> entityRepo : findById(reference)
+activate entityRepo
+entityRepo --> mw : entite
+deactivate entityRepo
+
+alt Utilisateur = proprietaire
+  mw --> fe : 403 Interdit
+else Utilisateur autorise
+  mw -> ctrl : next()
+  activate ctrl
+  deactivate mw
+  ctrl -> ctrl : Valider donnees (Zod)
+
+  alt Donnees invalides
+    ctrl --> fe : 400 Bad Request
+  else Donnees valides
+    ctrl -> action : execute(reviewData, authorId)
+    activate action
+
+    action -> repo : findAll(author + reference)
+    activate repo
+    alt Avis deja existant
+      repo --> action : review existant
+      action --> ctrl : Erreur
+      ctrl --> fe : 500
+    else Premier avis
+      repo --> action : vide
+      action -> repo : create(rating, comment, reference)
+      repo --> action : reviewId
+
+      action -> svc : updateReviewRating(reference)
+      activate svc
+      svc -> repo : findAll(reviews de l'entite)
+      repo --> svc : liste des notes
+      deactivate repo
+      svc -> svc : Calculer moyenne
+      svc -> entityRepo : updateOne(rating)
+      activate entityRepo
+      entityRepo --> svc : OK
+      deactivate entityRepo
+      svc --> action : OK
+      deactivate svc
+
+      action --> ctrl : { _id }
+      deactivate action
+      ctrl --> fe : 201 Created
+      deactivate ctrl
+      deactivate fe
+    end
+  end
+end
+
+@enduml

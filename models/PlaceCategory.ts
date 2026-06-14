@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import "../models/CategoryType";
 import { IPlaceCategory } from "@/types/models/placeCategory";
 
 const placeCategorySchema = new Schema<IPlaceCategory>({
@@ -6,12 +7,13 @@ const placeCategorySchema = new Schema<IPlaceCategory>({
     type: String,
     required: true,
   },
-  description: {
-    type: String,
-    required: true,
-  },
   types: {
-    type: [String],
+    type: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "CategoryType",
+      },
+    ],
     required: true,
   },
 });

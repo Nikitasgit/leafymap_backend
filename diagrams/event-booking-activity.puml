@@ -1,0 +1,32 @@
+@startuml
+!pragma layout smetana
+
+skinparam shadowing false
+skinparam activityBackgroundColor #FEFECE
+skinparam activityBorderColor #A80036
+
+|Utilisateur|
+start
+:Demander une reservation\n(nombre de places);
+
+|Système|
+:Verifier eligibilite\n(compte, reservable,\npas createur, evenement actif);
+
+if (Eligibilite OK ?) then (non)
+  :Refuser;
+  stop
+else (oui)
+endif
+
+if (Reservation deja existante\nou capacite depassee ?) then (oui)
+  :Refuser;
+  stop
+else (non)
+  :Creer la reservation\n(eventBooking);
+  :Mettre a jour le statut\nde l'evenement si complet;
+  :Notifier l'utilisateur\net l'organisateur;
+  :Retourner succes;
+  stop
+endif
+
+@enduml

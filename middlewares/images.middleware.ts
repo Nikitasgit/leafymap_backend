@@ -126,10 +126,11 @@ class ImagesMiddleware {
 
           case "Event": {
             const event = await this.eventRepository.findById(reference, [
+              "user",
               "place",
               "place.user",
             ]);
-            if (!event || !event.place) {
+            if (!event) {
               APIResponse(
                 res,
                 null,
@@ -138,8 +139,27 @@ class ImagesMiddleware {
               );
               return;
             }
-            const place = event.place as IPlace;
-            if (!place.user) {
+
+            const eventOwner =
+              event.user && typeof event.user === "object" && "_id" in event.user
+                ? event.user._id.toString()
+                : event.user?.toString();
+
+            if (eventOwner) {
+              isOwner = eventOwner === userId;
+            } else if (event.place) {
+              const place = event.place as IPlace;
+              if (!place.user) {
+                APIResponse(
+                  res,
+                  null,
+                  `Erreur lors de la vérification de propriété`,
+                  500
+                );
+                return;
+              }
+              isOwner = place.user.toString() === userId;
+            } else {
               APIResponse(
                 res,
                 null,
@@ -148,7 +168,6 @@ class ImagesMiddleware {
               );
               return;
             }
-            isOwner = place.user.toString() === userId;
             foundReference = event;
             break;
           }

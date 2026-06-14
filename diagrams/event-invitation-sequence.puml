@@ -1,0 +1,138 @@
+@startuml
+!pragma layout smetana
+
+skinparam shadowing false
+autonumber
+
+actor "Utilisateur" as user
+participant "Frontend" as fe
+participant "auth.middleware" as authMw
+participant "eventOwnership.middleware" as ownerMw
+participant "eventInvitations.controller" as ctrl
+participant "eventInvitation.usecase" as action
+participant "eventInvitation.repository" as invitationRepo
+participant "notification.service" as notif
+participant "eventInvitation.service" as invSvc
+participant "event.repository" as eventRepo
+
+== Envoi d'une invitation ==
+
+autonumber stop
+user -> fe : Selectionne des collaborateurs\npour un evenement
+activate fe
+autonumber resume
+
+fe -> authMw : POST /event-invitations/event/:eventId
+activate authMw
+authMw -> authMw : verify auth
+
+alt Non authentifie
+  authMw --> fe : 401
+else Authentifie
+  authMw -> ownerMw : next()
+  activate ownerMw
+  deactivate authMw
+
+  ownerMw -> eventRepo : findById(eventId)
+  activate eventRepo
+  eventRepo --> ownerMw : event
+  deactivate eventRepo
+
+  alt Non proprietaire
+    ownerMw --> fe : 403
+  else Proprietaire
+    ownerMw -> ctrl : next()
+    activate ctrl
+    deactivate ownerMw
+
+    ctrl -> action : execute(eventInvitations, eventId, initiatorId)
+    activate action
+
+    loop Pour chaque collaborateur
+      action -> invitationRepo : findOne(event + collaborateur)
+      activate invitationRepo
+
+      alt Invitation deja existante
+        invitationRepo --> action : invitation existante
+        deactivate invitationRepo
+        action -> action : Ignorer ce collaborateur
+      else Nouvelle invitation
+        invitationRepo --> action : null
+        action -> invitationRepo : create(status=pending)
+        invitationRepo --> action : OK
+        deactivate invitationRepo
+        action -> notif : createNotification(event_invitation)
+        activate notif
+        notif --> action : OK
+        deactivate notif
+      end
+    end
+
+    action --> ctrl : OK
+    deactivate action
+
+    ctrl --> fe : 201 Created
+    deactivate ctrl
+    deactivate fe
+  end
+end
+
+== Reponse du collaborateur ==
+
+autonumber stop
+user -> fe : Repond a une invitation
+activate fe
+autonumber resume
+
+fe -> authMw : PUT /event-invitations
+activate authMw
+authMw -> authMw : verify auth
+
+alt Non authentifie
+  authMw --> fe : 401
+else Authentifie
+  authMw -> ctrl : next()
+  activate ctrl
+  deactivate authMw
+
+  ctrl -> action : execute(eventInvitations, userId)
+  activate action
+
+  action -> invitationRepo : findById(invitationId)
+  activate invitationRepo
+  invitationRepo --> action : invitation
+
+  alt Refus ou annulation
+    action -> notif : createNotification(refused)
+    activate notif
+    notif --> action : OK
+    deactivate notif
+
+    action -> invSvc : deleteEventInvitation()
+    activate invSvc
+    invSvc -> invitationRepo : deleteOne(invitation)
+    invitationRepo --> invSvc : OK
+    invSvc -> eventRepo : updateOne(schedule)
+    activate eventRepo
+    eventRepo --> invSvc : OK
+    deactivate eventRepo
+    invSvc --> action : OK
+    deactivate invSvc
+  else Acceptation
+    action -> invitationRepo : updateOne(status=accepted)
+    invitationRepo --> action : OK
+    deactivate invitationRepo
+    action -> notif : createNotification(event_accepted)
+    activate notif
+    notif --> action : OK
+    deactivate notif
+  end
+
+  action --> ctrl : OK
+  deactivate action
+  ctrl --> fe : 200 OK
+  deactivate ctrl
+  deactivate fe
+end
+
+@enduml

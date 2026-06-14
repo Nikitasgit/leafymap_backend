@@ -1,0 +1,40 @@
+@startuml
+!pragma layout smetana
+
+skinparam shadowing false
+skinparam activityBackgroundColor #FEFECE
+skinparam activityBorderColor #A80036
+
+|Frontend|
+start
+:Afficher la carte interactive;
+
+if (Chargement ou deplacement\ntermine ?) then (oui)
+  :Recuperer les bornes visibles\nNE / SW;
+else (non)
+  stop
+endif
+
+:Debounce 300ms;
+:Envoyer les bornes\net les filtres;
+
+|Backend|
+:Valider les coordonnees\nou les ids;
+
+if (Coordonnees invalides ?) then (oui)
+  :Retourner erreur;
+  stop
+else (non)
+endif
+
+:Construire le pipeline\ngeospatial;
+:Filtrer les lieux dans la zone\n($geoWithin);
+:Appliquer les filtres\n(type, categorie, note);
+:Limiter les resultats;
+:Retourner les lieux visibles;
+
+|Frontend|
+:Mettre a jour les marqueurs\nsur la carte;
+stop
+
+@enduml

@@ -1,0 +1,36 @@
+@startuml
+!pragma layout smetana
+
+skinparam shadowing false
+skinparam activityBackgroundColor #FEFECE
+skinparam activityBorderColor #A80036
+
+|Initiateur|
+start
+:Demander un partenariat\navec un utilisateur;
+
+|Système|
+:Verifier eligibilite\n(compte, pas deja existant);
+
+if (Eligibilite OK ?) then (non)
+  :Refuser;
+  stop
+else (oui)
+  :Creer le partenariat\n(status = pending);
+  :Notifier le collaborateur;
+endif
+
+|Collaborateur|
+:Consulter la demande recue;
+
+if (Reponse ?) then (Accepter)
+  |Système|
+  :Mettre a jour le status\n(accepted);
+  stop
+else (Refuser)
+  |Système|
+  :Supprimer le partenariat;
+  stop
+endif
+
+@enduml

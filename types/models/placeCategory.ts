@@ -1,11 +1,6 @@
-import { Document } from "mongoose";
-
-export type CategoryPlaceType = "art" | "craft" | "food";
+import { Document, Types } from "mongoose";
 
 export interface IPlaceCategory extends Document {
   name: string;
-  description: string;
-  types: CategoryPlaceType[];
-  createdAt: Date;
-  updatedAt: Date;
+  types: Types.ObjectId[];
 }

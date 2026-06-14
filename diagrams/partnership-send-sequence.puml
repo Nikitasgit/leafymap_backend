@@ -1,0 +1,66 @@
+@startuml
+!pragma layout smetana
+
+skinparam shadowing false
+autonumber
+
+actor "Utilisateur" as user
+participant "Frontend" as fe
+participant "auth.middleware" as mw
+participant "partnerships.controller" as ctrl
+participant "createPartnership.usecase" as action
+participant "partnership.repository" as repo
+participant "notification.service" as notif
+
+autonumber stop
+user -> fe : Envoie une demande de partenariat
+activate fe
+autonumber resume
+
+fe -> mw : POST /partnerships
+activate mw
+
+mw -> mw : verify auth
+
+alt Non authentifie
+  mw --> fe : 401
+else Authentifie
+  mw -> ctrl : next()
+  activate ctrl
+  deactivate mw
+
+  ctrl -> ctrl : Valider donnees
+  ctrl -> action : execute(partnership, initiatorId)
+  activate action
+
+  action -> repo : findOne(initiator + collaborator)
+  activate repo
+
+  alt Demande deja existante
+    repo --> action : partenariat existant
+    action --> ctrl : erreur
+    ctrl --> fe : Erreur
+  else Nouvelle demande
+    repo --> action : null
+
+    action -> repo : create(status=pending)
+    repo --> action : partnershipId
+
+    action -> repo : findById(partnershipId)
+    repo --> action : partnership
+    deactivate repo
+
+    action -> notif : createNotification(partnership_invitation)
+    activate notif
+    notif --> action : OK
+    deactivate notif
+
+    action --> ctrl : partnership
+    deactivate action
+    ctrl --> fe : 201 Created
+    deactivate ctrl
+    deactivate fe
+  end
+end
+
+@enduml

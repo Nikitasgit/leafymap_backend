@@ -1,18 +1,25 @@
 import { BaseEntity } from "./common.dto";
 
 // API Category types - for frontend consumption
-export interface Category extends BaseEntity {
+export interface CategoryType extends BaseEntity {
   name: string;
 }
 
 export interface UserCategory extends BaseEntity {
   name: string;
-  userCategoryType: "creation" | "organization";
+  type: string | Partial<CategoryType>;
 }
 
 export interface PlaceCategory extends BaseEntity {
   name: string;
-  description: string;
-  types: PlaceType[];
+  types: Array<string | Partial<CategoryType>>;
 }
-type PlaceType = "art" | "craft" | "food";
+
+export interface ProductCategory extends BaseEntity {
+  name: string;
+  type: string | Partial<CategoryType>;
+}
+
+export interface EventCategory extends BaseEntity {
+  name: string;
+}

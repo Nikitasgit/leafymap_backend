@@ -1,4 +1,3 @@
-import { IUser } from "types/models";
 import { IEventRepository } from "@/types/repositories/event.repository.types";
 import { IEvent } from "@/types/models/event";
 
@@ -15,7 +14,12 @@ class GetEventByIdAction implements IGetEventByIdAction {
     "lifecycleStatus",
     "schedule",
     "dateRange",
+    "eventCategory",
+    "eventCategory.name",
     "place",
+    "user",
+    "location",
+    "online",
     "image",
     "rating",
     "createdAt",
@@ -24,6 +28,10 @@ class GetEventByIdAction implements IGetEventByIdAction {
     "place.location",
     "place.user",
     "place.user.username",
+    "user._id",
+    "user.username",
+    "user.image",
+    "user.image.urls",
     "image._id",
     "image.urls",
     "schedule.timeSlots.collaborators",

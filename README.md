@@ -116,7 +116,7 @@ leafymap-backend/
 
 ##### Creator
 
-- ✅ Peut créer **1 seul lieu** maximum
+- ✅ Peut créer **1 seul lieu** maximum (limite globale : 1 lieu par utilisateur)
 - ✅ Peut créer des événements
 - ✅ Peut **modifier le statut** d'un partnership (accepter/refuser)
 - ❌ Ne peut PAS créer de partnership
@@ -124,7 +124,7 @@ leafymap-backend/
 
 ##### Organizer
 
-- ✅ Peut créer **jusqu'à 3 lieux** maximum
+- ✅ Peut créer **1 seul lieu** maximum (limite globale : 1 lieu par utilisateur)
 - ✅ Peut créer des événements
 - ✅ Peut **créer des partnerships** (demandes de collaboration)
 - ❌ Ne peut PAS modifier le statut d'un partnership
@@ -160,10 +160,7 @@ leafymap-backend/
 - **Horaires** : Système de planning par défaut + dates personnalisées
 - **Collaborateurs** : Système de partenariats avec statuts (pending, accepted, refused)
 - **Middleware de propriété** : Vérification que l'utilisateur est propriétaire
-- **Quotas** :
-  - Guest : 0 lieu
-  - Creator : 1 lieu maximum
-  - Organizer : 3 lieux maximum
+- **Quota** : 1 lieu maximum par utilisateur (Guest : 0 lieu)
 
 #### Events (Événements)
 

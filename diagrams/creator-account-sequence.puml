@@ -1,0 +1,64 @@
+@startuml
+!pragma layout smetana
+
+skinparam shadowing false
+autonumber
+
+actor "Utilisateur" as user
+participant "Frontend" as fe
+participant "auth.middleware" as mw
+participant "users.controller" as ctrl
+participant "updateUser.usecase" as action
+participant "user.repository" as userRepo
+participant "jwt.util" as jwt
+
+autonumber stop
+user -> fe : Remplit le formulaire\npour devenir créateur
+activate fe
+autonumber resume
+
+fe -> mw : PUT /api/users
+activate mw
+
+mw -> mw : verify auth
+
+alt Non authentifie
+  mw --> fe : 401
+else Authentifie
+  mw -> ctrl : next()
+  activate ctrl
+  deactivate mw
+
+  ctrl -> ctrl : Valider newCreatorSchema
+
+  alt Donnees invalides
+    ctrl --> fe : 400
+  else Donnees valides
+    ctrl -> action : execute(userId, updateData)
+    activate action
+
+    action -> action : Nettoyer les donnees\n(champs interdits, trim)
+    action -> userRepo : updateOne(userId, creatorData)
+    activate userRepo
+    userRepo --> action : OK
+
+    action -> userRepo : findById(userId)
+    userRepo --> action : user creator
+    deactivate userRepo
+
+    action -> jwt : generateToken(userId, userType)
+    activate jwt
+    jwt --> action : token
+    deactivate jwt
+
+    action --> ctrl : token
+    deactivate action
+
+    ctrl -> ctrl : setTokenCookie(token)
+    ctrl --> fe : 200
+    deactivate ctrl
+    deactivate fe
+  end
+end
+
+@enduml

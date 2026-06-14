@@ -3,6 +3,7 @@ import { Types } from "mongoose";
 
 export interface EventFilters {
   place?: string | { $in: string[] };
+  user?: string | { $in: string[] };
   _id?: string;
   deleted?: boolean;
   status?:

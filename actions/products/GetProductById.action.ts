@@ -11,8 +11,8 @@ class GetProductByIdAction implements IGetProductByIdAction {
     "productCategory",
     "user",
     "productCategory.name",
-    "productCategory.category",
-    "productCategory.category.name",
+    "productCategory.type",
+    "productCategory.type.name",
     "createdAt",
     "updatedAt",
   ];

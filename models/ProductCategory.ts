@@ -1,20 +1,18 @@
 import { Schema, model } from "mongoose";
+import "../models/CategoryType";
 import { IProductCategory } from "@/types/models/productCategory";
 
-const productCategorySchema = new Schema<IProductCategory>(
-  {
-    name: {
-      type: String,
-      required: true,
-    },
-    category: {
-      type: Schema.Types.ObjectId,
-      ref: "Category",
-      required: true,
-    },
+const productCategorySchema = new Schema<IProductCategory>({
+  name: {
+    type: String,
+    required: true,
   },
-  { timestamps: true }
-);
+  type: {
+    type: Schema.Types.ObjectId,
+    ref: "CategoryType",
+    required: true,
+  },
+});
 
 export default model<IProductCategory>(
   "ProductCategory",

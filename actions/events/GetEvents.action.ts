@@ -6,6 +6,7 @@ import { IEvent } from "@/types/models/event";
 
 export interface GetEventsInput {
   placeId?: string;
+  userId?: string;
   limit?: number;
   lifecycleStatus?: ("upcoming" | "ongoing" | "completed" | "unvalid")[];
   sortBy?: "createdAt" | "dateRange.firstDate";
@@ -23,7 +24,12 @@ class GetEventsAction implements IGetEventsAction {
     "_id",
     "name",
     "image",
+    "eventCategory",
+    "eventCategory.name",
     "place",
+    "user",
+    "location",
+    "online",
     "description",
     "status",
     "lifecycleStatus",
@@ -32,8 +38,13 @@ class GetEventsAction implements IGetEventsAction {
     "image._id",
     "image.urls",
     "place._id",
-    "place.name",
     "place.location",
+    "place.user",
+    "place.user.username",
+    "user._id",
+    "user.username",
+    "user.image",
+    "user.image.urls",
   ];
 
   constructor(private eventRepository: IEventRepository) {}
@@ -49,6 +60,10 @@ class GetEventsAction implements IGetEventsAction {
 
     if (filters?.placeId) {
       queryFilters.place = filters.placeId;
+    }
+
+    if (filters?.userId) {
+      queryFilters.user = filters.userId;
     }
 
     if (

@@ -4,7 +4,6 @@ import { APIResponse } from "@/utils/response";
 import logger from "@/utils/logger";
 import { ICreateEventAction } from "@/actions/events";
 import { newEventSchema } from "../../validations/event.validations";
-import { Types } from "mongoose";
 import { validateData } from "@/utils/validation";
 
 class CreateEventController {
@@ -17,15 +16,22 @@ class CreateEventController {
       next: NextFunction
     ): Promise<void> => {
       try {
-        const placeId = new Types.ObjectId(req.placeId!);
+        const decoded = req.decoded!;
+        if (req.placeId) {
+          req.body.place = req.placeId;
+        }
+
         const errors = validateData(newEventSchema, req.body);
         if (errors) {
           APIResponse(res, errors, "Validation failed", 400);
           return;
         }
-        req.body.place = placeId;
+
         const event = await this.createEventAction.execute({
-          eventData: req.body,
+          eventData: {
+            ...req.body,
+            user: decoded.id,
+          },
         });
 
         APIResponse(res, event, "Event created successfully", 201);
@@ -33,7 +39,14 @@ class CreateEventController {
         logger.error("Error creating event:", error);
         const message =
           error instanceof Error ? error.message : "Failed to create event";
-        APIResponse(res, null, message, 500);
+        const statusCode =
+          error instanceof Error && error.message === "Place not found"
+            ? 404
+            : error instanceof Error &&
+              error.message === "You don't have permission to use this place"
+            ? 403
+            : 500;
+        APIResponse(res, null, message, statusCode);
       }
     };
   }

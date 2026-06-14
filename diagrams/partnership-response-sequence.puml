@@ -1,0 +1,62 @@
+@startuml
+!pragma layout smetana
+
+skinparam shadowing false
+autonumber
+
+actor "Utilisateur" as user
+participant "Frontend" as fe
+participant "auth.middleware" as mw
+participant "partnerships.controller" as ctrl
+participant "partnership.usecase" as action
+participant "partnership.repository" as repo
+
+autonumber stop
+user -> fe : Repond a une demande de partenariat
+activate fe
+autonumber resume
+
+fe -> mw : PUT /partnerships/update\nou DELETE /partnerships/:id
+activate mw
+
+mw -> mw : verify auth
+
+alt Non authentifie
+  mw --> fe : 401
+else Authentifie
+  mw -> ctrl : next()
+  activate ctrl
+  deactivate mw
+
+  alt Accepter
+    ctrl -> action : execute(status=accepted)
+    activate action
+    action -> repo : findById(partnershipId)
+    activate repo
+    repo --> action : partnership
+
+    action -> repo : updateOne(accepted)
+    repo --> action : OK
+
+    action --> ctrl : OK
+    ctrl --> fe : 200 OK
+  else Refuser
+    ctrl -> action : execute(delete)
+    activate action
+    action -> repo : findById(partnershipId)
+    activate repo
+    repo --> action : partnership
+
+    action -> repo : deleteOne(partnership)
+    repo --> action : OK
+    deactivate repo
+
+    action --> ctrl : OK
+    deactivate action
+    ctrl --> fe : 200 OK
+    deactivate ctrl
+    deactivate fe
+  end
+end
+
+@enduml

@@ -32,6 +32,7 @@ class UpdateEventController {
 
         await this.updateEventAction.execute({
           eventId,
+          userId: req.decoded!.id,
           updateData: req.body,
         });
 
@@ -43,6 +44,11 @@ class UpdateEventController {
         const statusCode =
           error instanceof Error && error.message === "Event not found"
             ? 404
+            : error instanceof Error && error.message === "Place not found"
+            ? 404
+            : error instanceof Error &&
+              error.message === "You don't have permission to use this place"
+            ? 403
             : 500;
         APIResponse(res, null, message, statusCode);
       }

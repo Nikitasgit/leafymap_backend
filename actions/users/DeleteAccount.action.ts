@@ -51,11 +51,20 @@ class DeleteAccountAction implements IDeleteAccountAction {
     });
     const placeIds = userPlaces.map((place) => place._id.toString());
 
-    const userEvents = await this.eventRepository.findAll({
+    const userPlaceEvents = await this.eventRepository.findAll({
       filters: { place: { $in: placeIds } },
       project: ["_id"],
     });
-    const eventIds = userEvents.map((event) => event._id.toString());
+    const ownedEvents = await this.eventRepository.findAll({
+      filters: { user: userId },
+      project: ["_id"],
+    });
+    const eventIds = [
+      ...new Set([
+        ...userPlaceEvents.map((event) => event._id.toString()),
+        ...ownedEvents.map((event) => event._id.toString()),
+      ]),
+    ];
 
     const placeImageIds: string[] = [];
     if (placeIds.length > 0) {
@@ -97,7 +106,11 @@ class DeleteAccountAction implements IDeleteAccountAction {
     );
     logger.info(`Removed user from collaborators in events`);
 
-    // Delete events for user places
+    // Delete events owned by the user, including legacy place-bound events.
+    await this.eventRepository.deleteMany({ user: userId });
+    logger.info(`Deleted owned events for user ${userId}`);
+
+    // Delete legacy events for user places
     if (placeIds.length > 0) {
       await this.eventRepository.deleteMany({ place: { $in: placeIds } });
       logger.info(

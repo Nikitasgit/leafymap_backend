@@ -1,0 +1,40 @@
+@startuml
+!pragma layout smetana
+
+skinparam shadowing false
+skinparam activityBackgroundColor #FEFECE
+skinparam activityBorderColor #A80036
+
+|Utilisateur|
+start
+:Remplir le formulaire\nprofil creator;
+
+|Systeme|
+:Verifier l'authentification\net les droits d'acces;
+
+if (Utilisateur connecte\net guest ?) then (non)
+  :Refuser;
+  stop
+else (oui)
+endif
+
+:Valider les donnees\n(newCreatorSchema);
+
+if (Donnees invalides ?) then (oui)
+  :Retourner erreur;
+  stop
+else (non)
+endif
+
+:Mettre a jour le compte\n(userType = creator);
+:Generer un nouveau token\navec le role creator;
+
+if (Creation d'un lieu\ndemandee ?) then (oui)
+  :Creer le lieu associe\nau compte;
+else (non)
+endif
+
+:Retourner succes;
+stop
+
+@enduml

@@ -14,6 +14,7 @@ import {
 const router: Router = express.Router();
 
 router.get("/", getEvents.handle());
+router.post("/", authMiddleware.verify(), createEvent.handle());
 router.post(
   "/place/:placeId",
   authMiddleware.verify(),

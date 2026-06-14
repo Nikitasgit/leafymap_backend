@@ -22,6 +22,15 @@ class EventRepository implements IEventRepository {
         };
       }
     }
+    if (filters.user) {
+      if (typeof filters.user === "string") {
+        query.user = new Types.ObjectId(filters.user);
+      } else if ("$in" in filters.user) {
+        query.user = {
+          $in: filters.user.$in.map((id) => new Types.ObjectId(id)),
+        };
+      }
+    }
     if (filters._id) {
       query._id = new Types.ObjectId(filters._id);
     }
@@ -96,6 +105,7 @@ class EventRepository implements IEventRepository {
       if (
         ![
           "place",
+          "user",
           "_id",
           "deleted",
           "status",

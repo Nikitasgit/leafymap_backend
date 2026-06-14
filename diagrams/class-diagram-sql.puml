@@ -1,0 +1,312 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide empty methods
+hide circle
+
+package "CoreUsers" {
+  class User {
+    +id_user : BIGINT <<PK>>
+    --
+    email : VARCHAR(255) <<UNIQUE>>
+    username : VARCHAR(50) <<UNIQUE>>
+    role : role
+    email_notifications_enabled : BOOLEAN
+    accepted_cgu : BOOLEAN
+    email_verified : BOOLEAN
+    banned : BOOLEAN
+    deleted : BOOLEAN
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+
+  class Category {
+    +id_category : BIGINT <<PK>>
+    --
+    name : VARCHAR(50) <<UNIQUE>>
+    deleted : BOOLEAN
+  }
+
+  class UserCategory {
+    +id_user_category : BIGINT <<PK>>
+    --
+    id_category : BIGINT <<FK>>
+    name : VARCHAR(50)
+    type : ENUM('creation','organization')
+    deleted : BOOLEAN
+  }
+
+  class Follow {
+    +id_follow : BIGINT <<PK>>
+    --
+    id_follower : BIGINT <<FK>>
+    id_following : BIGINT <<FK>>
+    created_at : TIMESTAMP
+    {constraint} UNIQUE(id_follower,id_following)
+  }
+}
+
+package "Places" {
+  class PlaceCategory {
+    +id_place_category : BIGINT <<PK>>
+    --
+    id_category : BIGINT <<FK>>
+    name : VARCHAR(50)
+    description : VARCHAR(300)
+    deleted : BOOLEAN
+  }
+
+  class Place {
+    +id_place : BIGINT <<PK>>
+    --
+    id_user : BIGINT <<FK,UNIQUE>>
+    id_place_category : BIGINT <<FK>>
+    mapbox_id : VARCHAR(80)
+    label : VARCHAR(100)
+    longitude : DECIMAL(9,6)
+    latitude : DECIMAL(9,6)
+    rating : DECIMAL(3,2)
+    deleted : BOOLEAN
+  }
+}
+
+package "Events" {
+  class EventCategory {
+    +id_event_category : BIGINT <<PK>>
+    --
+    name : VARCHAR(50) <<UNIQUE>>
+    description : VARCHAR(300)
+    deleted : BOOLEAN
+  }
+
+  class Event {
+    +id_event : BIGINT <<PK>>
+    --
+    id_user : BIGINT <<FK>>
+    id_place : BIGINT <<FK,NULL>>
+    id_event_category : BIGINT <<FK>>
+    name : VARCHAR(50)
+    online : BOOLEAN
+    status : event_status
+    lifecycle_status : event_lifecycle_status
+    first_date : DATE
+    latest_date : DATE
+    rating : DECIMAL(3,2)
+    is_bookable : BOOLEAN
+    capacity : INT
+    max_seats_per_booking : INT
+    deleted : BOOLEAN
+  }
+
+  class EventPeriod {
+    +id_event_period : BIGINT <<PK>>
+    --
+    id_event : BIGINT <<FK>>
+    start_date : DATE
+    end_date : DATE
+  }
+
+  class EventTimeSlot {
+    +id_event_time_slot : BIGINT <<PK>>
+    --
+    id_event_period : BIGINT <<FK>>
+    title : VARCHAR(80)
+    start_time : TIME
+    end_time : TIME
+  }
+
+  class EventBooking {
+    +id_event_booking : BIGINT <<PK>>
+    --
+    id_event : BIGINT <<FK>>
+    id_user : BIGINT <<FK>>
+    seats : INT
+    status : booking_status
+    booked_at : TIMESTAMP
+    cancelled_at : TIMESTAMP
+    deleted : BOOLEAN
+    {constraint} UNIQUE(id_event,id_user) active_only
+  }
+}
+
+package "Interactions" {
+  class EventInvitation {
+    +id_event_invitation : BIGINT <<PK>>
+    --
+    id_event : BIGINT <<FK>>
+    id_initiator : BIGINT <<FK>>
+    id_collaborator : BIGINT <<FK>>
+    status : invitation_status
+    deleted : BOOLEAN
+    {constraint} UNIQUE(id_event,id_initiator,id_collaborator)
+  }
+
+  class Partnership {
+    +id_partnership : BIGINT <<PK>>
+    --
+    id_initiator : BIGINT <<FK>>
+    id_collaborator : BIGINT <<FK>>
+    status : partnership_status
+    deleted : BOOLEAN
+    {constraint} UNIQUE(id_initiator,id_collaborator)
+  }
+
+  class Review {
+    +id_review : BIGINT <<PK>>
+    --
+    id_author : BIGINT <<FK>>
+    id_place : BIGINT <<FK,NULL>>
+    id_event : BIGINT <<FK,NULL>>
+    rating : DECIMAL(3,2)
+    comment : VARCHAR(300)
+    certified : BOOLEAN
+    deleted : BOOLEAN
+    {constraint} XOR(id_place,id_event)
+  }
+
+  class Favorite {
+    +id_favorite : BIGINT <<PK>>
+    --
+    id_user : BIGINT <<FK>>
+    id_place : BIGINT <<FK>>
+    created_at : TIMESTAMP
+    {constraint} UNIQUE(id_user,id_place)
+  }
+}
+
+package "MediaAndNotifications" {
+  class Image {
+    +id_image : BIGINT <<PK>>
+    --
+    id_uploader : BIGINT <<FK,NULL>>
+    id_user_reference : BIGINT <<FK,NULL>>
+    id_place_reference : BIGINT <<FK,NULL>>
+    id_event_reference : BIGINT <<FK,NULL>>
+    id_review_reference : BIGINT <<FK,NULL>>
+    original_url : VARCHAR(300)
+    thumbnail_url : VARCHAR(300)
+    medium_url : VARCHAR(300)
+    type : image_type
+    deleted : BOOLEAN
+    {constraint} XOR(user,place,event,review)
+  }
+
+  class Notification {
+    +id_notification : BIGINT <<PK>>
+    --
+    id_sender : BIGINT <<FK>>
+    id_receiver : BIGINT <<FK>>
+    id_event : BIGINT <<FK,NULL>>
+    id_partnership : BIGINT <<FK,NULL>>
+    id_event_invitation : BIGINT <<FK,NULL>>
+    id_review : BIGINT <<FK,NULL>>
+    id_follow : BIGINT <<FK,NULL>>
+    action : notification_action
+    read : BOOLEAN
+    read_at : TIMESTAMP
+    {constraint} max_one_context_fk
+  }
+}
+
+enum role {
+  guest
+  creator
+  admin
+}
+
+enum event_status {
+  available
+  full
+  cancelled
+}
+
+enum event_lifecycle_status {
+  unvalid
+  upcoming
+  ongoing
+  completed
+}
+
+enum booking_status {
+  pending
+  confirmed
+  cancelled
+}
+
+enum invitation_status {
+  pending
+  accepted
+  refused
+  cancelled
+  completed
+}
+
+enum partnership_status {
+  pending
+  accepted
+  refused
+  cancelled
+  completed
+}
+
+enum image_type {
+  profile
+  cover
+  gallery
+  other
+}
+
+enum notification_action {
+  partnership_invitation
+  partnership_accepted
+  event_invitation
+  event_accepted
+  event_refused
+  review
+  new_follower
+  other
+}
+
+UserCategory "0..*" --> "0..1" User : main_category
+Category "1" <-- "0..*" UserCategory : parent
+User "1" --> "0..*" Follow : follower
+User "1" <-- "0..*" Follow : following
+
+Category "1" <-- "0..*" PlaceCategory : parent
+User "1" <-- "0..1" Place : owns
+PlaceCategory "1" <-- "0..*" Place : typed_by
+
+User "1" <-- "0..*" Event : creator
+Place "0..1" <-- "0..*" Event : hosted_at
+EventCategory "1" <-- "0..*" Event : category
+Event "1" <-- "1..*" EventPeriod : has_periods
+EventPeriod "1" <-- "0..*" EventTimeSlot : has_slots
+Event "1" <-- "0..*" EventBooking : booking
+User "1" <-- "0..*" EventBooking : booked_by
+
+Event "1" <-- "0..*" EventInvitation : invitation
+User "1" <-- "0..*" EventInvitation : initiator
+User "1" <-- "0..*" EventInvitation : collaborator
+User "1" <-- "0..*" Partnership : initiator
+User "1" <-- "0..*" Partnership : collaborator
+User "1" <-- "0..*" Review : author
+Place "0..1" <-- "0..*" Review : target_place
+Event "0..1" <-- "0..*" Review : target_event
+User "1" <-- "0..*" Favorite : owner
+Place "1" <-- "0..*" Favorite : target
+
+User "0..1" <-- "0..*" Image : uploader
+User "0..1" <-- "0..*" Image : user_ref
+Place "0..1" <-- "0..*" Image : place_ref
+Event "0..1" <-- "0..*" Image : event_ref
+Review "0..1" <-- "0..*" Image : review_ref
+User "1" <-- "0..*" Notification : sender
+User "1" <-- "0..*" Notification : receiver
+Event "0..1" <-- "0..*" Notification : event_ctx
+Partnership "0..1" <-- "0..*" Notification : partnership_ctx
+EventInvitation "0..1" <-- "0..*" Notification : invitation_ctx
+Review "0..1" <-- "0..*" Notification : review_ctx
+Follow "0..1" <-- "0..*" Notification : follow_ctx
+
+@enduml

@@ -41,8 +41,8 @@ export const placesMiddleware = new PlacesMiddleware(placeRepository);
 export const rateLimiterMiddleware = new RateLimiterMiddleware();
 
 // Initialize actions
-const createEventAction = new CreateEventAction(eventRepository);
-const updateEventAction = new UpdateEventAction(eventRepository);
+const createEventAction = new CreateEventAction(eventRepository, placeRepository);
+const updateEventAction = new UpdateEventAction(eventRepository, placeRepository);
 const deleteEventAction = new DeleteEventAction(
   eventRepository,
   imageRepository

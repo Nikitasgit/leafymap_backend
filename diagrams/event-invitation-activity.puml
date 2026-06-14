@@ -1,0 +1,56 @@
+@startuml
+!pragma layout smetana
+
+skinparam shadowing false
+skinparam activityBackgroundColor #FEFECE
+skinparam activityBorderColor #A80036
+
+|Organisateur|
+start
+:Selectionner des collaborateurs\npour un evenement;
+
+|Système|
+:Verifier auth et propriete\nde l'evenement;
+
+repeat
+  :Pour chaque collaborateur;
+  if (Invitation deja existante ?) then (oui)
+    :Ignorer ce collaborateur;
+  else (non)
+    :Creer l'invitation\n(status = pending);
+    :Envoyer une notification\nau collaborateur;
+  endif
+repeat while (Autres collaborateurs ?) is (oui)
+->non;
+
+if (Issue de l'invitation ?) then (Annulee)
+
+  |Organisateur|
+  :Annuler l'invitation;
+
+  |Système|
+  :Supprimer l'invitation\nde la base;
+  :Retirer le collaborateur\ndu planning de l'evenement;
+  stop
+
+else (Reponse collaborateur)
+
+  |Collaborateur|
+  :Consulter l'invitation reçue;
+
+  if (Reponse ?) then (Accepter)
+    |Système|
+    :Mettre a jour le status\n(accepted);
+    :Notifier l'organisateur;
+    stop
+  else (Refuser)
+    |Système|
+    :Notifier l'organisateur\n(refus);
+    :Supprimer l'invitation\nde la base;
+    :Retirer le collaborateur\ndu planning de l'evenement;
+    stop
+  endif
+
+endif
+
+@enduml

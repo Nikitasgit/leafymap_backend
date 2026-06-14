@@ -1,0 +1,183 @@
+@startuml
+!pragma layout smetana
+left to right direction
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide empty methods
+hide circle
+
+package "CoreUsers" {
+  class User {
+    +id_user : BIGINT <<PK>>
+    email : VARCHAR(255) <<UNIQUE>>
+    username : VARCHAR(50) <<UNIQUE>>
+    role : ENUM
+    created_at : TIMESTAMP
+  }
+
+  class Category {
+    +id_category : BIGINT <<PK>>
+    name : VARCHAR(50) <<UNIQUE>>
+  }
+
+  class UserCategory {
+    +id_user_category : BIGINT <<PK>>
+    id_category : BIGINT <<FK>>
+    name : VARCHAR(50)
+    type : ENUM
+  }
+
+  class Follow {
+    +id_follow : BIGINT <<PK>>
+    id_follower : BIGINT <<FK>>
+    id_following : BIGINT <<FK>>
+  }
+}
+
+package "Places" {
+  class PlaceCategory {
+    +id_place_category : BIGINT <<PK>>
+    id_category : BIGINT <<FK>>
+    name : VARCHAR(50)
+  }
+
+  class Place {
+    +id_place : BIGINT <<PK>>
+    id_user : BIGINT <<FK,UNIQUE>>
+    id_place_category : BIGINT <<FK>>
+    label : VARCHAR(100)
+    rating : DECIMAL(3,2)
+  }
+}
+
+package "Events" {
+  class EventCategory {
+    +id_event_category : BIGINT <<PK>>
+    name : VARCHAR(50) <<UNIQUE>>
+  }
+
+  class Event {
+    +id_event : BIGINT <<PK>>
+    id_user : BIGINT <<FK>>
+    id_place : BIGINT <<FK,NULL>>
+    id_event_category : BIGINT <<FK>>
+    name : VARCHAR(50)
+    status : ENUM
+    lifecycle_status : ENUM
+  }
+
+  class EventPeriod {
+    +id_event_period : BIGINT <<PK>>
+    id_event : BIGINT <<FK>>
+    start_date : DATE
+    end_date : DATE
+  }
+
+  class EventTimeSlot {
+    +id_event_time_slot : BIGINT <<PK>>
+    id_event_period : BIGINT <<FK>>
+    start_time : TIME
+    end_time : TIME
+  }
+
+  class EventBooking {
+    +id_event_booking : BIGINT <<PK>>
+    id_event : BIGINT <<FK>>
+    id_user : BIGINT <<FK>>
+    seats : INT
+    status : ENUM
+  }
+}
+
+package "Interactions" {
+  class EventInvitation {
+    +id_event_invitation : BIGINT <<PK>>
+    id_event : BIGINT <<FK>>
+    id_initiator : BIGINT <<FK>>
+    id_collaborator : BIGINT <<FK>>
+    status : ENUM
+  }
+
+  class Partnership {
+    +id_partnership : BIGINT <<PK>>
+    id_initiator : BIGINT <<FK>>
+    id_collaborator : BIGINT <<FK>>
+    status : ENUM
+  }
+
+  class Review {
+    +id_review : BIGINT <<PK>>
+    id_author : BIGINT <<FK>>
+    id_place : BIGINT <<FK,NULL>>
+    id_event : BIGINT <<FK,NULL>>
+    rating : DECIMAL(3,2)
+  }
+
+  class Favorite {
+    +id_favorite : BIGINT <<PK>>
+    id_user : BIGINT <<FK>>
+    id_place : BIGINT <<FK>>
+  }
+}
+
+package "MediaAndNotifications" {
+  class Image {
+    +id_image : BIGINT <<PK>>
+    id_uploader : BIGINT <<FK,NULL>>
+    id_user_reference : BIGINT <<FK,NULL>>
+    id_place_reference : BIGINT <<FK,NULL>>
+    id_event_reference : BIGINT <<FK,NULL>>
+    id_review_reference : BIGINT <<FK,NULL>>
+  }
+
+  class Notification {
+    +id_notification : BIGINT <<PK>>
+    id_sender : BIGINT <<FK>>
+    id_receiver : BIGINT <<FK>>
+    id_event : BIGINT <<FK,NULL>>
+    id_partnership : BIGINT <<FK,NULL>>
+    id_event_invitation : BIGINT <<FK,NULL>>
+    id_review : BIGINT <<FK,NULL>>
+    id_follow : BIGINT <<FK,NULL>>
+    action : ENUM
+  }
+}
+
+Category "1" <-- "0..*" UserCategory
+UserCategory "0..*" --> "0..1" User
+User "1" --> "0..*" Follow : follower
+User "1" <-- "0..*" Follow : following
+
+Category "1" <-- "0..*" PlaceCategory
+User "1" <-- "0..1" Place
+PlaceCategory "1" <-- "0..*" Place
+
+User "1" <-- "0..*" Event
+Place "0..1" <-- "0..*" Event
+EventCategory "1" <-- "0..*" Event
+Event "1" <-- "1..*" EventPeriod
+EventPeriod "1" <-- "0..*" EventTimeSlot
+Event "1" <-- "0..*" EventBooking
+User "1" <-- "0..*" EventBooking
+
+Event "1" <-- "0..*" EventInvitation
+User "1" <-- "0..*" EventInvitation : initiator
+User "1" <-- "0..*" EventInvitation : collaborator
+User "1" <-- "0..*" Partnership : initiator
+User "1" <-- "0..*" Partnership : collaborator
+User "1" <-- "0..*" Review
+Place "0..1" <-- "0..*" Review
+Event "0..1" <-- "0..*" Review
+User "1" <-- "0..*" Favorite
+Place "1" <-- "0..*" Favorite
+
+User "0..1" <-- "0..*" Image : uploader
+User "1" <-- "0..*" Notification : sender
+User "1" <-- "0..*" Notification : receiver
+Event "0..1" <-- "0..*" Notification
+Partnership "0..1" <-- "0..*" Notification
+EventInvitation "0..1" <-- "0..*" Notification
+Review "0..1" <-- "0..*" Notification
+Follow "0..1" <-- "0..*" Notification
+
+@enduml

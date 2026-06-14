@@ -1,0 +1,71 @@
+@startuml
+!pragma layout smetana
+
+skinparam shadowing false
+autonumber
+
+actor "Utilisateur" as user
+participant "Frontend" as fe
+participant "auth.middleware" as mw
+participant "bookings.controller" as ctrl
+participant "createBooking.usecase" as action
+participant "event.repository" as eventRepo
+participant "eventBooking.repository" as bookingRepo
+
+autonumber stop
+user -> fe : Reserve une place
+activate fe
+autonumber resume
+
+fe -> mw : POST /events/:eventId/bookings
+activate mw
+
+mw -> mw : verify auth
+
+alt Non authentifie
+  mw --> fe : 401
+else Authentifie
+  mw -> ctrl : next()
+  activate ctrl
+  deactivate mw
+
+  ctrl -> ctrl : Valider donnees (Zod)
+  ctrl -> action : execute(eventId, userId, seatCount)
+  activate action
+
+  action -> eventRepo : findById(eventId)
+  activate eventRepo
+  eventRepo --> action : event
+  deactivate eventRepo
+
+  alt Non eligible
+    note right of action
+      isBookable, pas createur,
+      evenement actif
+    end note
+    action --> ctrl : erreur
+    ctrl --> fe : Erreur
+  else Eligible
+    action -> bookingRepo : findOne(event + user)
+    activate bookingRepo
+    bookingRepo --> action : resultat
+
+    alt Reservation deja existante\nou capacite depassee
+      action --> ctrl : erreur
+      ctrl --> fe : Erreur
+    else OK
+      action -> bookingRepo : create(...)
+      bookingRepo --> action : OK
+      deactivate bookingRepo
+
+      action -> action : sync statut + notification
+      action --> ctrl : booking
+      deactivate action
+      ctrl --> fe : 201 Created
+      deactivate ctrl
+      deactivate fe
+    end
+  end
+end
+
+@enduml

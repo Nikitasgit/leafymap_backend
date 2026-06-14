@@ -22,8 +22,8 @@ class GetProductsAction implements IGetProductsAction {
     "productCategory",
     "user",
     "productCategory.name",
-    "productCategory.category",
-    "productCategory.category.name",
+    "productCategory.type",
+    "productCategory.type.name",
     "createdAt",
     "updatedAt",
   ];

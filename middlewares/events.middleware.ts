@@ -26,16 +26,47 @@ class EventsMiddleware {
           return;
         }
 
-        const event = await this.eventRepository.findById(eventId, ["place"]);
+        const event = await this.eventRepository.findById(eventId, [
+          "user",
+          "place",
+          "place.user",
+        ]);
         if (!event) {
           APIResponse(res, null, "Event not found", 404);
           return;
         }
 
-        const place = await this.placeRepository.findById(
-          event.place.toString(),
-          ["user"]
-        );
+        const eventOwner =
+          event.user && typeof event.user === "object" && "_id" in event.user
+            ? event.user._id.toString()
+            : event.user?.toString();
+
+        if (eventOwner) {
+          if (eventOwner !== decoded.id) {
+            APIResponse(
+              res,
+              null,
+              "You don't have permission to update this event",
+              403
+            );
+            return;
+          }
+
+          next();
+          return;
+        }
+
+        if (!event.place) {
+          APIResponse(res, null, "Event owner not found", 404);
+          return;
+        }
+
+        const placeId =
+          typeof event.place === "object" && "_id" in event.place
+            ? event.place._id.toString()
+            : event.place.toString();
+
+        const place = await this.placeRepository.findById(placeId, ["user"]);
         if (!place) {
           APIResponse(res, null, "Place associated with event not found", 404);
           return;

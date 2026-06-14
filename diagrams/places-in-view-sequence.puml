@@ -1,0 +1,55 @@
+@startuml
+!pragma layout smetana
+
+skinparam shadowing false
+autonumber
+
+actor "Utilisateur" as user
+participant "Frontend" as fe
+participant "Mapbox map" as map
+participant "places.controller" as ctrl
+participant "getPlacesInView.usecase" as action
+participant "place.repository" as repo
+participant "MongoDB" as db
+
+autonumber stop
+user -> fe : Consulte la carte
+activate fe
+autonumber resume
+
+fe -> map : onLoad / onMoveEnd
+activate map
+map --> fe : getBounds()
+deactivate map
+
+fe -> fe : debounce 300ms
+fe -> ctrl : GET /api/places/in-view?ne&sw&filters
+activate ctrl
+
+alt Coordonnees manquantes ou invalides
+  ctrl --> fe : 400
+else Requete valide
+  ctrl -> action : execute(filters)
+  activate action
+
+  action -> action : Construire pipeline\n$geoWithin + filtres + limit
+  action -> repo : aggregate(pipeline)
+  activate repo
+
+  repo -> db : Place.aggregate(pipeline)
+  activate db
+  db --> repo : lieux visibles
+  deactivate db
+
+  repo --> action : lieux visibles
+  deactivate repo
+
+  action --> ctrl : lieux visibles
+  deactivate action
+
+  ctrl --> fe : 200 + places
+  deactivate ctrl
+  deactivate fe
+end
+
+@enduml

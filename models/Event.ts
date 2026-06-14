@@ -1,6 +1,8 @@
 import { model, Schema } from "mongoose";
 import { IEventTimeSlot, IEventPeriod, IEvent } from "@/types/models/event";
+import "../models/EventCategory";
 import EventStatusService from "@/services/eventStatusService";
+import { locationSchema } from "./Place";
 
 const eventStatusService = new EventStatusService();
 
@@ -37,11 +39,28 @@ export const eventSchema = new Schema<IEvent>(
       type: [customScheduleWithParticipantsSchema],
       required: [true, "Please add a schedule"],
     },
+    eventCategory: {
+      type: Schema.Types.ObjectId,
+      ref: "EventCategory",
+      required: [true, "Please add an event category"],
+    },
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: [true, "Please add a user"],
+    },
     place: {
       type: Schema.Types.ObjectId,
       ref: "Place",
-      required: [true, "Please add a place"],
+      required: false,
+      default: null,
     },
+    location: {
+      type: locationSchema,
+      required: false,
+      default: null,
+    },
+    online: { type: Boolean, default: false },
     image: {
       type: Schema.Types.ObjectId,
       ref: "Image",
@@ -66,6 +85,22 @@ export const eventSchema = new Schema<IEvent>(
   },
   { timestamps: true }
 );
+
+eventSchema.pre("validate", function (next) {
+  if (this.online) {
+    this.place = null;
+    this.location = null;
+    return next();
+  }
+
+  if (!this.place && !this.location) {
+    return next(new Error("Please add a place or a location"));
+  }
+
+  next();
+});
+
+eventSchema.index({ "location.coordinates": "2dsphere" });
 
 eventSchema.pre("save", function (next) {
   if (this.isModified("schedule") || this.isNew) {

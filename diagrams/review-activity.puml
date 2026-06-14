@@ -1,0 +1,48 @@
+@startuml
+!pragma layout smetana
+
+skinparam shadowing false
+skinparam activityBackgroundColor #FEFECE
+skinparam activityBorderColor #A80036
+
+|Utilisateur|
+start
+:Soumettre un avis\n(note + commentaire)\nsur un lieu ou un evenement;
+
+|Système|
+:Verifier l'authentification;
+
+if (Utilisateur proprietaire\nde l'entite ?) then (oui)
+  :Refuser (403);
+  stop
+else (non)
+endif
+
+:Valider les donnees\n(note, commentaire, reference);
+
+if (Donnees invalides ?) then (oui)
+  :Retourner erreur (400);
+  stop
+else (non)
+endif
+
+if (Avis deja existant\npour cette entite ?) then (oui)
+  :Retourner erreur;
+  stop
+else (non)
+  :Creer l'avis en base;
+  :Recalculer la note moyenne\ndu lieu ou de l'evenement;
+  :Retourner succes (201);
+  stop
+endif
+
+note right
+  **Modification / Suppression**
+  --
+  Seul l'auteur peut modifier
+  ou supprimer son avis.
+  A chaque changement, la note
+  moyenne est recalculee.
+end note
+
+@enduml
