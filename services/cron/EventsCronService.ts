@@ -18,7 +18,7 @@ class EventsCronService {
   }
 
   start(): void {
-    cron.schedule("*/2 * * * *", async () => {
+    cron.schedule("*/10 * * * *", async () => {
       try {
         logger.info("Starting scheduled event lifecycle status update...");
         const transitionedEventIds =
