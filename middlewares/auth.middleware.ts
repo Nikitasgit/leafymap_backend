@@ -2,6 +2,7 @@ import { Response, NextFunction, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import { CustomRequest, IDecodedToken } from "@/types/custom";
 import { IUserRepository } from "@/types/repositories/user.repository.types";
+import { isBanActive } from "@/utils/ban";
 
 class AuthMiddleware {
   constructor(private userRepository: IUserRepository) {}
@@ -37,9 +38,14 @@ class AuthMiddleware {
           return;
         }
 
-        const user = await this.userRepository.findById(decoded.id, ["_id"]);
+        const user = await this.userRepository.findById(decoded.id, [
+          "_id",
+          "deleted",
+          "bannedAt",
+          "banExpiresAt",
+        ]);
 
-        if (!user) {
+        if (!user || user.deleted || isBanActive(user)) {
           res.status(401).json({
             success: false,
             message: "User not found",
@@ -84,8 +90,11 @@ class AuthMiddleware {
           if (decoded) {
             const user = await this.userRepository.findById(decoded.id, [
               "_id",
+              "deleted",
+              "bannedAt",
+              "banExpiresAt",
             ]);
-            if (user) {
+            if (user && !user.deleted && !isBanActive(user)) {
               req.decoded = decoded;
             }
           }

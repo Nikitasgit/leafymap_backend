@@ -8,6 +8,7 @@ import { EventInvitation } from "../models/EventInvitation";
 import { Partnership } from "../models/Partnership";
 import PlaceCategory from "../models/PlaceCategory";
 import UserCategory from "../models/UserCategory";
+import CategoryType from "../models/CategoryType";
 import { Types } from "mongoose";
 
 const PARIS_CENTER = { lng: 2.3522, lat: 48.8566 };
@@ -58,10 +59,11 @@ async function seed() {
 
     const placeCategory = await PlaceCategory.findOne();
     const userCategory = await UserCategory.findOne();
+    const artCategoryType = await CategoryType.findOne({ name: "art" });
 
-    if (!placeCategory || !userCategory) {
+    if (!placeCategory || !userCategory || !artCategoryType) {
       throw new Error(
-        "PlaceCategory et UserCategory requis. Exécutez d'abord l'application pour créer les catégories via /api/categories, ou créez-les manuellement."
+        "PlaceCategory, UserCategory et CategoryType requis. Exécutez d'abord npm run seed:categories."
       );
     }
 
@@ -144,7 +146,7 @@ async function seed() {
         user: users[i],
         location: getParisLocation(i + 1),
         placeCategory: placeCategory._id,
-        placeType: ["art"],
+        placeType: [artCategoryType._id],
         defaultSchedule,
         customDates: [],
       });

@@ -1,5 +1,6 @@
 import {
   EventRepository,
+  EventBookingRepository,
   ImageRepository,
   PlaceRepository,
   UserRepository,
@@ -27,6 +28,7 @@ import {
 
 // Initialize repositories
 const eventRepository = new EventRepository();
+const eventBookingRepository = new EventBookingRepository();
 const imageRepository = new ImageRepository();
 const placeRepository = new PlaceRepository();
 const userRepository = new UserRepository();
@@ -47,7 +49,10 @@ const deleteEventAction = new DeleteEventAction(
   eventRepository,
   imageRepository
 );
-const getEventByIdAction = new GetEventByIdAction(eventRepository);
+const getEventByIdAction = new GetEventByIdAction(
+  eventRepository,
+  eventBookingRepository
+);
 const getEventsAction = new GetEventsAction(eventRepository);
 
 // Initialize controllers

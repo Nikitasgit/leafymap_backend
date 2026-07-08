@@ -37,9 +37,16 @@ class CommentRepository implements ICommentRepository {
         $in: filters._id.$in.map((id) => new Types.ObjectId(id)),
       };
     }
+    if (typeof filters.deleted === "boolean") {
+      query.deleted = filters.deleted;
+    }
 
     Object.keys(filters).forEach((key) => {
-      if (!["reference", "referenceType", "author", "_id"].includes(key)) {
+      if (
+        !["reference", "referenceType", "author", "_id", "deleted"].includes(
+          key
+        )
+      ) {
         (query as Record<string, unknown>)[key] = (
           filters as Record<string, unknown>
         )[key];

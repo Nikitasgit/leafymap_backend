@@ -13,9 +13,11 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "create:admin": "ts-node -r tsconfig-paths/register scripts/create-admin.ts",
     "seed:categories": "ts-node -r tsconfig-paths/register scripts/seed-categories.ts",
     "seed:users": "ts-node -r tsconfig-paths/register scripts/seed-paris.ts",
-    "migrate:events-user": "ts-node -r tsconfig-paths/register scripts/migrate-events-user.ts"
+    "migrate:events-user": "ts-node -r tsconfig-paths/register scripts/migrate-events-user.ts",
+    "knip": "knip"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.817.0",
@@ -24,7 +26,6 @@
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "date-fns": "^4.1.0",
     "dotenv": "^16.0.3",
     "express": "^4.21.2",
     "express-rate-limit": "^8.1.0",
@@ -37,12 +38,11 @@
     "nodemailer": "^6.10.1",
     "sharp": "^0.34.3",
     "socket.io": "^4.8.3",
+    "tsconfig-paths": "^4.2.0",
     "winston": "^3.17.0",
-    "zod": "^3.25.73",
-    "tsconfig-paths": "^4.2.0"
+    "zod": "^3.25.73"
   },
   "devDependencies": {
-    "cross-env": "^7.0.3",
     "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.18",
@@ -55,11 +55,11 @@
     "@types/multer-s3": "^3.0.3",
     "@types/node": "^22.15.29",
     "@types/nodemailer": "^7.0.9",
-    "@types/supertest": "^6.0.3",
+    "cross-env": "^7.0.3",
     "jest": "^30.2.0",
+    "knip": "^6.25.0",
     "mongodb-memory-server": "^11.0.1",
     "nodemon": "^3.1.10",
-    "supertest": "^7.1.4",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.16",

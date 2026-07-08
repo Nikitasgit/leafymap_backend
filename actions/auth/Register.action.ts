@@ -7,6 +7,7 @@ export interface RegisterInput {
   email: string;
   password: string;
   acceptedCGU: boolean;
+  emailNotifications?: boolean;
 }
 
 export interface IRegisterAction {
@@ -21,7 +22,7 @@ class RegisterAction implements IRegisterAction {
   }
 
   async execute({
-    registerData: { email, password, acceptedCGU },
+    registerData: { email, password, acceptedCGU, emailNotifications },
   }: {
     registerData: RegisterInput;
   }): Promise<{ _id: string }> {
@@ -35,6 +36,10 @@ class RegisterAction implements IRegisterAction {
       await this.userRepository.updateOne(existingUser._id.toString(), {
         emailVerificationTokenHash: tokenHash,
         emailVerificationExpiresAt: expiresAt,
+        preferences: {
+          ...(existingUser.preferences ?? {}),
+          emailNotifications: emailNotifications === true,
+        },
       });
       await this.emailService.sendEmailVerification(email, token);
       return { _id: existingUser._id.toString() };
@@ -50,6 +55,9 @@ class RegisterAction implements IRegisterAction {
       userType: "guest",
       emailVerificationTokenHash: tokenHash,
       emailVerificationExpiresAt: expiresAt,
+      preferences: {
+        emailNotifications: emailNotifications === true,
+      },
     });
 
     await this.emailService.sendEmailVerification(email, token);

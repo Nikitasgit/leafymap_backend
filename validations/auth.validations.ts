@@ -20,6 +20,7 @@ export const registerSchema = z.object({
   acceptedCGU: z.boolean().refine((val) => val === true, {
     message: "Vous devez accepter les Conditions Générales d'Utilisation",
   }),
+  emailNotifications: z.boolean().optional().default(false),
 });
 
 const identifierSchema = z

@@ -1,0 +1,7 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": ["app.ts", "scripts/*.ts"],
+  "project": ["**/*.{ts,tsx}"],
+  "ignoreDependencies": ["@types/helmet", "@types/mongoose", "@types/multer-s3"],
+  "ignoreExportsUsedInFile": true
+}

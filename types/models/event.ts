@@ -38,7 +38,15 @@ export interface IEvent extends Document {
   online: boolean;
   image?: Types.ObjectId | Partial<IImage>;
   rating: number;
+  isBookable: boolean;
+  capacity?: number | null;
+  maxSeatsPerBooking: number;
+  bookedSeats?: number;
+  remainingSeats?: number | null;
   deleted: boolean;
+  deletedAt?: Date;
+  deletedBy?: Types.ObjectId;
+  deleteReason?: string;
   createdAt: Date;
   updatedAt: Date;
 }

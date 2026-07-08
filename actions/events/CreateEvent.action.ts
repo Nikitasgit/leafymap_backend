@@ -23,6 +23,9 @@ export interface CreateEventDTO {
   online?: boolean;
   image?: string;
   status?: "cancelled" | "full" | "available";
+  isBookable?: boolean;
+  capacity?: number | null;
+  maxSeatsPerBooking?: number;
 }
 
 export interface ICreateEventAction {

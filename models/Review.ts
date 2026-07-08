@@ -32,6 +32,10 @@ const reviewSchema = new Schema<IReview>(
       type: Boolean,
       default: false,
     },
+    deleted: { type: Boolean, default: false },
+    deletedAt: { type: Date },
+    deletedBy: { type: Schema.Types.ObjectId, ref: "User" },
+    deleteReason: { type: String },
   },
   { timestamps: true }
 );

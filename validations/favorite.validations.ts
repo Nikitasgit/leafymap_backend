@@ -15,9 +15,3 @@ export const deleteFavoriteSchema = z.object({
 export const findFavoritesByTypeQuerySchema = z.object({
   referenceType: favoriteReferenceTypeEnum,
 });
-
-export type CreateFavoriteInput = z.infer<typeof createFavoriteSchema>;
-export type DeleteFavoriteInput = z.infer<typeof deleteFavoriteSchema>;
-export type FindFavoritesByTypeQuery = z.infer<
-  typeof findFavoritesByTypeQuerySchema
->;

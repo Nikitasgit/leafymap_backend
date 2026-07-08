@@ -6,6 +6,7 @@ export interface ReviewFilters {
   referenceType?: ReviewReferenceType;
   author?: string;
   _id?: { $in: string[] };
+  deleted?: boolean;
   [key: string]: unknown;
 }
 

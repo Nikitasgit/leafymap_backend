@@ -25,6 +25,12 @@ class UpdateUserAction implements IUpdateUserAction {
       acceptedCGU,
       acceptedAt,
       deleted,
+      role,
+      bannedAt,
+      banReason,
+      banDuration,
+      banExpiresAt,
+      lastLogin,
       _id,
       createdAt,
       updatedAt,
@@ -37,18 +43,33 @@ class UpdateUserAction implements IUpdateUserAction {
     if (sanitizedData.lastname) {
       sanitizedData.lastname = sanitizedData.lastname.toLowerCase().trim();
     }
+    if (
+      sanitizedData.preferences !== undefined &&
+      (sanitizedData.preferences === null ||
+        typeof sanitizedData.preferences !== "object")
+    ) {
+      throw new Error("Invalid user preferences");
+    }
+    if (
+      sanitizedData.preferences?.emailNotifications !== undefined &&
+      typeof sanitizedData.preferences.emailNotifications !== "boolean"
+    ) {
+      throw new Error("Invalid email notification preference");
+    }
 
-  await this.userRepository.updateOne(userId, sanitizedData);
+    await this.userRepository.updateOne(userId, sanitizedData);
 
     if (sanitizedData.userType) {
       const user = await this.userRepository.findById(userId, [
         "_id",
         "userType",
+        "role",
       ]);
       if (user) {
         const token = generateToken({
           id: user._id.toString(),
           userType: user.userType,
+          role: user.role,
         });
         return { token };
       }

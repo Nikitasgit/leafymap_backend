@@ -13,6 +13,7 @@ class GetCurrentUserController {
     "firstname",
     "lastname",
     "userType",
+    "role",
     "acceptedCGU",
     "website",
     "phone",
@@ -28,6 +29,12 @@ class GetCurrentUserController {
     "place.rating",
     "userCategory",
     "userCategory.name",
+    "bannedAt",
+    "banReason",
+    "banDuration",
+    "banExpiresAt",
+    "lastLogin",
+    "preferences",
   ];
 
   constructor(private getUserByIdAction: IGetUserByIdAction) {}

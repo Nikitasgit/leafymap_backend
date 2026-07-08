@@ -4,10 +4,6 @@ import { EventInvitationDTO } from "@/types/api/eventInvitation.dto";
 import { Types } from "mongoose";
 import NotificationService from "@/services/notificationService";
 
-export interface CreateEventInvitationsDTO {
-  eventInvitations: EventInvitationDTO[];
-}
-
 export interface ICreateEventInvitationsAction {
   execute(params: {
     eventInvitations: EventInvitationDTO[];

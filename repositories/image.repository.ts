@@ -38,10 +38,13 @@ class ImageRepository implements IImageRepository {
         $in: filters._id.$in.map((id: string) => new Types.ObjectId(id)),
       };
     }
+    if (typeof filters.deleted === "boolean") {
+      query.deleted = filters.deleted;
+    }
 
     Object.keys(filters).forEach((key) => {
       if (
-        !["reference", "referenceType", "user", "type", "_id"].includes(key)
+        !["reference", "referenceType", "user", "type", "_id", "deleted"].includes(key)
       ) {
         (query as Record<string, unknown>)[key] = (
           filters as Record<string, unknown>
@@ -120,6 +123,10 @@ class ImageRepository implements IImageRepository {
 
     const images = await mongooseQuery.lean();
     return images as unknown as Pick<IImage, K>[];
+  }
+
+  async updateOne(id: string, update: Partial<IImage>): Promise<void> {
+    await Image.findByIdAndUpdate(id, update).exec();
   }
 
   async deleteMany(ids: string[]): Promise<void> {

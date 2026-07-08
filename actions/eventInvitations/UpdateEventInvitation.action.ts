@@ -9,10 +9,6 @@ export interface UpdateEventInvitationDTO {
   status?: "pending" | "accepted" | "refused" | "cancelled" | "completed";
 }
 
-export interface UpdateEventInvitationsDTO {
-  eventInvitations: UpdateEventInvitationDTO[];
-}
-
 export interface IUpdateEventInvitationAction {
   execute(params: {
     eventInvitations: UpdateEventInvitationDTO[];
@@ -88,19 +84,30 @@ class UpdateEventInvitationAction implements IUpdateEventInvitationAction {
           (isInitiator && eventInvitation.deleted === true);
 
         if (isRefusedOrCancelled) {
-          if (
-            isCollaborator &&
-            eventInvitation.status === "refused"
-          ) {
+          if (isCollaborator) {
             const initiatorId = existingInvitation.initiator.toString();
             const eventId = existingInvitation.event.toString();
-            await this.notificationService.createNotification({
-              sender: userId,
-              receiver: initiatorId,
-              action: "event_refused",
-              reference: eventId,
-              referenceType: "Event",
-            });
+
+            if (eventInvitation.status === "refused") {
+              await this.notificationService.createNotification({
+                sender: userId,
+                receiver: initiatorId,
+                action: "event_refused",
+                reference: eventId,
+                referenceType: "Event",
+              });
+            } else if (
+              eventInvitation.status === "cancelled" &&
+              existingInvitation.status === "accepted"
+            ) {
+              await this.notificationService.createNotification({
+                sender: userId,
+                receiver: initiatorId,
+                action: "event_refused",
+                reference: eventId,
+                referenceType: "Event",
+              });
+            }
           }
           await this.eventInvitationService.deleteEventInvitation(
             eventInvitation._id

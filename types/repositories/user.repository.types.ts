@@ -3,7 +3,7 @@ import { Types, FilterQuery } from "mongoose";
 
 export interface UserFilters {
   _id?: string | { $in: string[] } | { $nin: string[] };
-  email?: string;
+  email?: string | { $regex: string; $options: string };
   username?: string | { $regex: string; $options: string };
   userType?: "creator" | "guest";
   userCategory?: string | { $in: string[] };

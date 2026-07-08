@@ -10,6 +10,10 @@ export interface IReview extends Document {
   reference: Types.ObjectId;
   referenceType: ReviewReferenceType;
   certified: boolean;
+  deleted: boolean;
+  deletedAt?: Date;
+  deletedBy?: Types.ObjectId;
+  deleteReason?: string;
   createdAt: Date;
   updatedAt: Date;
 }

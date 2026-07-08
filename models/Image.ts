@@ -33,6 +33,10 @@ const imageSchema = new Schema(
     originalName: { type: String, required: true },
     size: { type: Number, required: true },
     mimetype: { type: String, required: true },
+    deleted: { type: Boolean, default: false },
+    deletedAt: { type: Date },
+    deletedBy: { type: Schema.Types.ObjectId, ref: "User" },
+    deleteReason: { type: String },
   },
   { timestamps: true }
 );

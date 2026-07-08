@@ -12,7 +12,7 @@ export const locationSchema = z.object({
 });
 
 export const placeTypeSchema = z
-  .array(z.enum(["art", "food", "craft"]))
+  .array(z.string().min(1, "Le type de lieu est requis"))
   .min(1, "Le type de lieu est requis");
 
 export const newPlaceSchema = z.object({

@@ -9,6 +9,7 @@ if (!JWT_SECRET) {
 export interface JWTPayload {
   id: string;
   userType: string;
+  role?: string;
 }
 
 export const generateToken = (payload: JWTPayload): string => {

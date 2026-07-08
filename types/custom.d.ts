@@ -9,6 +9,7 @@ import { IPlace, IEvent, IConversation } from "./models";
 export interface IDecodedToken {
   id: string;
   userType: string;
+  role?: string;
   iat: number;
   exp: number;
 }

@@ -44,6 +44,7 @@ class GetPlaceByIdAction implements IGetPlaceByIdAction {
     "placeType",
     "defaultSchedule",
     "customDates",
+    "deleted",
     "placeCategory.name",
     "user",
     "user.description",
@@ -83,7 +84,7 @@ class GetPlaceByIdAction implements IGetPlaceByIdAction {
       project || this.defaultProject
     );
 
-    if (!place) {
+    if (!place || place.deleted) {
       throw new Error("Place not found");
     }
 

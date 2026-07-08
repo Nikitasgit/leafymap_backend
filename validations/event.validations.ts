@@ -18,6 +18,41 @@ const eventLocationFieldsSchema = z.object({
   online: z.boolean().optional().default(false),
 });
 
+const eventBookingFieldsSchema = z.object({
+  isBookable: z.boolean().optional().default(false),
+  capacity: z
+    .number()
+    .int("La capacité doit être un nombre entier")
+    .min(1, "La capacité doit être supérieure à 0")
+    .optional()
+    .nullable(),
+  maxSeatsPerBooking: z
+    .number()
+    .int("Le nombre de places par réservation doit être un nombre entier")
+    .min(1, "Le nombre de places par réservation doit être supérieur à 0")
+    .optional(),
+});
+
+const validateEventBookingFields = (
+  data: { isBookable?: boolean; capacity?: number | null; maxSeatsPerBooking?: number },
+  ctx: z.RefinementCtx
+) => {
+  if (!data.isBookable) return;
+
+  if (
+    typeof data.capacity === "number" &&
+    typeof data.maxSeatsPerBooking === "number" &&
+    data.maxSeatsPerBooking > data.capacity
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["maxSeatsPerBooking"],
+      message:
+        "Le nombre de places par réservation ne peut pas dépasser la capacité totale",
+    });
+  }
+};
+
 const eventBaseSchema = z.object({
   name: eventNameSchema,
   description: descriptionSchema,
@@ -70,10 +105,15 @@ const validateEventLocationMode = (
 
 export const newEventSchema = eventBaseSchema
   .merge(eventLocationFieldsSchema)
-  .superRefine(validateEventLocationMode);
+  .merge(eventBookingFieldsSchema)
+  .superRefine((data, ctx) => {
+    validateEventLocationMode(data, ctx);
+    validateEventBookingFields(data, ctx);
+  });
 
 export const updateEventSchema = eventBaseSchema
   .merge(eventLocationFieldsSchema)
+  .merge(eventBookingFieldsSchema)
   .partial()
   .superRefine((data, ctx) => {
     const hasLocationUpdate =
@@ -81,5 +121,9 @@ export const updateEventSchema = eventBaseSchema
 
     if (hasLocationUpdate) {
       validateEventLocationMode(data, ctx);
+    }
+
+    if ("isBookable" in data || "capacity" in data || "maxSeatsPerBooking" in data) {
+      validateEventBookingFields(data, ctx);
     }
   });

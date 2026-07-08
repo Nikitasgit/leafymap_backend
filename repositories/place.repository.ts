@@ -47,7 +47,18 @@ class PlaceRepository implements IPlaceRepository {
       }
     }
     if (filters.placeType) {
-      query.placeType = filters.placeType;
+      if (
+        typeof filters.placeType === "object" &&
+        "$in" in filters.placeType
+      ) {
+        query.placeType = {
+          $in: (filters.placeType.$in as string[]).map(
+            (id) => new Types.ObjectId(id)
+          ),
+        };
+      } else {
+        query.placeType = new Types.ObjectId(filters.placeType as string);
+      }
     }
     if (typeof filters.active === "boolean") {
       query.active = filters.active;

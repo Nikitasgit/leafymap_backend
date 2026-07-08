@@ -24,6 +24,7 @@ export interface NotificationSenderPopulated {
       medium?: string;
     };
   };
+  googlePictureUrl?: string;
 }
 
 export interface NotificationWithSender {

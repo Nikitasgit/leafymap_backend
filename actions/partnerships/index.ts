@@ -1,12 +1,8 @@
 export { default as CreatePartnershipsAction } from "./CreatePartnerships.action";
-export type {
-  CreatePartnershipDTO,
-  ICreatePartnershipsAction,
-} from "./CreatePartnerships.action";
+export type { ICreatePartnershipsAction } from "./CreatePartnerships.action";
 export { default as UpdatePartnershipsAction } from "./UpdatePartnerships.action";
 export type {
   UpdatePartnershipDTO,
-  UpdatePartnershipsDTO,
   IUpdatePartnershipsAction,
 } from "./UpdatePartnerships.action";
 export { default as GetPartnershipsByUserIdAction } from "./GetPartnershipsByUserId.action";

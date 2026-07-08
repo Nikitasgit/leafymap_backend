@@ -4,10 +4,6 @@ import { PartnershipDTO } from "@/types/api/partnership.dto";
 import { Types } from "mongoose";
 import NotificationService from "@/services/notificationService";
 
-export interface CreatePartnershipDTO {
-  partnership: PartnershipDTO;
-}
-
 export interface ICreatePartnershipsAction {
   execute(params: {
     partnership: PartnershipDTO;

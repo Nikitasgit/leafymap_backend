@@ -1,12 +1,7 @@
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
 import { IUserRepository } from "@/types/repositories/user.repository.types";
 import { Types } from "mongoose";
-import {
-  IPlace,
-  PlaceType,
-  IDefaultSchedule,
-  ICustomDate,
-} from "@/types/models/place";
+import { IDefaultSchedule, ICustomDate } from "@/types/models/place";
 
 export interface CreatePlaceInput {
   location: {
@@ -61,7 +56,7 @@ class CreatePlaceAction implements ICreatePlaceAction {
       ...placeData,
       user: new Types.ObjectId(userId),
       placeCategory: new Types.ObjectId(placeData.placeCategory),
-      placeType: placeData.placeType,
+      placeType: placeData.placeType.map((typeId) => new Types.ObjectId(typeId)),
     };
 
     const placeId = await this.placeRepository.create(newPlace);

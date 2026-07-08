@@ -40,7 +40,7 @@ class GetPlacesAction implements IGetPlacesAction {
   }: {
     filters?: GetPlacesInput;
   }): Promise<IPlace[] | Partial<IPlace>[]> {
-    const queryFilters: PlaceFilters = {};
+    const queryFilters: PlaceFilters = { deleted: false };
 
     let sortOptions: { [key: string]: 1 | -1 } = {};
 

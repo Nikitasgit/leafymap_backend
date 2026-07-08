@@ -6,10 +6,6 @@ export interface UpdatePartnershipDTO {
   status?: "pending" | "accepted";
 }
 
-export interface UpdatePartnershipsDTO {
-  partnerships: UpdatePartnershipDTO[];
-}
-
 export interface IUpdatePartnershipsAction {
   execute(params: {
     partnerships: UpdatePartnershipDTO[];

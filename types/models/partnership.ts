@@ -9,10 +9,3 @@ export interface IPartnership {
   deleted: boolean;
 }
 
-export interface IPartnershipPopulated
-  extends Omit<IPartnership, "initiator" | "collaborator"> {
-  initiator: Partial<IUser> & {
-    username: string;
-  };
-  collaborator: Partial<IUser>;
-}

@@ -15,6 +15,7 @@ export type NotificationActionType =
   | "event_invitation"
   | "event_accepted"
   | "event_refused"
+  | "event_booking_cancelled"
   | "review"
   | "new_follower"
   | "other";

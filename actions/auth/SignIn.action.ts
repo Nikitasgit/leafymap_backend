@@ -1,5 +1,6 @@
 import { IUserRepository } from "@/types/repositories/user.repository.types";
 import { generateToken } from "@/utils/jwt";
+import { getBanMessage, isBanActive } from "@/utils/ban";
 import bcrypt from "bcrypt";
 
 export interface SignInInput {
@@ -25,7 +26,19 @@ class SignInAction implements ISignInAction {
 
     const user = await this.userRepository.findOne(
       { $or: [{ email: identifier }, { username: identifier }] },
-      ["_id", "email", "username", "password", "userType", "emailVerified"]
+      [
+        "_id",
+        "email",
+        "username",
+        "password",
+        "userType",
+        "role",
+        "deleted",
+        "emailVerified",
+        "bannedAt",
+        "banReason",
+        "banExpiresAt",
+      ]
     );
 
     if (!user) {
@@ -40,14 +53,31 @@ class SignInAction implements ISignInAction {
         "Veuillez vérifier votre adresse email avant de vous connecter. Consultez votre boîte de réception ou demandez un nouveau lien."
       );
     }
+    if (user.deleted) {
+      throw new Error("Ce compte n'est plus accessible");
+    }
+    if (isBanActive(user)) {
+      throw new Error(getBanMessage(user));
+    }
+
+    await this.userRepository.updateOne(user._id.toString(), {
+      lastLogin: new Date(),
+    });
 
     const token = generateToken({
       id: user._id.toString(),
       userType: user.userType,
+      role: user.role,
     });
 
     return {
-      user: { _id: user._id, email: user.email, username: user.username },
+      user: {
+        _id: user._id,
+        email: user.email,
+        username: user.username,
+        userType: user.userType,
+        role: user.role,
+      },
       token,
     };
   }

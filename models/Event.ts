@@ -81,7 +81,13 @@ export const eventSchema = new Schema<IEvent>(
       latestDate: { type: Date, required: false },
     },
     rating: { type: Number, default: 0 },
+    isBookable: { type: Boolean, default: false },
+    capacity: { type: Number, default: null, min: 1 },
+    maxSeatsPerBooking: { type: Number, default: 1, min: 1 },
     deleted: { type: Boolean, default: false },
+    deletedAt: { type: Date },
+    deletedBy: { type: Schema.Types.ObjectId, ref: "User" },
+    deleteReason: { type: String },
   },
   { timestamps: true }
 );
@@ -95,6 +101,22 @@ eventSchema.pre("validate", function (next) {
 
   if (!this.place && !this.location) {
     return next(new Error("Please add a place or a location"));
+  }
+
+  next();
+});
+
+eventSchema.pre("validate", function (next) {
+  if (!this.isBookable) {
+    return next();
+  }
+
+  if (typeof this.capacity === "number" && this.capacity < this.maxSeatsPerBooking) {
+    return next(
+      new Error(
+        "Le nombre de places réservables par utilisateur ne peut pas dépasser la capacité totale"
+      )
+    );
   }
 
   next();

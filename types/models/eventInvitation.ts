@@ -11,11 +11,3 @@ export interface IEventInvitation {
   deleted: boolean;
 }
 
-export interface IEventInvitationPopulated
-  extends Omit<IEventInvitation, "event" | "initiator" | "collaborator"> {
-  event: Partial<IEvent>;
-  initiator: Partial<IUser> & {
-    username: string;
-  };
-  collaborator: Partial<IUser>;
-}

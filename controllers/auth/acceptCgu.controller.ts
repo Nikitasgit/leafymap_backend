@@ -15,7 +15,18 @@ class AcceptCguController {
     ): Promise<void> => {
       try {
         const decoded = req.decoded!;
-        await this.acceptCguAction.execute({ userId: decoded.id });
+        const { emailNotifications } = req.body ?? {};
+        if (
+          emailNotifications !== undefined &&
+          typeof emailNotifications !== "boolean"
+        ) {
+          APIResponse(res, null, "Invalid email notification preference", 400);
+          return;
+        }
+        await this.acceptCguAction.execute({
+          userId: decoded.id,
+          emailNotifications,
+        });
         APIResponse(res, null, "CGU accepted", 200);
       } catch (error) {
         logger.error("Error in acceptCgu:", error);

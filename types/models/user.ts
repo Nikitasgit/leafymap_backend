@@ -17,6 +17,10 @@ export interface ICreatorProfile {
   name: string;
 }
 
+export interface IUserPreferences {
+  emailNotifications?: boolean;
+}
+
 export interface IUser extends Document {
   firstname?: string;
   lastname?: string;
@@ -27,7 +31,13 @@ export interface IUser extends Document {
   phone?: string;
   password: string;
   userType: "creator" | "guest";
+  role: "user" | "admin";
   deleted: boolean;
+  bannedAt?: Date;
+  banReason?: string;
+  banDuration?: number;
+  banExpiresAt?: Date;
+  lastLogin?: Date;
   address?: IAddress;
   description?: string;
   country?: (typeof ISO_COUNTRIES_ALPHA2)[number];
@@ -45,6 +55,7 @@ export interface IUser extends Document {
   resetPasswordExpiresAt?: Date;
   googleId?: string;
   googlePictureUrl?: string;
+  preferences?: IUserPreferences;
   createdAt: Date;
   updatedAt: Date;
 }

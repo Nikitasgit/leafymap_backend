@@ -6,6 +6,7 @@ export interface CommentFilters {
   referenceType?: CommentReferenceType;
   author?: string;
   _id?: { $in: string[] };
+  deleted?: boolean;
   [key: string]: any;
 }
 

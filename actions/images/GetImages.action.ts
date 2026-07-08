@@ -27,7 +27,7 @@ class GetImagesAction implements IGetImagesAction {
 
   async execute({ filters }: { filters?: ImageFilters }): Promise<IImage[]> {
     const images = await this.imageRepository.findAll({
-      filters,
+      filters: { ...filters, deleted: false },
       project: this.project,
     });
 

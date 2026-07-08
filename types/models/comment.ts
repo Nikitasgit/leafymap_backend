@@ -8,6 +8,10 @@ export interface IComment extends Document {
   content: string;
   reference: Types.ObjectId;
   referenceType: CommentReferenceType;
+  deleted: boolean;
+  deletedAt?: Date;
+  deletedBy?: Types.ObjectId;
+  deleteReason?: string;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -1,12 +1,13 @@
-import { IPlace, PlaceType } from "../models/place";
+import { IPlace } from "../models/place";
 import { Types } from "mongoose";
 
 export interface PlaceFilters {
   _id?: string | { $in: string[] };
   user?: string | { $in: string[] };
   placeCategory?: string | { $in: string[] };
-  placeType?: PlaceType | { $in: PlaceType[] };
+  placeType?: string | { $in: string[] };
   rating?: { $gte: number };
+  deleted?: boolean;
   location?: {
     $geoWithin: {
       $box: [[number, number], [number, number]];

@@ -46,7 +46,7 @@ class GetReviewsAction implements IGetReviewsAction {
     project: (keyof IReview | string)[];
   }): Promise<IReview[] | Partial<IReview>[]> {
     const reviews = await this.reviewRepository.findAll({
-      filters,
+      filters: { ...filters, deleted: false },
       project,
     });
     return reviews;

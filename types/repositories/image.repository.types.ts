@@ -15,6 +15,7 @@ export interface ImageFilters {
   user?: string;
   type?: ImageType;
   _id?: { $in: string[] };
+  deleted?: boolean;
   [key: string]: unknown;
 }
 
@@ -31,5 +32,6 @@ export interface IImageRepository {
     limit?: number;
     sort?: { [key: string]: 1 | -1 };
   }): Promise<Pick<IImage, K>[]>;
+  updateOne(id: string, update: Partial<IImage>): Promise<void>;
   deleteMany(ids: string[]): Promise<void>;
 }

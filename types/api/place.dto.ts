@@ -6,7 +6,7 @@ export interface TimeSlotDTO {
   endTime: string;
 }
 
-export type PlaceTypeDTO = "food" | "art" | "craft";
+export type PlaceTypeDTO = string;
 
 export interface DayScheduleDTO {
   open: boolean;

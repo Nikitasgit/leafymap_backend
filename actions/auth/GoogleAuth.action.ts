@@ -1,5 +1,6 @@
 import { IUser } from "@/types/models/user";
 import { IUserRepository } from "@/types/repositories/user.repository.types";
+import { getBanMessage, isBanActive } from "@/utils/ban";
 import { verifyGoogleIdToken } from "@/utils/googleAuth";
 import { generateToken } from "@/utils/jwt";
 import bcrypt from "bcrypt";
@@ -17,8 +18,13 @@ type GoogleAuthUser = Pick<
   | "firstname"
   | "lastname"
   | "userType"
+  | "role"
   | "acceptedCGU"
   | "googlePictureUrl"
+  | "deleted"
+  | "bannedAt"
+  | "banReason"
+  | "banExpiresAt"
 >;
 
 export interface IGoogleAuthAction {
@@ -36,8 +42,13 @@ const USER_PROJECT = [
   "firstname",
   "lastname",
   "userType",
+  "role",
   "acceptedCGU",
   "googlePictureUrl",
+  "deleted",
+  "bannedAt",
+  "banReason",
+  "banExpiresAt",
 ] as const;
 
 class GoogleAuthAction implements IGoogleAuthAction {
@@ -73,7 +84,20 @@ class GoogleAuthAction implements IGoogleAuthAction {
       if (!user) {
         throw new Error("User not found");
       }
-      const token = generateToken({ id: userOrId, userType: userType! });
+      if (user.deleted) {
+        throw new Error("Ce compte n'est plus accessible");
+      }
+      if (isBanActive(user)) {
+        throw new Error(getBanMessage(user));
+      }
+      await this.userRepository.updateOne(user._id.toString(), {
+        lastLogin: new Date(),
+      });
+      const token = generateToken({
+        id: userOrId,
+        userType: userType!,
+        role: user.role,
+      });
       return {
         user,
         token,
@@ -83,9 +107,19 @@ class GoogleAuthAction implements IGoogleAuthAction {
       };
     }
     const user = userOrId;
+    if (user.deleted) {
+      throw new Error("Ce compte n'est plus accessible");
+    }
+    if (isBanActive(user)) {
+      throw new Error(getBanMessage(user));
+    }
+    await this.userRepository.updateOne(user._id.toString(), {
+      lastLogin: new Date(),
+    });
     const token = generateToken({
       id: user._id.toString(),
       userType: user.userType,
+      role: user.role,
     });
     return { user, token };
   }
@@ -162,6 +196,9 @@ class GoogleAuthAction implements IGoogleAuthAction {
       acceptedCGU: false,
       acceptedAt: new Date(0),
       googleId,
+      preferences: {
+        emailNotifications: false,
+      },
       ...(picture && { googlePictureUrl: picture }),
     });
 

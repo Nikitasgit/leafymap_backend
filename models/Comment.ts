@@ -22,6 +22,10 @@ const commentSchema = new Schema<IComment>(
       required: true,
       enum: ["Review", "Image", "Comment"] as CommentReferenceType[],
     },
+    deleted: { type: Boolean, default: false },
+    deletedAt: { type: Date },
+    deletedBy: { type: Schema.Types.ObjectId, ref: "User" },
+    deleteReason: { type: String },
   },
   { timestamps: true }
 );

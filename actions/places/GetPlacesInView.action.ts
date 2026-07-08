@@ -64,10 +64,13 @@ class GetPlacesInViewAction implements IGetPlacesInViewAction {
 
     // ── 1. Base filter (geo bounds or explicit IDs) ──
     if (input.ids?.length) {
-      pipeline.push({ $match: { _id: { $in: toObjectIds(input.ids) } } });
+      pipeline.push({
+        $match: { _id: { $in: toObjectIds(input.ids) }, deleted: { $ne: true } },
+      });
     } else {
       pipeline.push({
         $match: {
+          deleted: { $ne: true },
           location: {
             $geoWithin: { $box: [input.sw!, input.ne!] },
           },
@@ -77,7 +80,9 @@ class GetPlacesInViewAction implements IGetPlacesInViewAction {
 
     // ── 2. Simple field filters (all uniform: empty = no filter) ──
     if (placeTypes.length > 0) {
-      pipeline.push({ $match: { placeType: { $in: placeTypes } } });
+      pipeline.push({
+        $match: { placeType: { $in: toObjectIds(placeTypes) } },
+      });
     }
 
     if (placeCategories.length > 0) {

@@ -9,6 +9,13 @@ const addressSchema = new Schema<IAddress>({
   extra: { type: String },
 });
 
+const userPreferencesSchema = new Schema(
+  {
+    emailNotifications: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
+
 const userSchema = new Schema<IUser>(
   {
     firstname: { type: String },
@@ -25,7 +32,18 @@ const userSchema = new Schema<IUser>(
       required: true,
       default: "guest",
     },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      required: true,
+      default: "user",
+    },
     deleted: { type: Boolean, default: false },
+    bannedAt: { type: Date },
+    banReason: { type: String },
+    banDuration: { type: Number },
+    banExpiresAt: { type: Date },
+    lastLogin: { type: Date },
     address: addressSchema,
     description: { type: String, maxlength: 300 },
     country: { type: String, enum: ISO_COUNTRIES_ALPHA2 },
@@ -42,6 +60,7 @@ const userSchema = new Schema<IUser>(
     resetPasswordExpiresAt: { type: Date },
     googleId: { type: String, sparse: true },
     googlePictureUrl: { type: String },
+    preferences: { type: userPreferencesSchema, default: () => ({}) },
   },
   { timestamps: true }
 );

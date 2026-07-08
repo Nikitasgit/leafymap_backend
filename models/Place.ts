@@ -6,6 +6,7 @@ import {
   IPlace,
   IPlaceTimeSlot,
 } from "@/types/models/place";
+import "../models/CategoryType";
 
 const timeSlotSchema = new Schema<IPlaceTimeSlot>(
   {
@@ -82,10 +83,13 @@ const placeSchema = new Schema<IPlace>(
       required: true,
     },
     placeType: {
-      type: [String],
-      enum: ["food", "art", "craft"],
+      type: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "CategoryType",
+        },
+      ],
       required: true,
-      default: ["art"],
     },
     defaultSchedule: {
       type: defaultScheduleSchema,
@@ -94,6 +98,10 @@ const placeSchema = new Schema<IPlace>(
     },
     customDates: [customDateSchema],
     rating: { type: Number, default: 0 },
+    deleted: { type: Boolean, default: false },
+    deletedAt: { type: Date },
+    deletedBy: { type: Schema.Types.ObjectId, ref: "User" },
+    deleteReason: { type: String },
   },
   { timestamps: true }
 );

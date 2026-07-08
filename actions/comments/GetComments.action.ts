@@ -30,7 +30,7 @@ class GetCommentsAction implements IGetCommentsAction {
     filters?: CommentFilters;
   }): Promise<IComment[] | Partial<IComment>[]> {
     const comments = await this.commentRepository.findAll({
-      filters,
+      filters: { ...filters, deleted: false },
       project: this.project,
     });
     return comments;

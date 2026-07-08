@@ -1,4 +1,4 @@
-import { Document } from "mongoose";
+import { Document, Types } from "mongoose";
 
 export interface IImageUrls {
   original: string;
@@ -15,4 +15,8 @@ export interface IImage extends Document {
   originalName: string;
   size: number;
   mimetype: string;
+  deleted: boolean;
+  deletedAt?: Date;
+  deletedBy?: Types.ObjectId;
+  deleteReason?: string;
 }
