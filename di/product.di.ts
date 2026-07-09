@@ -28,10 +28,10 @@ const getProductByIdAction = new GetProductByIdAction(productRepository);
 const updateProductAction = new UpdateProductAction(productRepository);
 const deleteProductAction = new DeleteProductAction(productRepository);
 
-export const createProduct = new CreateProductController(createProductAction);
-export const getProducts = new GetProductsController(getProductsAction);
-export const getProductById = new GetProductByIdController(
+export const createProduct = CreateProductController(createProductAction);
+export const getProducts = GetProductsController(getProductsAction);
+export const getProductById = GetProductByIdController(
   getProductByIdAction
 );
-export const updateProduct = new UpdateProductController(updateProductAction);
-export const deleteProduct = new DeleteProductController(deleteProductAction);
+export const updateProduct = UpdateProductController(updateProductAction);
+export const deleteProduct = DeleteProductController(deleteProductAction);

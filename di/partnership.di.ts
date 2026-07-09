@@ -37,15 +37,15 @@ const deletePartnershipAction = new DeletePartnershipAction(
 );
 
 // Initialize controllers
-export const createPartnership = new CreatePartnershipsController(
+export const createPartnership = CreatePartnershipsController(
   createPartnershipsAction
 );
-export const updatePartnership = new UpdatePartnershipsController(
+export const updatePartnership = UpdatePartnershipsController(
   updatePartnershipsAction
 );
-export const getPartnershipsByUserId = new GetPartnershipsByUserIdController(
+export const getPartnershipsByUserId = GetPartnershipsByUserIdController(
   getPartnershipsByUserIdAction
 );
-export const deletePartnership = new DeletePartnershipController(
+export const deletePartnership = DeletePartnershipController(
   deletePartnershipAction
 );

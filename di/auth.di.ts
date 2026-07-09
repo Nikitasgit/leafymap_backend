@@ -45,17 +45,17 @@ const resendVerificationEmailAction = new ResendVerificationEmailAction(
 const getUserByIdAction = new GetUserByIdAction(userRepository);
 
 // Initialize controllers
-export const register = new RegisterController(registerAction);
-export const signIn = new SignInController(signInAction);
-export const signOut = new SignOutController();
-export const getCurrentUser = new GetCurrentUserController(getUserByIdAction);
-export const requestPasswordReset = new RequestPasswordResetController(
+export const register = RegisterController(registerAction);
+export const signIn = SignInController(signInAction);
+export const signOut = SignOutController();
+export const getCurrentUser = GetCurrentUserController(getUserByIdAction);
+export const requestPasswordReset = RequestPasswordResetController(
   requestPasswordResetAction
 );
-export const resetPassword = new ResetPasswordController(resetPasswordAction);
-export const googleAuth = new GoogleAuthController(googleAuthAction);
-export const acceptCgu = new AcceptCguController(acceptCguAction);
-export const verifyEmail = new VerifyEmailController(verifyEmailAction);
-export const resendVerificationEmail = new ResendVerificationEmailController(
+export const resetPassword = ResetPasswordController(resetPasswordAction);
+export const googleAuth = GoogleAuthController(googleAuthAction);
+export const acceptCgu = AcceptCguController(acceptCguAction);
+export const verifyEmail = VerifyEmailController(verifyEmailAction);
+export const resendVerificationEmail = ResendVerificationEmailController(
   resendVerificationEmailAction
 );

@@ -1,9 +1,10 @@
 import {
-  CommentRepository,
-  ImageRepository,
-  ReviewRepository,
-  UserRepository,
-} from "@/repositories";
+  commentRepository,
+  imageRepository,
+  reviewRepository,
+  authMiddleware as sharedAuthMiddleware,
+  rateLimiterMiddleware as sharedRateLimiterMiddleware,
+} from "./container";
 import {
   CreateCommentAction,
   GetCommentsAction,
@@ -16,35 +17,25 @@ import {
   UpdateCommentController,
   DeleteCommentController,
 } from "@/controllers/comments";
-import {
-  AuthMiddleware,
-  CommentsMiddleware,
-  RateLimiterMiddleware,
-} from "@/middlewares";
+import { CommentsMiddleware } from "@/middlewares";
 
-// Initialize repositories
-const commentRepository = new CommentRepository();
-const imageRepository = new ImageRepository();
-const reviewRepository = new ReviewRepository();
-const userRepository = new UserRepository();
-
-// Initialize middlewares
-export const authMiddleware = new AuthMiddleware(userRepository);
+// Middlewares
+export const authMiddleware = sharedAuthMiddleware;
 export const commentsMiddleware = new CommentsMiddleware(
   commentRepository,
   imageRepository,
   reviewRepository
 );
-export const rateLimiterMiddleware = new RateLimiterMiddleware();
+export const rateLimiterMiddleware = sharedRateLimiterMiddleware;
 
-// Initialize actions
+// Actions
 const createCommentAction = new CreateCommentAction(commentRepository);
 const getCommentsAction = new GetCommentsAction(commentRepository);
 const updateCommentAction = new UpdateCommentAction(commentRepository);
 const deleteCommentAction = new DeleteCommentAction(commentRepository);
 
-// Initialize controllers
-export const createComment = new CreateCommentController(createCommentAction);
-export const getComments = new GetCommentsController(getCommentsAction);
-export const updateComment = new UpdateCommentController(updateCommentAction);
-export const deleteComment = new DeleteCommentController(deleteCommentAction);
+// Controllers
+export const createComment = CreateCommentController(createCommentAction);
+export const getComments = GetCommentsController(getCommentsAction);
+export const updateComment = UpdateCommentController(updateCommentAction);
+export const deleteComment = DeleteCommentController(deleteCommentAction);

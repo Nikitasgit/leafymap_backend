@@ -1,7 +1,8 @@
+import "dotenv/config";
 import "tsconfig-paths/register";
 import dns from "node:dns";
 import app from "./app";
-import "dotenv/config";
+import connectDB from "./config/db";
 import { createServer } from "http";
 import {
   EventRepository,
@@ -36,7 +37,15 @@ const eventsCronService = new EventsCronService(
 );
 eventsCronService.start();
 
-httpServer.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-  console.log(`WebSocket server initialized`);
-});
+async function bootstrap(): Promise<void> {
+  await connectDB();
+
+  httpServer.listen(PORT, () => {
+    console.log(
+      `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`
+    );
+    console.log(`WebSocket server initialized`);
+  });
+}
+
+bootstrap();

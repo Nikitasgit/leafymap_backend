@@ -1,6 +1,7 @@
 import { IUser } from "@/types/models/user";
 import { IUserRepository } from "@/types/repositories/user.repository.types";
 import { getBanMessage, isBanActive } from "@/utils/ban";
+import { ERROR_CODES, ForbiddenError, NotFoundError } from "@/utils/errors";
 import { verifyGoogleIdToken } from "@/utils/googleAuth";
 import { generateToken } from "@/utils/jwt";
 import bcrypt from "bcrypt";
@@ -82,13 +83,16 @@ class GoogleAuthAction implements IGoogleAuthAction {
         ...USER_PROJECT,
       ]);
       if (!user) {
-        throw new Error("User not found");
+        throw new NotFoundError(ERROR_CODES.USER_NOT_FOUND, "User not found");
       }
       if (user.deleted) {
-        throw new Error("Ce compte n'est plus accessible");
+        throw new ForbiddenError(
+          ERROR_CODES.AUTH_ACCOUNT_INACCESSIBLE,
+          "Ce compte n'est plus accessible"
+        );
       }
       if (isBanActive(user)) {
-        throw new Error(getBanMessage(user));
+        throw new ForbiddenError(ERROR_CODES.AUTH_USER_BANNED, getBanMessage(user));
       }
       await this.userRepository.updateOne(user._id.toString(), {
         lastLogin: new Date(),
@@ -108,10 +112,13 @@ class GoogleAuthAction implements IGoogleAuthAction {
     }
     const user = userOrId;
     if (user.deleted) {
-      throw new Error("Ce compte n'est plus accessible");
+      throw new ForbiddenError(
+        ERROR_CODES.AUTH_ACCOUNT_INACCESSIBLE,
+        "Ce compte n'est plus accessible"
+      );
     }
     if (isBanActive(user)) {
-      throw new Error(getBanMessage(user));
+      throw new ForbiddenError(ERROR_CODES.AUTH_USER_BANNED, getBanMessage(user));
     }
     await this.userRepository.updateOne(user._id.toString(), {
       lastLogin: new Date(),

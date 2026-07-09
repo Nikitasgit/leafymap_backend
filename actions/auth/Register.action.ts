@@ -2,6 +2,7 @@ import { IUserRepository } from "@/types/repositories/user.repository.types";
 import bcrypt from "bcrypt";
 import EmailService from "@/services/emailService";
 import { generateTokenWithExpiry } from "@/utils/tokenHash";
+import { ConflictError, ERROR_CODES } from "@/utils/errors";
 
 export interface RegisterInput {
   email: string;
@@ -31,7 +32,10 @@ class RegisterAction implements IRegisterAction {
     const existingUser = await this.userRepository.findOne({ email });
     if (existingUser) {
       if (existingUser.emailVerified !== false) {
-        throw new Error("Cet email est déjà utilisé");
+        throw new ConflictError(
+          ERROR_CODES.AUTH_EMAIL_ALREADY_USED,
+          "Cet email est déjà utilisé"
+        );
       }
       await this.userRepository.updateOne(existingUser._id.toString(), {
         emailVerificationTokenHash: tokenHash,

@@ -65,3 +65,7 @@ export const verifyEmailSchema = z.object({
 export const resendVerificationEmailSchema = z.object({
   email: emailSchema,
 });
+
+export const acceptCguSchema = z.object({
+  emailNotifications: z.boolean().optional(),
+});

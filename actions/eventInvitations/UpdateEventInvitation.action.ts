@@ -2,6 +2,7 @@ import { IEventInvitationRepository } from "@/types/repositories/eventInvitation
 import { IEventInvitation } from "@/types/models/eventInvitation";
 import NotificationService from "@/services/notificationService";
 import EventInvitationService from "@/services/eventInvitationService";
+import { ERROR_CODES, ForbiddenError, NotFoundError } from "@/utils/errors";
 
 export interface UpdateEventInvitationDTO {
   _id: string;
@@ -36,7 +37,10 @@ class UpdateEventInvitationAction implements IUpdateEventInvitationAction {
           await this.eventInvitationRepository.findById(eventInvitation._id);
 
         if (!existingInvitation) {
-          throw new Error(`Event invitation ${eventInvitation._id} not found`);
+          throw new NotFoundError(
+            ERROR_CODES.EVENT_INVITATION_NOT_FOUND,
+            `Event invitation ${eventInvitation._id} not found`
+          );
         }
 
         const isInitiator = existingInvitation.initiator.toString() === userId;
@@ -49,13 +53,15 @@ class UpdateEventInvitationAction implements IUpdateEventInvitationAction {
           eventInvitation.status !== existingInvitation.status;
 
         if (isTryingToAcceptOrRefuse && !isCollaborator) {
-          throw new Error(
+          throw new ForbiddenError(
+            ERROR_CODES.EVENT_INVITATION_RESPOND_FORBIDDEN,
             "Seul le collaborateur peut accepter ou refuser l'invitation"
           );
         }
 
         if (!isInitiator && !isCollaborator) {
-          throw new Error(
+          throw new ForbiddenError(
+            ERROR_CODES.EVENT_INVITATION_UPDATE_FORBIDDEN,
             "You don't have permission to update this event invitation"
           );
         }

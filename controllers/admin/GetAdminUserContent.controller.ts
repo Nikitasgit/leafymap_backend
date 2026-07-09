@@ -1,26 +1,21 @@
-import { RequestHandler, Response } from "express";
 import { IGetAdminUserContentAction } from "@/actions/admin/GetAdminUserContent.action";
-import { APIResponse } from "@/utils/response";
-import { getParam } from "@/utils/request";
+import {
+  Controller,
+  createController,
+  requireObjectIdParam,
+} from "@/utils/controllerFactory";
 
-class GetAdminUserContentController {
-  constructor(private action: IGetAdminUserContentAction) {}
-
-  handle(): RequestHandler {
-    return async (req, res: Response): Promise<void> => {
-      try {
-        const userId = getParam(req.params, "userId");
-        if (!userId) {
-          APIResponse(res, null, "User ID is required", 400);
-          return;
-        }
-        const content = await this.action.execute({ userId });
-        APIResponse(res, { content }, "User content retrieved successfully", 200);
-      } catch (error) {
-        APIResponse(res, null, "Failed to retrieve user content", 500);
-      }
-    };
-  }
-}
+const GetAdminUserContentController = (
+  action: IGetAdminUserContentAction
+): Controller =>
+  createController({
+    execute: async (req) => {
+      const content = await action.execute({
+        userId: requireObjectIdParam(req, "userId"),
+      });
+      return { content };
+    },
+    successMessage: "User content retrieved successfully",
+  });
 
 export default GetAdminUserContentController;

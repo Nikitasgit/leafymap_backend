@@ -6,8 +6,6 @@ export interface TimeSlotDTO {
   endTime: string;
 }
 
-export type PlaceTypeDTO = string;
-
 export interface DayScheduleDTO {
   open: boolean;
   timeSlots: TimeSlotDTO[];
@@ -41,7 +39,6 @@ export interface PlaceDTO extends BaseEntity, ContactInfo {
   isCreatorPlace: boolean;
   rating: number;
   placeCategory: string | Partial<PlaceCategoryDTO>;
-  placeType: PlaceTypeDTO[];
   defaultSchedule: DefaultScheduleDTO;
   customDates: CustomDateDTO[];
 }
@@ -50,5 +47,4 @@ export interface PlaceCategoryDTO {
   _id: string;
   name: string;
   description?: string;
-  placeType: PlaceTypeDTO[];
 }

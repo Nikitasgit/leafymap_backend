@@ -1,55 +1,21 @@
-import { Response, NextFunction, RequestHandler } from "express";
-import { CustomRequest } from "@/types/custom";
-import { APIResponse } from "@/utils/response";
-import { getParam } from "@/utils/request";
-import logger from "@/utils/logger";
 import { IGetConversationWithUserAction } from "@/actions/messages/GetConversationWithUser.action";
+import {
+  Controller,
+  createController,
+  requireAuth,
+  requireObjectIdParam,
+} from "@/utils/controllerFactory";
 
-class GetConversationWithUserController {
-  constructor(
-    private getConversationWithUserAction: IGetConversationWithUserAction
-  ) {}
-
-  handle(): RequestHandler {
-    return async (
-      req: CustomRequest,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> => {
-      try {
-        const otherUserId = getParam(req.params, "otherUserId");
-        if (!otherUserId) {
-          APIResponse(res, null, "Missing otherUserId", 400);
-          return;
-        }
-        const userId = req.decoded?.id;
-
-        if (!userId) {
-          APIResponse(res, null, "User not authenticated", 401);
-          return;
-        }
-
-        const result = await this.getConversationWithUserAction.execute({
-          userId,
-          otherUserId,
-        });
-
-        APIResponse(
-          res,
-          result,
-          "Conversation check completed successfully",
-          200
-        );
-      } catch (error) {
-        logger.error("Error checking conversation with user:", error);
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Failed to check conversation";
-        APIResponse(res, null, message, 500);
-      }
-    };
-  }
-}
+const GetConversationWithUserController = (
+  getConversationWithUserAction: IGetConversationWithUserAction
+): Controller =>
+  createController({
+    execute: (req) =>
+      getConversationWithUserAction.execute({
+        userId: requireAuth(req).id,
+        otherUserId: requireObjectIdParam(req, "otherUserId"),
+      }),
+    successMessage: "Conversation check completed successfully",
+  });
 
 export default GetConversationWithUserController;

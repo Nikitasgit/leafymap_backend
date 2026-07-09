@@ -1,7 +1,5 @@
 import { Document, Types } from "mongoose";
 import { IUser } from "./user";
-import { IImage } from "./Image";
-import { ICategoryType } from "./categoryType";
 
 export interface IPlaceTimeSlot {
   startTime: string;
@@ -39,7 +37,6 @@ export interface IPlace extends Document {
   user: Types.ObjectId | Pick<IUser, "description">;
   location: ILocation;
   placeCategory: Types.ObjectId;
-  placeType: Types.ObjectId[] | Partial<ICategoryType>[];
   defaultSchedule: IDefaultSchedule;
   customDates: ICustomDate[];
   rating: number;

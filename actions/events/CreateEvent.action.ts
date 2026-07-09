@@ -2,6 +2,7 @@ import { IEventRepository } from "@/types/repositories/event.repository.types";
 import { IEvent } from "@/types/models/event";
 import { ILocation } from "@/types/models/place";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
+import { ERROR_CODES, ForbiddenError, NotFoundError } from "@/utils/errors";
 
 export interface CreateEventDTO {
   name: string;
@@ -49,11 +50,14 @@ class CreateEventAction implements ICreateEventAction {
       ]);
 
       if (!place) {
-        throw new Error("Place not found");
+        throw new NotFoundError(ERROR_CODES.PLACE_NOT_FOUND, "Place not found");
       }
 
       if (place.user.toString() !== eventData.user) {
-        throw new Error("You don't have permission to use this place");
+        throw new ForbiddenError(
+          ERROR_CODES.EVENT_PLACE_FORBIDDEN,
+          "You don't have permission to use this place"
+        );
       }
     }
 

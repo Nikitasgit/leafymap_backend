@@ -1,12 +1,9 @@
-import { Response, NextFunction, RequestHandler } from "express";
-import { CustomRequest } from "@/types/custom";
-import { APIResponse } from "@/utils/response";
-import logger from "@/utils/logger";
 import {
   IGetReviewsAction,
   DEFAULT_REVIEWS_PROJECT,
 } from "@/actions/reviews";
 import { IUserRepository } from "@/types/repositories/user.repository.types";
+import { Controller, createController, requireAuth } from "@/utils/controllerFactory";
 
 function getPlaceIdFromUser(user: { place?: unknown } | null): string | null {
   if (!user?.place) return null;
@@ -18,45 +15,31 @@ function getPlaceIdFromUser(user: { place?: unknown } | null): string | null {
   return null;
 }
 
-class GetReceivedReviewsController {
-  constructor(
-    private getReviewsAction: IGetReviewsAction,
-    private userRepository: IUserRepository
-  ) {}
+const GetReceivedReviewsController = (
+  getReviewsAction: IGetReviewsAction,
+  userRepository: IUserRepository
+): Controller =>
+  createController({
+    execute: async (req) => {
+      const userId = requireAuth(req).id;
+      const user = await userRepository.findById(userId, ["_id", "place"]);
+      const placeId = user ? getPlaceIdFromUser(user) : null;
 
-  handle(): RequestHandler {
-    return async (
-      req: CustomRequest,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> => {
-      try {
-        const userId = req.decoded?.id;
-        if (!userId) {
-          APIResponse(res, null, "Non autorisé", 401);
-          return;
-        }
-
-        const user = await this.userRepository.findById(userId, ["_id", "place"]);
-        const placeId = user ? getPlaceIdFromUser(user) : null;
-
-        if (!placeId) {
-          APIResponse(res, { reviews: [] }, "Aucun lieu associé à votre compte", 200);
-          return;
-        }
-
-        const reviews = await this.getReviewsAction.execute({
-          filters: { reference: placeId, referenceType: "Place" },
-          project: DEFAULT_REVIEWS_PROJECT,
-        });
-
-        APIResponse(res, { reviews }, "Avis reçus récupérés avec succès", 200);
-      } catch (error) {
-        logger.error("Erreur lors de la récupération des avis reçus:", error);
-        APIResponse(res, null, "Erreur serveur", 500);
+      if (!placeId) {
+        return { reviews: [], noPlace: true as const };
       }
-    };
-  }
-}
+
+      const reviews = await getReviewsAction.execute({
+        filters: { reference: placeId, referenceType: "Place" },
+        project: DEFAULT_REVIEWS_PROJECT,
+      });
+      return { reviews, noPlace: false as const };
+    },
+    successMessage: (result) =>
+      result.noPlace
+        ? "Aucun lieu associé à votre compte"
+        : "Avis reçus récupérés avec succès",
+    mapResult: ({ reviews }) => ({ reviews }),
+  });
 
 export default GetReceivedReviewsController;

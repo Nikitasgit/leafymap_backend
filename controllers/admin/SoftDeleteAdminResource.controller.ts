@@ -1,5 +1,3 @@
-import { RequestHandler, Response } from "express";
-import { CustomRequest } from "@/types/custom";
 import {
   AdminResource,
   ISoftDeleteAdminResourceAction,
@@ -8,40 +6,48 @@ import {
   adminResourceSchema,
   adminSoftDeleteSchema,
 } from "@/validations/admin.validations";
-import { APIResponse } from "@/utils/response";
+import {
+  Controller,
+  createController,
+  requireAuth,
+  validateOrThrow,
+} from "@/utils/controllerFactory";
 
-class SoftDeleteAdminResourceController {
-  constructor(private action: ISoftDeleteAdminResourceAction) {}
+const softDeleteResourceController = (
+  action: ISoftDeleteAdminResourceAction,
+  deleted: boolean,
+  successMessage: string
+): Controller =>
+  createController({
+    execute: async (req) => {
+      const params = validateOrThrow(adminResourceSchema, req.params);
+      const body = validateOrThrow(adminSoftDeleteSchema, req.body);
+      await action.execute({
+        adminId: requireAuth(req).id,
+        resource: params.resource as AdminResource,
+        resourceId: params.resourceId,
+        deleted,
+        reason: body.reason,
+      });
+    },
+    successMessage,
+  });
 
-  delete(): RequestHandler {
-    return this.handle(true, "Resource deleted successfully");
-  }
-
-  restore(): RequestHandler {
-    return this.handle(false, "Resource restored successfully");
-  }
-
-  private handle(deleted: boolean, successMessage: string): RequestHandler {
-    return async (req: CustomRequest, res: Response): Promise<void> => {
-      try {
-        const params = adminResourceSchema.parse(req.params);
-        const body = adminSoftDeleteSchema.parse(req.body);
-
-        await this.action.execute({
-          adminId: req.decoded!.id,
-          resource: params.resource as AdminResource,
-          resourceId: params.resourceId,
-          deleted,
-          reason: body.reason,
-        });
-
-        APIResponse(res, null, successMessage, 200);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Action failed";
-        APIResponse(res, null, message, 400);
-      }
-    };
-  }
-}
+const SoftDeleteAdminResourceController = (
+  action: ISoftDeleteAdminResourceAction
+) => ({
+  delete: () =>
+    softDeleteResourceController(
+      action,
+      true,
+      "Resource deleted successfully"
+    ).handle(),
+  restore: () =>
+    softDeleteResourceController(
+      action,
+      false,
+      "Resource restored successfully"
+    ).handle(),
+});
 
 export default SoftDeleteAdminResourceController;

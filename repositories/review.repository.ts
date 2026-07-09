@@ -5,10 +5,17 @@ import {
   ReviewFilters,
 } from "@/types/repositories/review.repository.types";
 import { Types, FilterQuery } from "mongoose";
-import { PopulateParser } from "./utils/PopulateParser";
+import { BaseMongooseRepository } from "./baseMongooseRepository";
 
-class ReviewRepository implements IReviewRepository {
-  private buildQuery(filters?: ReviewFilters): FilterQuery<IReview> {
+class ReviewRepository
+  extends BaseMongooseRepository<IReview, ReviewFilters>
+  implements IReviewRepository
+{
+  constructor() {
+    super(Review);
+  }
+
+  protected buildQuery(filters?: ReviewFilters): FilterQuery<IReview> {
     const query: FilterQuery<IReview> = {};
 
     if (!filters) return query;
@@ -20,21 +27,21 @@ class ReviewRepository implements IReviewRepository {
         "$in" in filters.reference
       ) {
         query.reference = {
-          $in: filters.reference.$in.map((id) => new Types.ObjectId(id)),
+          $in: filters.reference.$in.map((id) => this.toObjectId(id)),
         };
       } else if (typeof filters.reference === "string") {
-        query.reference = new Types.ObjectId(filters.reference);
+        query.reference = this.toObjectId(filters.reference);
       }
     }
     if (filters.referenceType) {
       query.referenceType = filters.referenceType;
     }
     if (filters.author) {
-      query.author = new Types.ObjectId(filters.author);
+      query.author = this.toObjectId(filters.author);
     }
     if (filters._id) {
       query._id = {
-        $in: filters._id.$in.map((id) => new Types.ObjectId(id)),
+        $in: filters._id.$in.map((id) => this.toObjectId(id)),
       };
     }
     if (typeof filters.deleted === "boolean") {
@@ -57,81 +64,7 @@ class ReviewRepository implements IReviewRepository {
   }
 
   async create(review: Partial<IReview>): Promise<Types.ObjectId> {
-    const newReview = new Review(review);
-    await newReview.save();
-    return newReview._id;
-  }
-
-  async findById(
-    id: string,
-    project?: (keyof IReview | string)[]
-  ): Promise<IReview | null> {
-    let query = Review.findById(id);
-
-    if (project && project.length > 0) {
-      const { selectFields, populateConfig } =
-        PopulateParser.parseProjectFields(project);
-
-      if (selectFields.length > 0) {
-        query = query.select(selectFields.join(" "));
-      }
-
-      query = PopulateParser.applyPopulate(query, populateConfig);
-    }
-
-    const review = await query.lean();
-    return review as IReview | null;
-  }
-
-  async findAll<K extends keyof IReview>(params: {
-    filters?: ReviewFilters;
-    project: (K | string)[];
-    limit?: number;
-    sort?: { [key: string]: 1 | -1 };
-  }): Promise<Pick<IReview, K>[]> {
-    const query = this.buildQuery(params.filters);
-
-    let mongooseQuery = Review.find(query);
-
-    if (params.sort) {
-      mongooseQuery = mongooseQuery.sort(params.sort);
-    } else {
-      mongooseQuery = mongooseQuery.sort({ createdAt: -1 });
-    }
-
-    if (params.limit) {
-      mongooseQuery = mongooseQuery.limit(params.limit);
-    }
-
-    if (params.project && params.project.length > 0) {
-      const { selectFields, populateConfig } =
-        PopulateParser.parseProjectFields(params.project);
-
-      if (selectFields.length > 0) {
-        mongooseQuery = mongooseQuery.select(selectFields.join(" "));
-      }
-
-      mongooseQuery = PopulateParser.applyPopulate(
-        mongooseQuery,
-        populateConfig
-      );
-    }
-
-    const reviews = await mongooseQuery.lean();
-    return reviews as unknown as Pick<IReview, K>[];
-  }
-
-  async updateOne(id: string, update: Partial<IReview>): Promise<void> {
-    await Review.updateOne({ _id: id }, update).exec();
-  }
-
-  async deleteOne(id: string): Promise<void> {
-    await Review.deleteOne({ _id: id }).exec();
-  }
-
-  async deleteMany(filters: ReviewFilters): Promise<void> {
-    const query = this.buildQuery(filters);
-    await Review.deleteMany(query).exec();
+    return super.create(review);
   }
 }
 

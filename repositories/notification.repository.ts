@@ -111,6 +111,20 @@ class NotificationRepository implements INotificationRepository {
     );
     return updateResult.modifiedCount;
   }
+
+  async deleteByReferences(referenceIds: string[]): Promise<void> {
+    if (referenceIds.length === 0) return;
+    await Notification.deleteMany({
+      reference: { $in: referenceIds.map((id) => new Types.ObjectId(id)) },
+    }).exec();
+  }
+
+  async deleteByUser(userId: string): Promise<void> {
+    const userObjectId = new Types.ObjectId(userId);
+    await Notification.deleteMany({
+      $or: [{ sender: userObjectId }, { receiver: userObjectId }],
+    }).exec();
+  }
 }
 
 export default NotificationRepository;

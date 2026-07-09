@@ -1,41 +1,29 @@
-import { Response, NextFunction, RequestHandler } from "express";
-import { Request } from "express";
-import { APIResponse } from "@/utils/response";
-import { getParam } from "@/utils/request";
-import logger from "@/utils/logger";
+import {
+  getPlaceByIdQuerySchema,
+} from "../../validations/place.validations";
 import { IGetPlaceByIdAction } from "@/actions/places";
+import {
+  Controller,
+  createController,
+  requireObjectIdParam,
+  validateOrThrow,
+} from "@/utils/controllerFactory";
 
-class GetPlaceByIdController {
-  constructor(private getPlaceByIdAction: IGetPlaceByIdAction) {}
-
-  handle(): RequestHandler {
-    return async (
-      req: Request,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> => {
-      try {
-        const placeId = getParam(req.params, "placeId");
-        const { scheduleWithEvents } = req.query;
-
-        if (!placeId) {
-          APIResponse(res, null, "Place ID is required", 400);
-          return;
-        }
-
-        const place = await this.getPlaceByIdAction.execute({
-          placeId,
-          scheduleWithEvents: scheduleWithEvents === "true",
-        });
-
-        APIResponse(res, place, "Place fetched successfully", 200);
-      } catch (error) {
-        logger.error("Error fetching place:", error);
-        const message = error instanceof Error ? error.message : "Server error";
-        APIResponse(res, null, message, 500);
-      }
-    };
-  }
-}
+const GetPlaceByIdController = (
+  getPlaceByIdAction: IGetPlaceByIdAction
+): Controller =>
+  createController({
+    execute: (req) => {
+      const { scheduleWithEvents } = validateOrThrow(
+        getPlaceByIdQuerySchema,
+        req.query
+      );
+      return getPlaceByIdAction.execute({
+        placeId: requireObjectIdParam(req, "placeId"),
+        scheduleWithEvents,
+      });
+    },
+    successMessage: "Place fetched successfully",
+  });
 
 export default GetPlaceByIdController;

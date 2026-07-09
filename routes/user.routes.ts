@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 import {
   getUserById,
+  getUserProfile,
   getUsers,
   updateUser,
   deleteAccount,
@@ -11,6 +12,7 @@ import {
 const router: Router = express.Router();
 
 router.get("/", getUsers.handle());
+router.get("/:userId/profile", getUserProfile.handle());
 router.get("/:userId", getUserById.handle());
 router.put("/", authMiddleware.verify(), updateUser.handle());
 router.delete(

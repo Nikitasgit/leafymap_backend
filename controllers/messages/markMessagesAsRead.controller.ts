@@ -1,52 +1,24 @@
-import { RequestHandler, Response, NextFunction } from "express";
-import { CustomRequest } from "@/types/custom";
 import { IMarkMessagesAsReadAction } from "@/actions/messages/MarkMessagesAsRead.action";
-import { APIResponse } from "@/utils/response";
-import { getParam } from "@/utils/request";
-import logger from "@/utils/logger";
+import {
+  Controller,
+  createController,
+  requireAuth,
+  requireObjectIdParam,
+} from "@/utils/controllerFactory";
 
-class MarkMessagesAsReadController {
-  constructor(private markMessagesAsReadAction: IMarkMessagesAsReadAction) {}
-
-  handle(): RequestHandler {
-    return async (
-      req: CustomRequest,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> => {
-      try {
-        const conversationId = getParam(req.params, "conversationId");
-        const userId = req.decoded?.id;
-
-        if (!userId) {
-          APIResponse(res, null, "Utilisateur non authentifié", 401);
-          return;
-        }
-
-        if (!conversationId) {
-          APIResponse(res, null, "ID de conversation requis", 400);
-          return;
-        }
-
-        const result = await this.markMessagesAsReadAction.execute({
-          conversationId,
-          userId,
-        });
-
-        APIResponse(
-          res,
-          { markedCount: result.markedCount },
-          `${result.markedCount} message(s) marqué(s) comme lu(s)`,
-          200
-        );
-      } catch (error) {
-        logger.error("Error marking messages as read:", error);
-        const message =
-          error instanceof Error ? error.message : "Server error";
-        APIResponse(res, null, message, 500);
-      }
-    };
-  }
-}
+const MarkMessagesAsReadController = (
+  markMessagesAsReadAction: IMarkMessagesAsReadAction
+): Controller =>
+  createController({
+    execute: async (req) => {
+      const result = await markMessagesAsReadAction.execute({
+        conversationId: requireObjectIdParam(req, "conversationId"),
+        userId: requireAuth(req).id,
+      });
+      return { markedCount: result.markedCount };
+    },
+    successMessage: ({ markedCount }) =>
+      `${markedCount} message(s) marqué(s) comme lu(s)`,
+  });
 
 export default MarkMessagesAsReadController;

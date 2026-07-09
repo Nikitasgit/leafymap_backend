@@ -1,6 +1,7 @@
 import { IEventBookingRepository } from "@/types/repositories/eventBooking.repository.types";
 import { IEventRepository } from "@/types/repositories/event.repository.types";
 import NotificationService from "@/services/notificationService";
+import { ERROR_CODES, ForbiddenError, NotFoundError } from "@/utils/errors";
 
 export interface CancelEventBookingDTO {
   bookingId: string;
@@ -35,7 +36,10 @@ class CancelEventBookingAction implements ICancelEventBookingAction {
     ]);
 
     if (!booking) {
-      throw new Error("Réservation non trouvée");
+      throw new NotFoundError(
+        ERROR_CODES.EVENT_BOOKING_NOT_FOUND,
+        "Réservation non trouvée"
+      );
     }
 
     if (booking.status === "cancelled") {
@@ -50,7 +54,8 @@ class CancelEventBookingAction implements ICancelEventBookingAction {
     ]);
 
     if (event && event.lifecycleStatus !== "upcoming") {
-      throw new Error(
+      throw new ForbiddenError(
+        ERROR_CODES.EVENT_BOOKING_CANCEL_CLOSED,
         "Cet évènement a déjà commencé ou est terminé, la réservation ne peut plus être annulée"
       );
     }

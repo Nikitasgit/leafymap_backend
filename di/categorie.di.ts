@@ -9,4 +9,4 @@ const categoryRepository = new CategoryRepository();
 const getCategoriesAction = new GetCategoriesAction(categoryRepository);
 
 // Initialize controllers
-export const getCategories = new GetCategoriesController(getCategoriesAction);
+export const getCategories = GetCategoriesController(getCategoriesAction);

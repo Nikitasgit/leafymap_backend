@@ -1,5 +1,12 @@
 import { IEventBookingRepository } from "@/types/repositories/eventBooking.repository.types";
 import { IEventRepository } from "@/types/repositories/event.repository.types";
+import {
+  ConflictError,
+  ERROR_CODES,
+  ForbiddenError,
+  NotFoundError,
+  ValidationError,
+} from "@/utils/errors";
 
 export interface CreateEventBookingDTO {
   eventId: string;
@@ -41,22 +48,29 @@ class CreateEventBookingAction implements ICreateEventBookingAction {
     ]);
 
     if (!event || event.deleted) {
-      throw new Error("Event not found");
+      throw new NotFoundError(ERROR_CODES.EVENT_NOT_FOUND, "Event not found");
     }
 
     if (!event.isBookable) {
-      throw new Error("Cet évènement n'est pas réservable");
+      throw new ForbiddenError(
+        ERROR_CODES.EVENT_NOT_BOOKABLE,
+        "Cet évènement n'est pas réservable"
+      );
     }
 
     if (event.lifecycleStatus !== "upcoming") {
-      throw new Error(
+      throw new ForbiddenError(
+        ERROR_CODES.EVENT_BOOKING_CLOSED,
         "Cet évènement a déjà commencé ou est terminé, la réservation n'est plus possible"
       );
     }
 
     const eventOwnerId = getOwnerId(event.user);
     if (eventOwnerId === userId) {
-      throw new Error("Vous ne pouvez pas réserver votre propre évènement");
+      throw new ForbiddenError(
+        ERROR_CODES.EVENT_BOOKING_OWN_EVENT,
+        "Vous ne pouvez pas réserver votre propre évènement"
+      );
     }
 
     const existingBooking = await this.eventBookingRepository.findOne({
@@ -66,11 +80,16 @@ class CreateEventBookingAction implements ICreateEventBookingAction {
     });
 
     if (existingBooking) {
-      throw new Error("Vous avez déjà une réservation pour cet évènement");
+      throw new ConflictError(
+        ERROR_CODES.EVENT_BOOKING_ALREADY_EXISTS,
+        "Vous avez déjà une réservation pour cet évènement"
+      );
     }
 
     if (seats > event.maxSeatsPerBooking) {
-      throw new Error(
+      throw new ValidationError(
+        { seats: `Maximum ${event.maxSeatsPerBooking} place(s)` },
+        ERROR_CODES.EVENT_BOOKING_TOO_MANY_SEATS,
         `Vous ne pouvez pas réserver plus de ${event.maxSeatsPerBooking} place(s)`
       );
     }
@@ -80,7 +99,10 @@ class CreateEventBookingAction implements ICreateEventBookingAction {
         eventId
       );
       if (bookedSeats + seats > event.capacity) {
-        throw new Error("Il ne reste plus assez de places disponibles");
+        throw new ConflictError(
+          ERROR_CODES.EVENT_BOOKING_NOT_ENOUGH_SEATS,
+          "Il ne reste plus assez de places disponibles"
+        );
       }
     }
 

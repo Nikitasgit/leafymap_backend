@@ -1,49 +1,23 @@
-import { Response, NextFunction, RequestHandler } from "express";
-import { APIResponse } from "@/utils/response";
-import { getParam } from "@/utils/request";
-import { CustomRequest } from "@/types/custom";
+import { RequestHandler } from "express";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
+import {
+  createOwnershipMiddleware,
+  getEntityOwnerId,
+} from "./createOwnershipMiddleware";
 
 class PlacesMiddleware {
   constructor(private placeRepository: IPlaceRepository) {}
 
   ownership(): RequestHandler {
-    return async (
-      req: CustomRequest,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> => {
-      try {
-        const decoded = req.decoded!;
-        const placeId = getParam(req.params, "placeId");
-
-        if (!placeId) {
-          APIResponse(res, null, "Place ID is required", 400);
-          return;
-        }
-
-        const place = await this.placeRepository.findById(placeId, ["user"]);
-        if (!place) {
-          APIResponse(res, null, "Place not found", 404);
-          return;
-        }
-
-        if (place.user.toString() !== decoded.id) {
-          APIResponse(
-            res,
-            null,
-            "You don't have permission to update this place",
-            403
-          );
-          return;
-        }
-
-        req.placeId = placeId;
-        next();
-      } catch (error) {
-        APIResponse(res, null, "Failed to verify place ownership", 500);
-      }
-    };
+    return createOwnershipMiddleware({
+      paramName: "placeId",
+      findById: (placeId) => this.placeRepository.findById(placeId, ["user"]),
+      getOwnerId: getEntityOwnerId,
+      notFoundMessage: "Place not found",
+      forbiddenMessage: "You don't have permission to update this place",
+      missingParamMessage: "Place ID is required",
+      paramReqKey: "placeId",
+    });
   }
 }
 

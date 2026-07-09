@@ -1,4 +1,5 @@
 import { IUserRepository } from "@/types/repositories/user.repository.types";
+import { ERROR_CODES, ForbiddenError } from "@/utils/errors";
 
 export interface IBanAdminUserAction {
   ban(params: {
@@ -25,7 +26,10 @@ class BanAdminUserAction implements IBanAdminUserAction {
     duration?: number;
   }): Promise<void> {
     if (adminId === userId) {
-      throw new Error("You cannot ban your own admin account");
+      throw new ForbiddenError(
+        ERROR_CODES.ADMIN_SELF_BAN_FORBIDDEN,
+        "You cannot ban your own admin account"
+      );
     }
 
     const bannedAt = new Date();
@@ -49,7 +53,10 @@ class BanAdminUserAction implements IBanAdminUserAction {
     userId: string;
   }): Promise<void> {
     if (adminId === userId) {
-      throw new Error("You cannot unban your own admin account");
+      throw new ForbiddenError(
+        ERROR_CODES.ADMIN_SELF_UNBAN_FORBIDDEN,
+        "You cannot unban your own admin account"
+      );
     }
 
     await this.userRepository.updateOne(userId, {

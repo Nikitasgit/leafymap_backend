@@ -1,45 +1,22 @@
-import { Response, NextFunction, RequestHandler } from "express";
-import { CustomRequest } from "@/types/custom";
-import { APIResponse } from "@/utils/response";
-import { getParam } from "@/utils/request";
-import logger from "@/utils/logger";
 import { IDeleteCommentAction } from "@/actions/comments";
-import { isValidObjectId } from "mongoose";
+import {
+  Controller,
+  createController,
+  requireAuth,
+  requireObjectIdParam,
+} from "@/utils/controllerFactory";
 
-class DeleteCommentController {
-  constructor(private deleteCommentAction: IDeleteCommentAction) {}
-
-  handle(): RequestHandler {
-    return async (
-      req: CustomRequest,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> => {
-      try {
-        const commentId = getParam(req.params, "commentId");
-        const userId = req.decoded?.id;
-
-        if (!userId) {
-          APIResponse(res, null, "Non autorisé", 401);
-          return;
-        }
-
-        if (!commentId || !isValidObjectId(commentId)) {
-          APIResponse(res, null, "ID de commentaire invalide", 400);
-          return;
-        }
-
-        await this.deleteCommentAction.execute({ commentId });
-
-        APIResponse(res, null, "Commentaire supprimé avec succès", 200);
-      } catch (error) {
-        logger.error("Erreur lors de la suppression du commentaire:", error);
-        const message =
-          error instanceof Error ? error.message : "Erreur serveur";
-        APIResponse(res, null, message, 500);
-      }
-    };
-  }
-}
+const DeleteCommentController = (
+  deleteCommentAction: IDeleteCommentAction
+): Controller =>
+  createController({
+    execute: async (req) => {
+      requireAuth(req);
+      await deleteCommentAction.execute({
+        commentId: requireObjectIdParam(req, "commentId"),
+      });
+    },
+    successMessage: "Commentaire supprimé avec succès",
+  });
 
 export default DeleteCommentController;

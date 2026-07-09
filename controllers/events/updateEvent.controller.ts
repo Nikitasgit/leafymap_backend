@@ -1,59 +1,27 @@
-import { Response, NextFunction, RequestHandler } from "express";
-import { CustomRequest } from "@/types/custom";
-import { APIResponse } from "@/utils/response";
-import { getParam } from "@/utils/request";
-import logger from "@/utils/logger";
-import { IUpdateEventAction } from "@/actions/events";
 import { updateEventSchema } from "@/validations/event.validations";
-import { validateData } from "@/utils/validation";
+import { IUpdateEventAction } from "@/actions/events";
+import {
+  Controller,
+  createController,
+  requireAuth,
+  requireObjectIdParam,
+  validateOrThrow,
+} from "@/utils/controllerFactory";
 
-class UpdateEventController {
-  constructor(private updateEventAction: IUpdateEventAction) {}
-
-  handle(): RequestHandler {
-    return async (
-      req: CustomRequest,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> => {
-      try {
-        const eventId = getParam(req.params, "eventId");
-
-        if (!eventId) {
-          APIResponse(res, null, "Event ID is required", 400);
-          return;
-        }
-
-        const errors = validateData(updateEventSchema, req.body);
-        if (errors) {
-          APIResponse(res, errors, "Validation failed", 400);
-          return;
-        }
-
-        await this.updateEventAction.execute({
-          eventId,
-          userId: req.decoded!.id,
-          updateData: req.body,
-        });
-
-        APIResponse(res, { _id: eventId }, "Event updated successfully", 200);
-      } catch (error) {
-        logger.error("Error updating event:", error);
-        const message =
-          error instanceof Error ? error.message : "Failed to update event";
-        const statusCode =
-          error instanceof Error && error.message === "Event not found"
-            ? 404
-            : error instanceof Error && error.message === "Place not found"
-            ? 404
-            : error instanceof Error &&
-              error.message === "You don't have permission to use this place"
-            ? 403
-            : 500;
-        APIResponse(res, null, message, statusCode);
-      }
-    };
-  }
-}
+const UpdateEventController = (
+  updateEventAction: IUpdateEventAction
+): Controller =>
+  createController({
+    execute: async (req) => {
+      const eventId = requireObjectIdParam(req, "eventId");
+      await updateEventAction.execute({
+        eventId,
+        userId: requireAuth(req).id,
+        updateData: validateOrThrow(updateEventSchema, req.body),
+      });
+      return { _id: eventId };
+    },
+    successMessage: "Event updated successfully",
+  });
 
 export default UpdateEventController;

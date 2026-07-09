@@ -16,3 +16,4 @@ export * from "./notification";
 export * from "./productCategory";
 export * from "./product";
 export * from "./favorite";
+export * from "./populated";

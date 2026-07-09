@@ -62,16 +62,16 @@ const markMessagesAsReadAction = new MarkMessagesAsReadAction(
 );
 
 // Initialize controllers
-export const createMessage = new CreateMessageController(createMessageAction);
-export const updateMessage = new UpdateMessageController(updateMessageAction);
-export const deleteMessage = new DeleteMessageController(deleteMessageAction);
-export const getMessages = new GetMessagesController(getMessagesAction);
-export const getConversations = new GetConversationsController(
+export const createMessage = CreateMessageController(createMessageAction);
+export const updateMessage = UpdateMessageController(updateMessageAction);
+export const deleteMessage = DeleteMessageController(deleteMessageAction);
+export const getMessages = GetMessagesController(getMessagesAction);
+export const getConversations = GetConversationsController(
   getConversationsAction
 );
-export const getConversationWithUser = new GetConversationWithUserController(
+export const getConversationWithUser = GetConversationWithUserController(
   getConversationWithUserAction
 );
-export const markMessagesAsRead = new MarkMessagesAsReadController(
+export const markMessagesAsRead = MarkMessagesAsReadController(
   markMessagesAsReadAction
 );

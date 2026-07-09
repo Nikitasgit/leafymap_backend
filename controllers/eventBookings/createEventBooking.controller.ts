@@ -1,54 +1,27 @@
-import { Response, NextFunction, RequestHandler } from "express";
-import { CustomRequest } from "@/types/custom";
-import { APIResponse } from "@/utils/response";
-import { getParam } from "@/utils/request";
-import logger from "@/utils/logger";
-import { ICreateEventBookingAction } from "@/actions/eventBookings";
 import { createEventBookingSchema } from "@/validations/eventBooking.validations";
-import { validateData } from "@/utils/validation";
+import { ICreateEventBookingAction } from "@/actions/eventBookings";
+import {
+  Controller,
+  createController,
+  requireAuth,
+  requireObjectIdParam,
+  validateOrThrow,
+} from "@/utils/controllerFactory";
 
-class CreateEventBookingController {
-  constructor(private createEventBookingAction: ICreateEventBookingAction) {}
-
-  handle(): RequestHandler {
-    return async (
-      req: CustomRequest,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> => {
-      try {
-        const decoded = req.decoded!;
-        const eventId = getParam(req.params, "eventId");
-
-        if (!eventId) {
-          APIResponse(res, null, "Event ID is required", 400);
-          return;
-        }
-
-        const errors = validateData(createEventBookingSchema, req.body);
-        if (errors) {
-          APIResponse(res, errors, "Validation failed", 400);
-          return;
-        }
-
-        const booking = await this.createEventBookingAction.execute({
-          eventId,
-          userId: decoded.id,
-          seats: req.body.seats,
-        });
-
-        APIResponse(res, booking, "Réservation créée avec succès", 201);
-      } catch (error) {
-        logger.error("Error creating event booking:", error);
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Failed to create event booking";
-        const statusCode = message === "Event not found" ? 404 : 400;
-        APIResponse(res, null, message, statusCode);
-      }
-    };
-  }
-}
+const CreateEventBookingController = (
+  createEventBookingAction: ICreateEventBookingAction
+): Controller =>
+  createController({
+    execute: (req) => {
+      const bookingData = validateOrThrow(createEventBookingSchema, req.body);
+      return createEventBookingAction.execute({
+        eventId: requireObjectIdParam(req, "eventId"),
+        userId: requireAuth(req).id,
+        seats: bookingData.seats,
+      });
+    },
+    successMessage: "Réservation créée avec succès",
+    successStatus: 201,
+  });
 
 export default CreateEventBookingController;

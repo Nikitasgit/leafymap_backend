@@ -1,27 +1,26 @@
-import mongoose from "mongoose";
-import { MongoMemoryServer } from "mongodb-memory-server";
 import { UserRepository } from "@/repositories";
 import User from "../../../models/User";
 import { Types } from "mongoose";
+import {
+  clearCollection,
+  connectMongo,
+  disconnectMongo,
+} from "../../helpers/mongoTestSetup";
 
 describe("UserRepository", () => {
-  let mongoServer: MongoMemoryServer;
   let repository: UserRepository;
 
   beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
-    await mongoose.connect(mongoUri);
+    await connectMongo();
     repository = new UserRepository();
   });
 
   afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
+    await disconnectMongo();
   });
 
   beforeEach(async () => {
-    await User.deleteMany({});
+    await clearCollection(User);
   });
 
   describe("create", () => {

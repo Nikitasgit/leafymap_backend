@@ -1,45 +1,14 @@
-import { Response, NextFunction, RequestHandler } from "express";
-import { APIResponse } from "@/utils/response";
-import logger from "@/utils/logger";
-import { IGetUsersAction, GetUsersInput } from "@/actions/users";
+import { getUsersQuerySchema } from "../../validations/user.validations";
+import { IGetUsersAction } from "@/actions/users";
+import { Controller, createController, validateOrThrow } from "@/utils/controllerFactory";
 
-class GetUsersController {
-  constructor(private getUsersAction: IGetUsersAction) {}
-
-  handle(): RequestHandler {
-    return async (
-      req: any,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> => {
-      try {
-        const { username, userType, limit, excludeIds } = req.query;
-        const filters: GetUsersInput = {};
-
-        if (username && typeof username === "string") {
-          filters.username = username;
-        }
-        if (userType === "creator" || userType === "guest") {
-          filters.userType = userType;
-        }
-        if (limit) {
-          filters.limit = parseInt(limit as string);
-        }
-        if (excludeIds) {
-          filters.excludeIds = Array.isArray(excludeIds)
-            ? excludeIds
-            : [excludeIds];
-        }
-
-        const users = await this.getUsersAction.execute({ filters });
-
-        APIResponse(res, users, "Users fetched successfully", 200);
-      } catch (error) {
-        logger.error("Error finding users:", error);
-        APIResponse(res, null, "Server error", 500);
-      }
-    };
-  }
-}
+const GetUsersController = (getUsersAction: IGetUsersAction): Controller =>
+  createController({
+    execute: (req) =>
+      getUsersAction.execute({
+        filters: validateOrThrow(getUsersQuerySchema, req.query),
+      }),
+    successMessage: "Users fetched successfully",
+  });
 
 export default GetUsersController;

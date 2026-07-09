@@ -1,5 +1,6 @@
 import { IUserRepository } from "@/types/repositories/user.repository.types";
 import { IUser } from "@/types/models/user";
+import { ERROR_CODES, NotFoundError } from "@/utils/errors";
 
 export interface IGetUserByIdAction {
   execute(params: {
@@ -46,7 +47,7 @@ class GetUserByIdAction implements IGetUserByIdAction {
     );
 
     if (!user) {
-      throw new Error("User not found");
+      throw new NotFoundError(ERROR_CODES.USER_NOT_FOUND, "User not found");
     }
 
     return user;

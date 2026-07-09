@@ -21,7 +21,6 @@ class GetPlacesAction implements IGetPlacesAction {
     "location",
     "rating",
     "placeCategory",
-    "placeType",
     "defaultSchedule",
     "customDates",
     "placeCategory.name",

@@ -4,6 +4,7 @@ import { IEventRepository } from "@/types/repositories/event.repository.types";
 import { IImageRepository } from "@/types/repositories/image.repository.types";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
 import { IReviewRepository } from "@/types/repositories/review.repository.types";
+import { ERROR_CODES, NotFoundError } from "@/utils/errors";
 
 export type AdminResource =
   | "events"
@@ -55,7 +56,10 @@ class SoftDeleteAdminResourceAction implements ISoftDeleteAdminResourceAction {
     const repo = this.getRepository(params.resource);
     const item = await repo.findById(params.resourceId, ["_id"]);
     if (!item) {
-      throw new Error("Resource not found");
+      throw new NotFoundError(
+        ERROR_CODES.ADMIN_RESOURCE_NOT_FOUND,
+        "Resource not found"
+      );
     }
 
     await repo.updateOne(params.resourceId, update as never);

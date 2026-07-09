@@ -1,6 +1,7 @@
 import { IUserRepository } from "@/types/repositories/user.repository.types";
 import { generateToken } from "@/utils/jwt";
 import { getBanMessage, isBanActive } from "@/utils/ban";
+import { ERROR_CODES, ForbiddenError, UnauthorizedError } from "@/utils/errors";
 import bcrypt from "bcrypt";
 
 export interface SignInInput {
@@ -42,22 +43,32 @@ class SignInAction implements ISignInAction {
     );
 
     if (!user) {
-      throw new Error("Les identifiants sont incorrects");
+      throw new UnauthorizedError(
+        ERROR_CODES.AUTH_INVALID_CREDENTIALS,
+        "Les identifiants sont incorrects"
+      );
     }
     if (!password || !(await bcrypt.compare(password, user.password))) {
-      throw new Error("Les identifiants sont incorrects");
+      throw new UnauthorizedError(
+        ERROR_CODES.AUTH_INVALID_CREDENTIALS,
+        "Les identifiants sont incorrects"
+      );
     }
 
     if (user.emailVerified === false) {
-      throw new Error(
+      throw new ForbiddenError(
+        ERROR_CODES.AUTH_EMAIL_NOT_VERIFIED,
         "Veuillez vérifier votre adresse email avant de vous connecter. Consultez votre boîte de réception ou demandez un nouveau lien."
       );
     }
     if (user.deleted) {
-      throw new Error("Ce compte n'est plus accessible");
+      throw new ForbiddenError(
+        ERROR_CODES.AUTH_ACCOUNT_INACCESSIBLE,
+        "Ce compte n'est plus accessible"
+      );
     }
     if (isBanActive(user)) {
-      throw new Error(getBanMessage(user));
+      throw new ForbiddenError(ERROR_CODES.AUTH_USER_BANNED, getBanMessage(user));
     }
 
     await this.userRepository.updateOne(user._id.toString(), {

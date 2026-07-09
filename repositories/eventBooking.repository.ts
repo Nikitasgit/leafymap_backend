@@ -19,7 +19,13 @@ class EventBookingRepository implements IEventBookingRepository {
       query._id = new Types.ObjectId(filters._id);
     }
     if (filters.event) {
-      query.event = new Types.ObjectId(filters.event);
+      if (typeof filters.event === "string") {
+        query.event = new Types.ObjectId(filters.event);
+      } else if ("$in" in filters.event) {
+        query.event = {
+          $in: filters.event.$in.map((id) => new Types.ObjectId(id)),
+        };
+      }
     }
     if (filters.user) {
       query.user = new Types.ObjectId(filters.user);
@@ -136,6 +142,11 @@ class EventBookingRepository implements IEventBookingRepository {
 
   async deleteOne(id: string): Promise<void> {
     await EventBooking.findByIdAndDelete(id).exec();
+  }
+
+  async deleteMany(filters: EventBookingFilters): Promise<void> {
+    const query = this.buildQuery(filters);
+    await EventBooking.deleteMany(query).exec();
   }
 
   async sumConfirmedSeats(

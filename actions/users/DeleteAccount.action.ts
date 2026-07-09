@@ -2,9 +2,12 @@ import { IUserRepository } from "@/types/repositories/user.repository.types";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
 import { IEventRepository } from "@/types/repositories/event.repository.types";
 import { IPartnershipRepository } from "@/types/repositories/partnership.repository.types";
-import { DeleteImagesAction } from "@/actions/images";
+import { IEventBookingRepository } from "@/types/repositories/eventBooking.repository.types";
+import { IEventInvitationRepository } from "@/types/repositories/eventInvitation.repository.types";
+import { IFavoriteRepository } from "@/types/repositories/favorite.repository.types";
+import { INotificationRepository } from "@/types/repositories/notification.repository.types";
 import { IImageRepository } from "@/types/repositories/image.repository.types";
-import { ImageRepository } from "@/repositories";
+import CascadeDeleteService from "@/services/cascadeDeleteService";
 import logger from "@/utils/logger";
 
 export interface IDeleteAccountAction {
@@ -12,18 +15,18 @@ export interface IDeleteAccountAction {
 }
 
 class DeleteAccountAction implements IDeleteAccountAction {
-  private deleteImagesAction: DeleteImagesAction;
-  private imageRepository: IImageRepository;
-
   constructor(
     private userRepository: IUserRepository,
     private placeRepository: IPlaceRepository,
     private eventRepository: IEventRepository,
-    private partnershipRepository: IPartnershipRepository
-  ) {
-    this.imageRepository = new ImageRepository();
-    this.deleteImagesAction = new DeleteImagesAction(this.imageRepository);
-  }
+    private partnershipRepository: IPartnershipRepository,
+    private eventBookingRepository: IEventBookingRepository,
+    private eventInvitationRepository: IEventInvitationRepository,
+    private favoriteRepository: IFavoriteRepository,
+    private notificationRepository: INotificationRepository,
+    private imageRepository: IImageRepository,
+    private cascadeDeleteService: CascadeDeleteService
+  ) {}
 
   async execute({ userId }: { userId: string }): Promise<void> {
     const user = await this.userRepository.findById(userId, ["_id"]);
@@ -31,106 +34,60 @@ class DeleteAccountAction implements IDeleteAccountAction {
       throw new Error("User not found");
     }
 
-    const userImagesByOwner = await this.imageRepository.findAll({
-      filters: { user: userId },
-      project: ["_id"],
-    });
-
-    const userImagesByReference = await this.imageRepository.findAll({
-      filters: { reference: userId, referenceType: "User" },
-      project: ["_id"],
-    });
-    const userImageIds = [
-      ...userImagesByOwner.map((img) => img._id.toString()),
-      ...userImagesByReference.map((img) => img._id.toString()),
-    ];
-
+    // Places owned by the user (cascades to their events, reviews, bookings, images...)
     const userPlaces = await this.placeRepository.findAll({
       filters: { user: userId },
       project: ["_id"],
     });
-    const placeIds = userPlaces.map((place) => place._id.toString());
+    for (const place of userPlaces) {
+      await this.cascadeDeleteService.deletePlace(place._id.toString());
+    }
+    logger.info(`Deleted ${userPlaces.length} places for user ${userId}`);
 
-    const userPlaceEvents = await this.eventRepository.findAll({
-      filters: { place: { $in: placeIds } },
-      project: ["_id"],
-    });
+    // Events owned directly by the user
     const ownedEvents = await this.eventRepository.findAll({
       filters: { user: userId },
       project: ["_id"],
     });
-    const eventIds = [
-      ...new Set([
-        ...userPlaceEvents.map((event) => event._id.toString()),
-        ...ownedEvents.map((event) => event._id.toString()),
-      ]),
-    ];
-
-    const placeImageIds: string[] = [];
-    if (placeIds.length > 0) {
-      const placeImages = await this.imageRepository.findAll({
-        filters: {
-          reference: { $in: placeIds },
-          referenceType: "Place",
-        },
-        project: ["_id"],
-      });
-      placeImageIds.push(...placeImages.map((img) => img._id.toString()));
-    }
-
-    // Find images for events using $in filter
-    const eventImageIds: string[] = [];
-    if (eventIds.length > 0) {
-      const eventImages = await this.imageRepository.findAll({
-        filters: {
-          reference: { $in: eventIds },
-          referenceType: "Event",
-        },
-        project: ["_id"],
-      });
-      eventImageIds.push(...eventImages.map((img) => img._id.toString()));
-    }
-
-    // Combine all image IDs
-    const allImageIds = [...userImageIds, ...placeImageIds, ...eventImageIds];
-
-    // Delete images from S3 and database
-    if (allImageIds.length > 0) {
-      await this.deleteImagesAction.execute({ imageIds: allImageIds });
-    }
+    await this.cascadeDeleteService.deleteEvents(
+      ownedEvents.map((event) => event._id.toString())
+    );
+    logger.info(`Deleted ${ownedEvents.length} owned events for user ${userId}`);
 
     // Remove user from event collaborators
     await this.eventRepository.updateMany(
-      { "schedule.timeSlots.collaborators": userId } as any,
+      { "schedule.timeSlots.collaborators": userId },
       { $pull: { "schedule.$[].timeSlots.$[].collaborators": userId } } as any
     );
-    logger.info(`Removed user from collaborators in events`);
 
-    // Delete events owned by the user, including legacy place-bound events.
-    await this.eventRepository.deleteMany({ user: userId });
-    logger.info(`Deleted owned events for user ${userId}`);
-
-    // Delete legacy events for user places
-    if (placeIds.length > 0) {
-      await this.eventRepository.deleteMany({ place: { $in: placeIds } });
-      logger.info(
-        `Deleted events for ${placeIds.length} places of user ${userId}`
-      );
-    }
-
-    // Delete partnerships
+    // Data linking the user to other entities
     await this.partnershipRepository.deleteMany({
       $or: [{ initiator: userId }, { collaborator: userId }],
     });
-    logger.info(`Deleted partnerships for user ${userId}`);
+    await this.eventInvitationRepository.deleteMany({
+      $or: [{ initiator: userId }, { collaborator: userId }],
+    });
+    await this.eventBookingRepository.deleteMany({ user: userId });
+    await this.favoriteRepository.deleteMany({ user: userId });
+    await this.notificationRepository.deleteByUser(userId);
 
-    // Delete places
-    if (placeIds.length > 0) {
-      await this.placeRepository.deleteMany({ _id: { $in: placeIds } });
-      logger.info(`Deleted ${placeIds.length} places for user ${userId}`);
-    }
+    // Images owned by the user or attached to their profile
+    const imagesByOwner = await this.imageRepository.findAll({
+      filters: { user: userId },
+      project: ["_id"],
+    });
+    const imagesByReference = await this.imageRepository.findAll({
+      filters: { reference: userId, referenceType: "User" },
+      project: ["_id"],
+    });
+    const userImageIds = [
+      ...new Set([
+        ...imagesByOwner.map((img) => img._id.toString()),
+        ...imagesByReference.map((img) => img._id.toString()),
+      ]),
+    ];
+    await this.cascadeDeleteService.deleteImagesWithComments(userImageIds);
 
-    // Delete user
     await this.userRepository.deleteOne(userId);
     logger.info(`User account permanently deleted: ${userId}`);
   }

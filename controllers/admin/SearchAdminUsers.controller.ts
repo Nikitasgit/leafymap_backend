@@ -1,22 +1,17 @@
-import { RequestHandler, Response } from "express";
 import { ISearchAdminUsersAction } from "@/actions/admin/SearchAdminUsers.action";
 import { adminUserSearchSchema } from "@/validations/admin.validations";
-import { APIResponse } from "@/utils/response";
+import { Controller, createController, validateOrThrow } from "@/utils/controllerFactory";
 
-class SearchAdminUsersController {
-  constructor(private action: ISearchAdminUsersAction) {}
-
-  handle(): RequestHandler {
-    return async (req, res: Response): Promise<void> => {
-      try {
-        const { email } = adminUserSearchSchema.parse(req.query);
-        const users = await this.action.execute({ email });
-        APIResponse(res, { users }, "Users retrieved successfully", 200);
-      } catch (error) {
-        APIResponse(res, null, "Failed to search users", 400);
-      }
-    };
-  }
-}
+const SearchAdminUsersController = (
+  action: ISearchAdminUsersAction
+): Controller =>
+  createController({
+    execute: async (req) => {
+      const { email } = validateOrThrow(adminUserSearchSchema, req.query);
+      const users = await action.execute({ email });
+      return { users };
+    },
+    successMessage: "Users retrieved successfully",
+  });
 
 export default SearchAdminUsersController;

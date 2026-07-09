@@ -43,8 +43,8 @@ const findFollowingAction = new FindFollowingAction(followRepository);
 const findOneFollowAction = new FindOneFollowAction(followRepository);
 
 // Initialize controllers
-export const createFollow = new CreateFollowController(createFollowAction);
-export const deleteFollow = new DeleteFollowController(deleteFollowAction);
-export const findFollowers = new FindFollowersController(findFollowersAction);
-export const findFollowing = new FindFollowingController(findFollowingAction);
-export const findOneFollow = new FindOneFollowController(findOneFollowAction);
+export const createFollow = CreateFollowController(createFollowAction);
+export const deleteFollow = DeleteFollowController(deleteFollowAction);
+export const findFollowers = FindFollowersController(findFollowersAction);
+export const findFollowing = FindFollowingController(findFollowingAction);
+export const findOneFollow = FindOneFollowController(findOneFollowAction);

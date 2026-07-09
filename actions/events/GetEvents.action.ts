@@ -7,6 +7,7 @@ import { IEvent } from "@/types/models/event";
 export interface GetEventsInput {
   placeId?: string;
   userId?: string;
+  search?: string;
   limit?: number;
   lifecycleStatus?: ("upcoming" | "ongoing" | "completed" | "unvalid")[];
   sortBy?: "createdAt" | "dateRange.firstDate";
@@ -52,6 +53,10 @@ class GetEventsAction implements IGetEventsAction {
 
   constructor(private eventRepository: IEventRepository) {}
 
+  private escapeRegex(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
   async execute({
     filters,
   }: {
@@ -69,6 +74,14 @@ class GetEventsAction implements IGetEventsAction {
       queryFilters.user = filters.userId;
     }
 
+    if (filters?.search?.trim()) {
+      queryFilters.name = {
+        $regex: this.escapeRegex(filters.search.trim()),
+        $options: "i",
+      };
+      queryFilters.status = { $ne: "cancelled" };
+    }
+
     if (
       filters?.lifecycleStatus &&
       filters.lifecycleStatus.length > 0 &&
@@ -77,6 +90,8 @@ class GetEventsAction implements IGetEventsAction {
       queryFilters.lifecycleStatus = {
         $in: filters.lifecycleStatus.filter((status) => status.trim() !== ""),
       };
+    } else if (filters?.search?.trim()) {
+      queryFilters.lifecycleStatus = { $in: ["upcoming", "ongoing"] };
     }
 
     const sortBy = filters?.sortBy || "dateRange.firstDate";

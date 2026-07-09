@@ -1,45 +1,23 @@
-import { Response, NextFunction, RequestHandler } from "express";
-import { Request } from "express";
-import { APIResponse } from "@/utils/response";
-import logger from "@/utils/logger";
-import { IGetPlacesAction, GetPlacesInput } from "@/actions/places";
+import { getPlacesQuerySchema } from "../../validations/place.validations";
+import { IGetPlacesAction } from "@/actions/places";
+import {
+  Controller,
+  createController,
+  validateOrThrow,
+} from "@/utils/controllerFactory";
 
-class GetPlacesController {
-  constructor(private getPlacesAction: IGetPlacesAction) {}
-
-  handle(): RequestHandler {
-    return async (
-      req: Request,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> => {
-      try {
-        const { categoryId, limit } = req.query;
-
-        const filters: GetPlacesInput = {};
-
-        if (categoryId && typeof categoryId === "string") {
-          filters.categoryId = categoryId;
-        }
-        if (limit) {
-          filters.limit = parseInt(limit as string);
-        }
-
-        const places = await this.getPlacesAction.execute({ filters });
-
-        const message = categoryId
-          ? "Places by category retrieved successfully"
-          : "Latest places retrieved successfully";
-
-        APIResponse(res, places, message, 200);
-      } catch (error) {
-        logger.error("Error fetching places:", error);
-        const message =
-          error instanceof Error ? error.message : "Failed to fetch places";
-        APIResponse(res, null, message, 500);
-      }
-    };
-  }
-}
+const GetPlacesController = (getPlacesAction: IGetPlacesAction): Controller =>
+  createController({
+    execute: async (req) => {
+      const filters = validateOrThrow(getPlacesQuerySchema, req.query);
+      const places = await getPlacesAction.execute({ filters });
+      return { places, categoryId: filters.categoryId };
+    },
+    successMessage: ({ categoryId }) =>
+      categoryId
+        ? "Places by category retrieved successfully"
+        : "Latest places retrieved successfully",
+    mapResult: ({ places }) => places,
+  });
 
 export default GetPlacesController;

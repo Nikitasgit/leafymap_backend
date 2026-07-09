@@ -26,5 +26,15 @@ export const updateReviewSchema = z.object({
   comment: z.string().optional(),
 });
 
+export const getReviewsQuerySchema = z.object({
+  reference: z.string().min(1, "Le paramètre 'reference' est requis"),
+  referenceType: z.enum(["Place", "Event"], {
+    errorMap: () => ({
+      message: "Le type de référence doit être Place ou Event",
+    }),
+  }) as z.ZodType<ReviewReferenceType>,
+  author: z.string().optional(),
+});
+
 export type CreateReviewInput = z.infer<typeof createReviewSchema>;
 export type UpdateReviewInput = z.infer<typeof updateReviewSchema>;

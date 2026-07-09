@@ -22,15 +22,8 @@ class UpdatePlaceAction implements IUpdatePlaceAction {
     const normalizedUpdate: Partial<IPlace> = { ...updateData };
 
     if (updateData.placeCategory) {
-      normalizedUpdate.placeCategory = new Types.ObjectId(
-        updateData.placeCategory as unknown as string
-      );
-    }
-
-    if (updateData.placeType) {
-      normalizedUpdate.placeType = (updateData.placeType as unknown as string[]).map(
-        (typeId) => new Types.ObjectId(typeId)
-      );
+      const placeCategoryId = updateData.placeCategory as unknown as string;
+      normalizedUpdate.placeCategory = new Types.ObjectId(placeCategoryId);
     }
 
     await this.placeRepository.updateOne(placeId, normalizedUpdate);

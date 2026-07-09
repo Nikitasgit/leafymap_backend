@@ -1,42 +1,19 @@
-import { Response, NextFunction, RequestHandler } from "express";
-import { Request } from "express";
-import { APIResponse } from "@/utils/response";
-import { getParam } from "@/utils/request";
-import logger from "@/utils/logger";
 import { IGetEventByIdAction } from "@/actions/events";
+import {
+  Controller,
+  createController,
+  requireObjectIdParam,
+} from "@/utils/controllerFactory";
 
-class GetEventByIdController {
-  constructor(private getEventByIdAction: IGetEventByIdAction) {}
-
-  handle(): RequestHandler {
-    return async (
-      req: Request,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> => {
-      try {
-        const eventId = getParam(req.params, "eventId");
-
-        if (!eventId) {
-          APIResponse(res, null, "Event ID is required", 400);
-          return;
-        }
-
-        const event = await this.getEventByIdAction.execute({ eventId });
-
-        APIResponse(res, event, "Event fetched successfully", 200);
-      } catch (error) {
-        logger.error("Error fetching event:", error);
-        const message =
-          error instanceof Error ? error.message : "Failed to fetch event";
-        const statusCode =
-          error instanceof Error && error.message === "Event not found"
-            ? 404
-            : 500;
-        APIResponse(res, null, message, statusCode);
-      }
-    };
-  }
-}
+const GetEventByIdController = (
+  getEventByIdAction: IGetEventByIdAction
+): Controller =>
+  createController({
+    execute: (req) =>
+      getEventByIdAction.execute({
+        eventId: requireObjectIdParam(req, "eventId"),
+      }),
+    successMessage: "Event fetched successfully",
+  });
 
 export default GetEventByIdController;

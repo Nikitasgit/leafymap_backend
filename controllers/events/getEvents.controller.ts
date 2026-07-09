@@ -1,54 +1,14 @@
-import { Response, NextFunction, RequestHandler } from "express";
-import { Request } from "express";
-import { APIResponse } from "@/utils/response";
-import logger from "@/utils/logger";
-import { IGetEventsAction, GetEventsInput } from "@/actions/events";
+import { getEventsQuerySchema } from "../../validations/event.validations";
+import { IGetEventsAction } from "@/actions/events";
+import { Controller, createController, validateOrThrow } from "@/utils/controllerFactory";
 
-class GetEventsController {
-  constructor(private getEventsAction: IGetEventsAction) {}
-
-  handle(): RequestHandler {
-    return async (
-      req: Request,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> => {
-      try {
-        const { placeId, userId, limit, lifecycleStatus, sortBy, order } =
-          req.query;
-        const filters: GetEventsInput = {
-          placeId: typeof placeId === "string" ? placeId : undefined,
-          userId: typeof userId === "string" ? userId : undefined,
-          limit: limit ? parseInt(limit as string) : undefined,
-          lifecycleStatus: lifecycleStatus
-            ? ((typeof lifecycleStatus === "string"
-                ? lifecycleStatus.split(",")
-                : lifecycleStatus) as (
-                | "upcoming"
-                | "ongoing"
-                | "completed"
-                | "unvalid"
-              )[])
-            : undefined,
-          sortBy:
-            sortBy === "createdAt" || sortBy === "dateRange.firstDate"
-              ? sortBy
-              : undefined,
-          order:
-            order === "asc" || order === "desc" ? order : undefined,
-        };
-
-        const events = await this.getEventsAction.execute({ filters });
-
-        APIResponse(res, events, "Events fetched successfully", 200);
-      } catch (error) {
-        logger.error("Error fetching events:", error);
-        const message =
-          error instanceof Error ? error.message : "Failed to fetch events";
-        APIResponse(res, null, message, 500);
-      }
-    };
-  }
-}
+const GetEventsController = (getEventsAction: IGetEventsAction): Controller =>
+  createController({
+    execute: (req) =>
+      getEventsAction.execute({
+        filters: validateOrThrow(getEventsQuerySchema, req.query),
+      }),
+    successMessage: "Events fetched successfully",
+  });
 
 export default GetEventsController;

@@ -1,4 +1,5 @@
 import { IUserRepository } from "@/types/repositories/user.repository.types";
+import { ERROR_CODES, NotFoundError } from "@/utils/errors";
 
 export interface IAcceptCguAction {
   execute(params: {
@@ -19,7 +20,7 @@ class AcceptCguAction implements IAcceptCguAction {
   }): Promise<void> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
-      throw new Error("User not found");
+      throw new NotFoundError(ERROR_CODES.USER_NOT_FOUND, "User not found");
     }
 
     await this.userRepository.updateOne(userId, {

@@ -1,4 +1,5 @@
 import { IUserRepository } from "@/types/repositories/user.repository.types";
+import { ERROR_CODES, ForbiddenError, NotFoundError } from "@/utils/errors";
 
 export interface ISoftDeleteAdminUserAction {
   execute(params: {
@@ -21,12 +22,15 @@ class SoftDeleteAdminUserAction implements ISoftDeleteAdminUserAction {
     deleted: boolean;
   }): Promise<void> {
     if (adminId === userId) {
-      throw new Error("You cannot delete your own admin account");
+      throw new ForbiddenError(
+        ERROR_CODES.ADMIN_SELF_DELETE_FORBIDDEN,
+        "You cannot delete your own admin account"
+      );
     }
 
     const user = await this.userRepository.findById(userId, ["_id"]);
     if (!user) {
-      throw new Error("User not found");
+      throw new NotFoundError(ERROR_CODES.USER_NOT_FOUND, "User not found");
     }
 
     await this.userRepository.updateOne(userId, { deleted });

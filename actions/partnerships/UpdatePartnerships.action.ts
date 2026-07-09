@@ -1,5 +1,6 @@
 import { IPartnershipRepository } from "@/types/repositories/partnership.repository.types";
 import { IPartnership } from "@/types/models/partnership";
+import { ERROR_CODES, ForbiddenError, NotFoundError } from "@/utils/errors";
 
 export interface UpdatePartnershipDTO {
   _id: string;
@@ -30,7 +31,10 @@ class UpdatePartnershipsAction implements IUpdatePartnershipsAction {
         );
 
         if (!existingPartnership) {
-          throw new Error(`Partnership ${partnership._id} not found`);
+          throw new NotFoundError(
+            ERROR_CODES.PARTNERSHIP_NOT_FOUND,
+            `Partnership ${partnership._id} not found`
+          );
         }
 
         const isInitiator = existingPartnership.initiator.toString() === userId;
@@ -42,11 +46,15 @@ class UpdatePartnershipsAction implements IUpdatePartnershipsAction {
           partnership.status !== existingPartnership.status;
 
         if (isTryingToAccept && !isCollaborator) {
-          throw new Error("Seul le collaborateur peut accepter l'invitation");
+          throw new ForbiddenError(
+            ERROR_CODES.PARTNERSHIP_ACCEPT_FORBIDDEN,
+            "Seul le collaborateur peut accepter l'invitation"
+          );
         }
 
         if (!isInitiator && !isCollaborator) {
-          throw new Error(
+          throw new ForbiddenError(
+            ERROR_CODES.PARTNERSHIP_UPDATE_FORBIDDEN,
             "You don't have permission to update this partnership"
           );
         }

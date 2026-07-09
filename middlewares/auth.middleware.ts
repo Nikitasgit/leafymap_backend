@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { CustomRequest, IDecodedToken } from "@/types/custom";
 import { IUserRepository } from "@/types/repositories/user.repository.types";
 import { isBanActive } from "@/utils/ban";
+import { ERROR_CODES, UnauthorizedError } from "@/utils/errors";
 
 class AuthMiddleware {
   constructor(private userRepository: IUserRepository) {}
@@ -17,10 +18,12 @@ class AuthMiddleware {
         const token =
           req.cookies.token || req.headers.authorization?.split(" ")[1];
         if (!token) {
-          res.status(401).json({
-            success: false,
-            message: "Not authorized to access this route",
-          });
+          next(
+            new UnauthorizedError(
+              ERROR_CODES.UNAUTHORIZED,
+              "Not authorized to access this route"
+            )
+          );
           return;
         }
         const JWT_SECRET = process.env.JWT_SECRET;
@@ -31,10 +34,7 @@ class AuthMiddleware {
         const decoded = jwt.verify(token, JWT_SECRET) as IDecodedToken;
 
         if (!decoded) {
-          res.status(401).json({
-            success: false,
-            message: "Invalid token",
-          });
+          next(new UnauthorizedError(ERROR_CODES.UNAUTHORIZED, "Invalid token"));
           return;
         }
 
@@ -46,10 +46,7 @@ class AuthMiddleware {
         ]);
 
         if (!user || user.deleted || isBanActive(user)) {
-          res.status(401).json({
-            success: false,
-            message: "User not found",
-          });
+          next(new UnauthorizedError(ERROR_CODES.USER_NOT_FOUND, "User not found"));
           return;
         }
 
@@ -57,10 +54,12 @@ class AuthMiddleware {
 
         next();
       } catch (error) {
-        res.status(401).json({
-          success: false,
-          message: "Not authorized to access this route",
-        });
+        next(
+          new UnauthorizedError(
+            ERROR_CODES.UNAUTHORIZED,
+            "Not authorized to access this route"
+          )
+        );
       }
     };
   }

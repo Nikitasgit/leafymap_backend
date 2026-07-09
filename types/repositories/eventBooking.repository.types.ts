@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 
 export interface EventBookingFilters {
   _id?: string;
-  event?: string;
+  event?: string | { $in: string[] };
   user?: string;
   status?: "confirmed" | "cancelled";
   deleted?: boolean;
@@ -28,5 +28,6 @@ export interface IEventBookingRepository {
   }): Promise<Pick<IEventBooking, K>[]>;
   updateOne(id: string, update: Partial<IEventBooking>): Promise<void>;
   deleteOne(id: string): Promise<void>;
+  deleteMany(filters: EventBookingFilters): Promise<void>;
   sumConfirmedSeats(eventId: string, excludeBookingId?: string): Promise<number>;
 }

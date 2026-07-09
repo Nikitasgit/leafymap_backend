@@ -1,64 +1,30 @@
-import { Response, NextFunction, RequestHandler } from "express";
-import { CustomRequest } from "@/types/custom";
-import { APIResponse } from "@/utils/response";
-import logger from "@/utils/logger";
+import { markNotificationsAsReadSchema } from "../../validations/notification.validations";
 import { IMarkNotificationsAsReadAction } from "@/actions/notifications";
 import { NotificationActionType } from "@/types/models/notification";
+import {
+  Controller,
+  createController,
+  requireAuth,
+  validateOrThrow,
+} from "@/utils/controllerFactory";
 
-interface MarkNotificationsAsReadBody {
-  action?: string;
-}
-
-class MarkNotificationsAsReadController {
-  constructor(
-    private markNotificationsAsReadAction: IMarkNotificationsAsReadAction
-  ) {}
-
-  handle(): RequestHandler {
-    return async (
-      req: CustomRequest,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> => {
-      try {
-        const userId = req.decoded?.id;
-        if (!userId) {
-          APIResponse(res, null, "Utilisateur non authentifié", 401);
-          return;
-        }
-
-        const { action } = (req.body as MarkNotificationsAsReadBody) || {};
-        if (!action || typeof action !== "string") {
-          APIResponse(
-            res,
-            null,
-            "action est requis (ex: partnership_invitation)",
-            400
-          );
-          return;
-        }
-
-        const { markedCount } =
-          await this.markNotificationsAsReadAction.execute({
-            action: action as NotificationActionType,
-            userId,
-          });
-
-        APIResponse(
-          res,
-          { markedCount },
-          `${markedCount} notification(s) marquée(s) comme lue(s)`,
-          200
-        );
-      } catch (error) {
-        logger.error(
-          "Erreur lors du marquage des notifications comme lues:",
-          error
-        );
-        APIResponse(res, null, "Erreur serveur", 500);
-      }
-    };
-  }
-}
+const MarkNotificationsAsReadController = (
+  markNotificationsAsReadAction: IMarkNotificationsAsReadAction
+): Controller =>
+  createController({
+    execute: async (req) => {
+      const { action } = validateOrThrow(
+        markNotificationsAsReadSchema,
+        req.body ?? {}
+      );
+      const { markedCount } = await markNotificationsAsReadAction.execute({
+        action: action as NotificationActionType,
+        userId: requireAuth(req).id,
+      });
+      return { markedCount };
+    },
+    successMessage: ({ markedCount }) =>
+      `${markedCount} notification(s) marquée(s) comme lue(s)`,
+  });
 
 export default MarkNotificationsAsReadController;

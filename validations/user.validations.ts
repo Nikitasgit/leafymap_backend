@@ -34,3 +34,15 @@ export const newCreatorSchema = z.object({
   firstname: z.preprocess(emptyToUndefined, firstnameSchema),
   lastname: z.preprocess(emptyToUndefined, lastnameSchema),
 });
+
+export const getUsersQuerySchema = z.object({
+  username: z.string().optional(),
+  userType: z.enum(["creator", "guest"]).optional(),
+  limit: z.coerce.number().optional(),
+  excludeIds: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((val) =>
+      val === undefined ? undefined : Array.isArray(val) ? val : [val]
+    ),
+});

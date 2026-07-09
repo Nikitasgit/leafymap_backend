@@ -41,9 +41,9 @@ const markAllNotificationsAsReadAction = new MarkAllNotificationsAsReadAction(
 );
 
 export const getCurrentUserNotifications =
-  new GetCurrentUserNotificationsController(getCurrentUserNotificationsAction);
-export const markNotificationsAsRead = new MarkNotificationsAsReadController(
+  GetCurrentUserNotificationsController(getCurrentUserNotificationsAction);
+export const markNotificationsAsRead = MarkNotificationsAsReadController(
   markNotificationsAsReadAction
 );
 export const markAllNotificationsAsRead =
-  new MarkAllNotificationsAsReadController(markAllNotificationsAsReadAction);
+  MarkAllNotificationsAsReadController(markAllNotificationsAsReadAction);

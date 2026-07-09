@@ -154,6 +154,14 @@ class UserRepository implements IUserRepository {
     await User.findByIdAndUpdate(id, update).exec();
   }
 
+  async incrementFollowers(id: string, delta: 1 | -1): Promise<void> {
+    const filter =
+      delta < 0
+        ? { _id: new Types.ObjectId(id), followers: { $gt: 0 } }
+        : { _id: new Types.ObjectId(id) };
+    await User.updateOne(filter, { $inc: { followers: delta } }).exec();
+  }
+
   async deleteOne(id: string): Promise<void> {
     await User.findByIdAndDelete(id).exec();
   }

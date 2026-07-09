@@ -1,5 +1,6 @@
 import { IUser } from "@/types/models/user";
 import { IUserRepository } from "@/types/repositories/user.repository.types";
+import { ERROR_CODES, NotFoundError } from "@/utils/errors";
 
 export interface IGetAdminUserAction {
   execute(params: { userId: string }): Promise<IUser>;
@@ -31,7 +32,7 @@ class GetAdminUserAction implements IGetAdminUserAction {
   async execute({ userId }: { userId: string }): Promise<IUser> {
     const user = await this.userRepository.findById(userId, this.project);
     if (!user) {
-      throw new Error("User not found");
+      throw new NotFoundError(ERROR_CODES.USER_NOT_FOUND, "User not found");
     }
     return user;
   }

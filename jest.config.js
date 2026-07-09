@@ -3,6 +3,10 @@ module.exports = {
   testEnvironment: "node",
   roots: ["<rootDir>"],
   testMatch: ["**/__tests__/**/*.test.ts", "**/?(*.)+(spec|test).ts"],
+  // Le run par défaut n'exécute que les tests unitaires rapides. Les tests
+  // d'intégration Mongo (__tests__/repositories) passent par `npm run
+  // test:integration`.
+  testPathIgnorePatterns: ["/node_modules/", "/__tests__/repositories/"],
   transform: {
     "^.+\\.ts$": "ts-jest",
   },

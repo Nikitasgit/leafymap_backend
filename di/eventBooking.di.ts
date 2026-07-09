@@ -56,20 +56,20 @@ const getMyEventBookingForEventAction = new GetMyEventBookingForEventAction(
   eventBookingRepository
 );
 
-export const createEventBooking = new CreateEventBookingController(
+export const createEventBooking = CreateEventBookingController(
   createEventBookingAction
 );
-export const updateEventBooking = new UpdateEventBookingController(
+export const updateEventBooking = UpdateEventBookingController(
   updateEventBookingAction
 );
-export const cancelEventBooking = new CancelEventBookingController(
+export const cancelEventBooking = CancelEventBookingController(
   cancelEventBookingAction
 );
-export const getEventBookingsByEvent = new GetEventBookingsByEventController(
+export const getEventBookingsByEvent = GetEventBookingsByEventController(
   getEventBookingsByEventAction
 );
-export const getMyEventBookings = new GetMyEventBookingsController(
+export const getMyEventBookings = GetMyEventBookingsController(
   getMyEventBookingsAction
 );
 export const getMyEventBookingForEvent =
-  new GetMyEventBookingForEventController(getMyEventBookingForEventAction);
+  GetMyEventBookingForEventController(getMyEventBookingForEventAction);

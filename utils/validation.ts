@@ -13,7 +13,8 @@ export const validateData = <T extends z.ZodTypeAny>(
   const result = schema.safeParse(data);
   if (!result.success && result.error?.issues) {
     return result.error.issues.reduce((acc, err) => {
-      acc[err.path[0] as string] = err.message;
+      const key = err.path.length > 0 ? err.path.join(".") : "_root";
+      acc[key] = err.message;
       return acc;
     }, {} as Record<string, string>);
   }

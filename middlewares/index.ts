@@ -1,3 +1,8 @@
+export {
+  createOwnershipMiddleware,
+  getEntityOwnerId,
+} from "./createOwnershipMiddleware";
+export type { OwnershipMiddlewareOptions } from "./createOwnershipMiddleware";
 export { default as AuthMiddleware } from "./auth.middleware";
 export { default as AdminMiddleware } from "./admin.middleware";
 export { default as CommentsMiddleware } from "./comments.middleware";

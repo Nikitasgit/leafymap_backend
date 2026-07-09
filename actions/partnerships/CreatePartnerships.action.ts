@@ -3,6 +3,12 @@ import { IPartnership } from "@/types/models/partnership";
 import { PartnershipDTO } from "@/types/api/partnership.dto";
 import { Types } from "mongoose";
 import NotificationService from "@/services/notificationService";
+import {
+  AppError,
+  ConflictError,
+  ERROR_CODES,
+  ValidationError,
+} from "@/utils/errors";
 
 export interface ICreatePartnershipsAction {
   execute(params: {
@@ -26,7 +32,11 @@ class CreatePartnershipsAction implements ICreatePartnershipsAction {
   }): Promise<IPartnership> {
     const collaboratorId = partnership.collaborator._id;
     if (!collaboratorId) {
-      throw new Error("Collaborator ID is required");
+      throw new ValidationError(
+        { collaborator: "Collaborator ID is required" },
+        ERROR_CODES.PARTNERSHIP_COLLABORATOR_REQUIRED,
+        "Collaborator ID is required"
+      );
     }
 
     const initiatorObjectId = new Types.ObjectId(initiatorId);
@@ -47,13 +57,14 @@ class CreatePartnershipsAction implements ICreatePartnershipsAction {
     } as any);
 
     if (existingPartnership) {
-      const message =
+      throw new ConflictError(
+        existingPartnership.status === "accepted"
+          ? ERROR_CODES.PARTNERSHIP_ALREADY_EXISTS
+          : ERROR_CODES.PARTNERSHIP_INVITATION_ALREADY_SENT,
         existingPartnership.status === "accepted"
           ? "Vous avez déjà une collaboration avec cet utilisateur"
-          : "Invitation déjà envoyée";
-      const error = new Error(message) as Error & { statusCode?: number };
-      error.statusCode = 409;
-      throw error;
+          : "Invitation déjà envoyée"
+      );
     }
 
     const partnershipId = await this.partnershipRepository.create({
@@ -68,7 +79,11 @@ class CreatePartnershipsAction implements ICreatePartnershipsAction {
     );
 
     if (!newPartnership) {
-      throw new Error("Failed to create partnership");
+      throw new AppError(
+        ERROR_CODES.PARTNERSHIP_CREATE_FAILED,
+        500,
+        "Failed to create partnership"
+      );
     }
 
     await this.notificationService.createNotification({

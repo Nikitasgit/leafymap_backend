@@ -1,55 +1,41 @@
-import { RequestHandler, Response } from "express";
-import { CustomRequest } from "@/types/custom";
 import { IBanAdminUserAction } from "@/actions/admin/BanAdminUser.action";
 import { adminBanUserSchema } from "@/validations/admin.validations";
-import { APIResponse } from "@/utils/response";
-import { getParam } from "@/utils/request";
+import {
+  Controller,
+  createController,
+  requireAuth,
+  requireObjectIdParam,
+  validateOrThrow,
+} from "@/utils/controllerFactory";
 
-class BanAdminUserController {
-  constructor(private action: IBanAdminUserAction) {}
+const banController = (action: IBanAdminUserAction): Controller =>
+  createController({
+    execute: async (req) => {
+      const body = validateOrThrow(adminBanUserSchema, req.body);
+      await action.ban({
+        adminId: requireAuth(req).id,
+        userId: requireObjectIdParam(req, "userId"),
+        reason: body.reason,
+        duration: body.duration,
+      });
+    },
+    successMessage: "User banned successfully",
+  });
 
-  ban(): RequestHandler {
-    return async (req: CustomRequest, res: Response): Promise<void> => {
-      try {
-        const body = adminBanUserSchema.parse(req.body);
-        const userId = getParam(req.params, "userId");
-        if (!userId) {
-          APIResponse(res, null, "User ID is required", 400);
-          return;
-        }
-        await this.action.ban({
-          adminId: req.decoded!.id,
-          userId,
-          reason: body.reason,
-          duration: body.duration,
-        });
-        APIResponse(res, null, "User banned successfully", 200);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Ban failed";
-        APIResponse(res, null, message, 400);
-      }
-    };
-  }
+const unbanController = (action: IBanAdminUserAction): Controller =>
+  createController({
+    execute: async (req) => {
+      await action.unban({
+        adminId: requireAuth(req).id,
+        userId: requireObjectIdParam(req, "userId"),
+      });
+    },
+    successMessage: "User unbanned successfully",
+  });
 
-  unban(): RequestHandler {
-    return async (req: CustomRequest, res: Response): Promise<void> => {
-      try {
-        const userId = getParam(req.params, "userId");
-        if (!userId) {
-          APIResponse(res, null, "User ID is required", 400);
-          return;
-        }
-        await this.action.unban({
-          adminId: req.decoded!.id,
-          userId,
-        });
-        APIResponse(res, null, "User unbanned successfully", 200);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Unban failed";
-        APIResponse(res, null, message, 400);
-      }
-    };
-  }
-}
+const BanAdminUserController = (action: IBanAdminUserAction) => ({
+  ban: () => banController(action).handle(),
+  unban: () => unbanController(action).handle(),
+});
 
 export default BanAdminUserController;

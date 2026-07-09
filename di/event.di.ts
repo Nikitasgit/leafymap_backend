@@ -1,16 +1,18 @@
 import {
-  EventRepository,
-  EventBookingRepository,
-  ImageRepository,
-  PlaceRepository,
-  UserRepository,
-} from "@/repositories";
+  eventRepository,
+  eventBookingRepository,
+  placeRepository,
+  cascadeDeleteService,
+  authMiddleware as sharedAuthMiddleware,
+  rateLimiterMiddleware as sharedRateLimiterMiddleware,
+} from "./container";
 import {
   CreateEventAction,
   UpdateEventAction,
   DeleteEventAction,
   GetEventByIdAction,
   GetEventsAction,
+  GetEventsInViewAction,
 } from "@/actions/events";
 import {
   CreateEventController,
@@ -18,46 +20,36 @@ import {
   DeleteEventController,
   GetEventByIdController,
   GetEventsController,
+  GetEventsInViewController,
 } from "@/controllers/events";
-import {
-  AuthMiddleware,
-  EventsMiddleware,
-  PlacesMiddleware,
-  RateLimiterMiddleware,
-} from "@/middlewares";
+import { EventsMiddleware, PlacesMiddleware } from "@/middlewares";
 
-// Initialize repositories
-const eventRepository = new EventRepository();
-const eventBookingRepository = new EventBookingRepository();
-const imageRepository = new ImageRepository();
-const placeRepository = new PlaceRepository();
-const userRepository = new UserRepository();
-
-// Initialize middlewares
-export const authMiddleware = new AuthMiddleware(userRepository);
-export const eventsMiddleware = new EventsMiddleware(
-  eventRepository,
-  placeRepository
-);
+// Middlewares
+export const authMiddleware = sharedAuthMiddleware;
+export const eventsMiddleware = new EventsMiddleware(eventRepository);
 export const placesMiddleware = new PlacesMiddleware(placeRepository);
-export const rateLimiterMiddleware = new RateLimiterMiddleware();
+export const rateLimiterMiddleware = sharedRateLimiterMiddleware;
 
-// Initialize actions
+// Actions
 const createEventAction = new CreateEventAction(eventRepository, placeRepository);
 const updateEventAction = new UpdateEventAction(eventRepository, placeRepository);
 const deleteEventAction = new DeleteEventAction(
   eventRepository,
-  imageRepository
+  cascadeDeleteService
 );
 const getEventByIdAction = new GetEventByIdAction(
   eventRepository,
   eventBookingRepository
 );
 const getEventsAction = new GetEventsAction(eventRepository);
+const getEventsInViewAction = new GetEventsInViewAction(eventRepository);
 
-// Initialize controllers
-export const createEvent = new CreateEventController(createEventAction);
-export const updateEvent = new UpdateEventController(updateEventAction);
-export const deleteEvent = new DeleteEventController(deleteEventAction);
-export const getEventById = new GetEventByIdController(getEventByIdAction);
-export const getEvents = new GetEventsController(getEventsAction);
+// Controllers
+export const createEvent = CreateEventController(createEventAction);
+export const updateEvent = UpdateEventController(updateEventAction);
+export const deleteEvent = DeleteEventController(deleteEventAction);
+export const getEventById = GetEventByIdController(getEventByIdAction);
+export const getEvents = GetEventsController(getEventsAction);
+export const getEventsInView = GetEventsInViewController(
+  getEventsInViewAction
+);

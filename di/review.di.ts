@@ -63,12 +63,12 @@ const deleteReviewAction = new DeleteReviewAction(
 const getReviewsAction = new GetReviewsAction(reviewRepository);
 
 // Initialize controllers
-export const createReview = new CreateReviewController(createReviewAction);
-export const getReviews = new GetReviewsController(getReviewsAction);
-export const getMyReviews = new GetMyReviewsController(getReviewsAction);
-export const getReceivedReviews = new GetReceivedReviewsController(
+export const createReview = CreateReviewController(createReviewAction);
+export const getReviews = GetReviewsController(getReviewsAction);
+export const getMyReviews = GetMyReviewsController(getReviewsAction);
+export const getReceivedReviews = GetReceivedReviewsController(
   getReviewsAction,
   userRepository
 );
-export const updateReview = new UpdateReviewController(updateReviewAction);
-export const deleteReview = new DeleteReviewController(deleteReviewAction);
+export const updateReview = UpdateReviewController(updateReviewAction);
+export const deleteReview = DeleteReviewController(deleteReviewAction);

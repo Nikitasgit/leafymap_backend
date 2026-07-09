@@ -4,20 +4,15 @@ import { IGetUserByIdAction } from "@/actions/users";
 import { IUser } from "@/types/models/user";
 import { Types } from "mongoose";
 import { APIResponse } from "@/utils/response";
+import { Controller } from "@/utils/controllerFactory";
 
-// Mock the APIResponse function
 jest.mock("@/utils/response", () => ({
   APIResponse: jest.fn(),
 }));
 
-// Mock the logger
-jest.mock("@/utils/logger", () => ({
-  error: jest.fn(),
-}));
-
 describe("GetUserByIdController", () => {
   let mockAction: jest.Mocked<IGetUserByIdAction>;
-  let controller: GetUserByIdController;
+  let controller: Controller;
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let mockNext: jest.Mock;
@@ -26,7 +21,7 @@ describe("GetUserByIdController", () => {
     mockAction = {
       execute: jest.fn(),
     };
-    controller = new GetUserByIdController(mockAction);
+    controller = GetUserByIdController(mockAction);
     mockRequest = {
       params: {
         userId: new Types.ObjectId().toString(),
@@ -76,39 +71,17 @@ describe("GetUserByIdController", () => {
       );
     });
 
-    it("should handle errors correctly", async () => {
+    it("should forward errors to next", async () => {
       const userId = mockRequest.params!.userId as string;
-      const errorMessage = "User not found";
+      const error = new Error("User not found");
 
-      mockAction.execute = jest.fn().mockRejectedValue(new Error(errorMessage));
+      mockAction.execute = jest.fn().mockRejectedValue(error);
 
       const handler = controller.handle();
       await handler(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockAction.execute).toHaveBeenCalledWith({ userId });
-      expect(APIResponse).toHaveBeenCalledWith(
-        mockResponse,
-        null,
-        errorMessage,
-        500
-      );
-    });
-
-    it("should handle non-Error exceptions", async () => {
-      const userId = mockRequest.params!.userId as string;
-
-      mockAction.execute = jest.fn().mockRejectedValue("Unexpected error");
-
-      const handler = controller.handle();
-      await handler(mockRequest as Request, mockResponse as Response, mockNext);
-
-      expect(mockAction.execute).toHaveBeenCalledWith({ userId });
-      expect(APIResponse).toHaveBeenCalledWith(
-        mockResponse,
-        null,
-        "Server error",
-        500
-      );
+      expect(mockNext).toHaveBeenCalledWith(error);
     });
 
     it("should extract userId from request params", async () => {

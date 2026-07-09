@@ -2,6 +2,7 @@ import { IUserRepository } from "@/types/repositories/user.repository.types";
 import { GetUserByIdAction } from "@/actions/users";
 import { IUser } from "@/types/models/user";
 import { Types } from "mongoose";
+import { ERROR_CODES } from "@/utils/errors";
 
 describe("GetUserByIdAction", () => {
   let mockUserRepository: jest.Mocked<IUserRepository>;
@@ -14,6 +15,7 @@ describe("GetUserByIdAction", () => {
       findOne: jest.fn(),
       findAll: jest.fn(),
       updateOne: jest.fn(),
+      incrementFollowers: jest.fn(),
       deleteOne: jest.fn(),
     };
 
@@ -88,9 +90,10 @@ describe("GetUserByIdAction", () => {
 
       mockUserRepository.findOne = jest.fn().mockResolvedValue(null);
 
-      await expect(action.execute({ userId })).rejects.toThrow(
-        "User not found"
-      );
+      await expect(action.execute({ userId })).rejects.toMatchObject({
+        code: ERROR_CODES.USER_NOT_FOUND,
+        statusCode: 404,
+      });
       expect(mockUserRepository.findOne).toHaveBeenCalledWith(
         { _id: userId, deleted: false },
         expect.any(Array)

@@ -43,6 +43,6 @@ const deleteImagesAction = new DeleteImagesAction(imageRepository);
 const getImagesAction = new GetImagesAction(imageRepository);
 
 // Initialize controllers
-export const uploadImages = new UploadImagesController(uploadImagesAction);
-export const deleteImages = new DeleteImagesController(deleteImagesAction);
-export const getImages = new GetImagesController(getImagesAction);
+export const uploadImages = UploadImagesController(uploadImagesAction);
+export const deleteImages = DeleteImagesController(deleteImagesAction);
+export const getImages = GetImagesController(getImagesAction);

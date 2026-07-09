@@ -1,6 +1,13 @@
 import { IEventBookingRepository } from "@/types/repositories/eventBooking.repository.types";
 import { IEventRepository } from "@/types/repositories/event.repository.types";
 import NotificationService from "@/services/notificationService";
+import {
+  ConflictError,
+  ERROR_CODES,
+  ForbiddenError,
+  NotFoundError,
+  ValidationError,
+} from "@/utils/errors";
 
 export interface UpdateEventBookingDTO {
   bookingId: string;
@@ -40,7 +47,10 @@ class UpdateEventBookingAction implements IUpdateEventBookingAction {
     ]);
 
     if (!booking || booking.status !== "confirmed") {
-      throw new Error("Réservation non trouvée");
+      throw new NotFoundError(
+        ERROR_CODES.EVENT_BOOKING_NOT_FOUND,
+        "Réservation non trouvée"
+      );
     }
 
     const eventId = getOwnerId(booking.event) as string;
@@ -53,17 +63,20 @@ class UpdateEventBookingAction implements IUpdateEventBookingAction {
     ]);
 
     if (!event) {
-      throw new Error("Event not found");
+      throw new NotFoundError(ERROR_CODES.EVENT_NOT_FOUND, "Event not found");
     }
 
     if (event.lifecycleStatus !== "upcoming") {
-      throw new Error(
+      throw new ForbiddenError(
+        ERROR_CODES.EVENT_BOOKING_UPDATE_CLOSED,
         "Cet évènement a déjà commencé ou est terminé, la réservation ne peut plus être modifiée"
       );
     }
 
     if (seats > event.maxSeatsPerBooking) {
-      throw new Error(
+      throw new ValidationError(
+        { seats: `Maximum ${event.maxSeatsPerBooking} place(s)` },
+        ERROR_CODES.EVENT_BOOKING_TOO_MANY_SEATS,
         `Vous ne pouvez pas réserver plus de ${event.maxSeatsPerBooking} place(s)`
       );
     }
@@ -74,7 +87,10 @@ class UpdateEventBookingAction implements IUpdateEventBookingAction {
         bookingId
       );
       if (bookedSeats + seats > event.capacity) {
-        throw new Error("Il ne reste plus assez de places disponibles");
+        throw new ConflictError(
+          ERROR_CODES.EVENT_BOOKING_NOT_ENOUGH_SEATS,
+          "Il ne reste plus assez de places disponibles"
+        );
       }
     }
 

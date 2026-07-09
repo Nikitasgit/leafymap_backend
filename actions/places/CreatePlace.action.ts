@@ -2,6 +2,11 @@ import { IPlaceRepository } from "@/types/repositories/place.repository.types";
 import { IUserRepository } from "@/types/repositories/user.repository.types";
 import { Types } from "mongoose";
 import { IDefaultSchedule, ICustomDate } from "@/types/models/place";
+import {
+  ConflictError,
+  ERROR_CODES,
+  NotFoundError,
+} from "@/utils/errors";
 
 export interface CreatePlaceInput {
   location: {
@@ -11,7 +16,6 @@ export interface CreatePlaceInput {
     id: string;
   };
   placeCategory: string;
-  placeType: string[];
   defaultSchedule?: IDefaultSchedule;
   customDates?: ICustomDate[];
 }
@@ -36,27 +40,27 @@ class CreatePlaceAction implements ICreatePlaceAction {
     placeData: CreatePlaceInput;
     userId: string;
   }): Promise<{ _id: string }> {
-
-    
     const user = await this.userRepository.findOne({ _id: userId }, [
       "username",
       "place",
     ]);
 
     if (!user) {
-      throw new Error("User not found");
+      throw new NotFoundError(ERROR_CODES.USER_NOT_FOUND, "User not found");
     }
 
     // Business rule: users can only have 1 place
     if (user.place) {
-      throw new Error("User already has a place");
+      throw new ConflictError(
+        ERROR_CODES.USER_ALREADY_HAS_PLACE,
+        "User already has a place"
+      );
     }
 
     const newPlace = {
       ...placeData,
       user: new Types.ObjectId(userId),
       placeCategory: new Types.ObjectId(placeData.placeCategory),
-      placeType: placeData.placeType.map((typeId) => new Types.ObjectId(typeId)),
     };
 
     const placeId = await this.placeRepository.create(newPlace);

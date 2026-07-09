@@ -33,5 +33,6 @@ export interface IUserRepository {
       | Partial<IUser>
       | { $set?: Partial<IUser>; $unset?: Record<string, 1> }
   ): Promise<void>;
+  incrementFollowers(id: string, delta: 1 | -1): Promise<void>;
   deleteOne(id: string): Promise<void>;
 }

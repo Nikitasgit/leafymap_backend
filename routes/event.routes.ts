@@ -5,6 +5,7 @@ import {
   deleteEvent,
   getEventById,
   getEvents,
+  getEventsInView,
   authMiddleware,
   eventsMiddleware,
   placesMiddleware,
@@ -14,6 +15,7 @@ import {
 const router: Router = express.Router();
 
 router.get("/", getEvents.handle());
+router.get("/in-view", getEventsInView.handle());
 router.post("/", authMiddleware.verify(), createEvent.handle());
 router.post(
   "/place/:placeId",

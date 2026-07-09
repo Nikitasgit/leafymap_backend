@@ -1,4 +1,5 @@
 import rateLimit, { RateLimitRequestHandler } from "express-rate-limit";
+import { ERROR_CODES } from "@/utils/errors";
 
 class RateLimiterMiddleware {
   /**
@@ -14,6 +15,7 @@ class RateLimiterMiddleware {
         success: false,
         message:
           "Trop de tentatives de connexion. Veuillez réessayer dans 15 minutes.",
+        code: ERROR_CODES.AUTH_INVALID_CREDENTIALS,
       },
       standardHeaders: true,
       legacyHeaders: false,
@@ -32,6 +34,7 @@ class RateLimiterMiddleware {
       message: {
         success: false,
         message: "Trop de requêtes. Veuillez réessayer plus tard.",
+        code: ERROR_CODES.RATE_LIMIT_EXCEEDED,
       },
       standardHeaders: true,
       legacyHeaders: false,
@@ -49,6 +52,7 @@ class RateLimiterMiddleware {
       message: {
         success: false,
         message: "Trop de tentatives. Veuillez réessayer dans 1 heure.",
+        code: ERROR_CODES.RATE_LIMIT_EXCEEDED,
       },
       standardHeaders: true,
       legacyHeaders: false,

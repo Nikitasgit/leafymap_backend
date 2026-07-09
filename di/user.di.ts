@@ -1,46 +1,65 @@
 import {
-  UserRepository,
-  PlaceRepository,
-  EventRepository,
-  PartnershipRepository,
-} from "@/repositories";
+  userRepository,
+  placeRepository,
+  eventRepository,
+  partnershipRepository,
+  eventBookingRepository,
+  eventInvitationRepository,
+  favoriteRepository,
+  notificationRepository,
+  imageRepository,
+  cascadeDeleteService,
+  authMiddleware as sharedAuthMiddleware,
+  rateLimiterMiddleware as sharedRateLimiterMiddleware,
+} from "./container";
 import {
   GetUserByIdAction,
+  GetUserProfileAction,
   GetUsersAction,
   UpdateUserAction,
   DeleteAccountAction,
 } from "@/actions/users";
+import { GetPlaceByIdAction } from "@/actions/places";
 import {
   GetUserByIdController,
+  GetUserProfileController,
   GetUsersController,
   UpdateUserController,
   DeleteAccountController,
 } from "@/controllers/users";
-import { AuthMiddleware, RateLimiterMiddleware } from "@/middlewares";
 
-// Initialize repositories
-const userRepository = new UserRepository();
-const placeRepository = new PlaceRepository();
-const eventRepository = new EventRepository();
-const partnershipRepository = new PartnershipRepository();
+// Middlewares
+export const authMiddleware = sharedAuthMiddleware;
+export const rateLimiterMiddleware = sharedRateLimiterMiddleware;
 
-// Initialize middlewares
-export const authMiddleware = new AuthMiddleware(userRepository);
-export const rateLimiterMiddleware = new RateLimiterMiddleware();
-
-// Initialize actions
+// Actions
 const getUserByIdAction = new GetUserByIdAction(userRepository);
+const getPlaceByIdAction = new GetPlaceByIdAction(
+  placeRepository,
+  eventRepository
+);
+const getUserProfileAction = new GetUserProfileAction(
+  userRepository,
+  getPlaceByIdAction
+);
 const getUsersAction = new GetUsersAction(userRepository);
 const updateUserAction = new UpdateUserAction(userRepository);
 const deleteAccountAction = new DeleteAccountAction(
   userRepository,
   placeRepository,
   eventRepository,
-  partnershipRepository
+  partnershipRepository,
+  eventBookingRepository,
+  eventInvitationRepository,
+  favoriteRepository,
+  notificationRepository,
+  imageRepository,
+  cascadeDeleteService
 );
 
-// Initialize controllers
-export const getUserById = new GetUserByIdController(getUserByIdAction);
-export const getUsers = new GetUsersController(getUsersAction);
-export const updateUser = new UpdateUserController(updateUserAction);
-export const deleteAccount = new DeleteAccountController(deleteAccountAction);
+// Controllers
+export const getUserById = GetUserByIdController(getUserByIdAction);
+export const getUserProfile = GetUserProfileController(getUserProfileAction);
+export const getUsers = GetUsersController(getUsersAction);
+export const updateUser = UpdateUserController(updateUserAction);
+export const deleteAccount = DeleteAccountController(deleteAccountAction);

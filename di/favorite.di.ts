@@ -26,12 +26,12 @@ const findFavoritesByUserAndTypeAction = new FindFavoritesByUserAndTypeAction(
 );
 
 // Initialize controllers
-export const createFavorite = new CreateFavoriteController(
+export const createFavorite = CreateFavoriteController(
   createFavoriteAction
 );
-export const deleteFavorite = new DeleteFavoriteController(
+export const deleteFavorite = DeleteFavoriteController(
   deleteFavoriteAction
 );
-export const findFavoritesByType = new FindFavoritesByTypeController(
+export const findFavoritesByType = FindFavoritesByTypeController(
   findFavoritesByUserAndTypeAction
 );

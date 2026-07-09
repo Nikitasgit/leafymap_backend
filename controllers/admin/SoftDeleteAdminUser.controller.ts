@@ -1,40 +1,36 @@
-import { RequestHandler, Response } from "express";
-import { CustomRequest } from "@/types/custom";
 import { ISoftDeleteAdminUserAction } from "@/actions/admin/SoftDeleteAdminUser.action";
-import { APIResponse } from "@/utils/response";
-import { getParam } from "@/utils/request";
+import {
+  Controller,
+  createController,
+  requireAuth,
+  requireObjectIdParam,
+} from "@/utils/controllerFactory";
 
-class SoftDeleteAdminUserController {
-  constructor(private action: ISoftDeleteAdminUserAction) {}
+const softDeleteUserController = (
+  action: ISoftDeleteAdminUserAction,
+  deleted: boolean,
+  successMessage: string
+): Controller =>
+  createController({
+    execute: async (req) => {
+      await action.execute({
+        adminId: requireAuth(req).id,
+        userId: requireObjectIdParam(req, "userId"),
+        deleted,
+      });
+    },
+    successMessage,
+  });
 
-  delete(): RequestHandler {
-    return this.handle(true, "User deleted successfully");
-  }
-
-  restore(): RequestHandler {
-    return this.handle(false, "User restored successfully");
-  }
-
-  private handle(deleted: boolean, successMessage: string): RequestHandler {
-    return async (req: CustomRequest, res: Response): Promise<void> => {
-      try {
-        const userId = getParam(req.params, "userId");
-        if (!userId) {
-          APIResponse(res, null, "User ID is required", 400);
-          return;
-        }
-        await this.action.execute({
-          adminId: req.decoded!.id,
-          userId,
-          deleted,
-        });
-        APIResponse(res, null, successMessage, 200);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Action failed";
-        APIResponse(res, null, message, 400);
-      }
-    };
-  }
-}
+const SoftDeleteAdminUserController = (action: ISoftDeleteAdminUserAction) => ({
+  delete: () =>
+    softDeleteUserController(action, true, "User deleted successfully").handle(),
+  restore: () =>
+    softDeleteUserController(
+      action,
+      false,
+      "User restored successfully"
+    ).handle(),
+});
 
 export default SoftDeleteAdminUserController;

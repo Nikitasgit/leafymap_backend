@@ -19,3 +19,8 @@ export const updateMessageSchema = z.object({
 
 export type CreateMessageInput = z.infer<typeof createMessageSchema>;
 export type UpdateMessageInput = z.infer<typeof updateMessageSchema>;
+
+export const getMessagesQuerySchema = z.object({
+  senderId: z.string().optional(),
+  readByUserId: z.string().optional(),
+});

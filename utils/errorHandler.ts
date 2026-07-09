@@ -1,19 +1,37 @@
 import { Request, Response, NextFunction } from "express";
+import { AppError, ERROR_CODES } from "./errors";
+import { APIResponse } from "./response";
+import logger from "./logger";
 
 const errorHandler = (
-  err: Error,
+  err: unknown,
   req: Request,
   res: Response,
   next: NextFunction
 ): void => {
-  const statusCode = res.statusCode ? res.statusCode : 500;
+  if (res.headersSent) {
+    next(err);
+    return;
+  }
 
-  res.status(statusCode);
+  if (err instanceof AppError) {
+    if (err.statusCode >= 500) {
+      logger.error(
+        `${req.method} ${req.originalUrl} - ${err.statusCode} ${err.code} ${err.message}`,
+        err
+      );
+    } else {
+      logger.warn(
+        `${req.method} ${req.originalUrl} - ${err.statusCode} ${err.code} ${err.message}`
+      );
+    }
+    APIResponse(res, err.data, err.message, err.statusCode, err.code);
+    return;
+  }
 
-  res.json({
-    message: err.message,
-    stack: process.env.NODE_ENV === "production" ? null : err.stack,
-  });
+  logger.error(`Unhandled error on ${req.method} ${req.originalUrl}:`, err);
+  const message = err instanceof Error ? err.message : "Erreur serveur";
+  APIResponse(res, null, message, 500, ERROR_CODES.INTERNAL_SERVER_ERROR);
 };
 
 export default errorHandler;

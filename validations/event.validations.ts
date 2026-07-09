@@ -127,3 +127,25 @@ export const updateEventSchema = eventBaseSchema
       validateEventBookingFields(data, ctx);
     }
   });
+
+const lifecycleStatusEnum = z.enum([
+  "upcoming",
+  "ongoing",
+  "completed",
+  "unvalid",
+]);
+
+export const getEventsQuerySchema = z.object({
+  placeId: z.string().optional(),
+  userId: z.string().optional(),
+  search: z.string().optional(),
+  limit: z.coerce.number().optional(),
+  lifecycleStatus: z
+    .string()
+    .optional()
+    .transform((val) =>
+      val ? (val.split(",") as z.infer<typeof lifecycleStatusEnum>[]) : undefined
+    ),
+  sortBy: z.enum(["createdAt", "dateRange.firstDate"]).optional(),
+  order: z.enum(["asc", "desc"]).optional(),
+});

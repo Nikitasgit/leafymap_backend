@@ -1,5 +1,5 @@
 import { IPartnership } from "../models/partnership";
-import { Types } from "mongoose";
+import { Types, FilterQuery } from "mongoose";
 
 export interface PartnershipFilters {
   _id?: string;
@@ -8,7 +8,16 @@ export interface PartnershipFilters {
   status?: "pending" | "accepted" | "refused" | "cancelled" | "completed";
   deleted?: boolean;
   $or?: Array<{ initiator?: string; collaborator?: string }>;
+  $and?: FilterQuery<IPartnership>[];
   [key: string]: unknown;
+}
+
+export interface PartnershipUserFilters {
+  userId: string;
+  asCollaborator?: boolean;
+  asInitiator?: boolean;
+  status?: "pending" | "accepted" | "refused" | "cancelled" | "completed";
+  currentUserId?: string;
 }
 
 export interface IPartnershipRepository {
@@ -23,6 +32,12 @@ export interface IPartnershipRepository {
   ): Promise<IPartnership | null>;
   findAll<K extends keyof IPartnership>(params: {
     filters?: PartnershipFilters;
+    project: (K | string)[];
+    limit?: number;
+    sort?: { [key: string]: 1 | -1 };
+  }): Promise<Pick<IPartnership, K>[]>;
+  findAllForUser<K extends keyof IPartnership>(params: {
+    filters: PartnershipUserFilters;
     project: (K | string)[];
     limit?: number;
     sort?: { [key: string]: 1 | -1 };

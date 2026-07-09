@@ -1,43 +1,17 @@
-import { Response, NextFunction, RequestHandler } from "express";
-import { CustomRequest } from "@/types/custom";
-import { APIResponse } from "@/utils/response";
-import logger from "@/utils/logger";
 import { ICreatePartnershipsAction } from "@/actions/partnerships";
+import { Controller, createController, requireAuth } from "@/utils/controllerFactory";
 
-class CreatePartnershipsController {
-  constructor(private createPartnershipsAction: ICreatePartnershipsAction) {}
-
-  handle(): RequestHandler {
-    return async (
-      req: CustomRequest,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> => {
-      try {
-        const decoded = req.decoded!;
-        const { partnership } = req.body;
-
-        const createdPartnership = await this.createPartnershipsAction.execute({
-          partnership,
-          initiatorId: decoded.id,
-        });
-
-        APIResponse(
-          res,
-          createdPartnership,
-          "Partnership created successfully",
-          201
-        );
-      } catch (error) {
-        logger.error("Error creating partnership:", error);
-        const err = error as Error & { statusCode?: number };
-        const message =
-          err instanceof Error ? err.message : "Failed to create partnership";
-        const statusCode = err.statusCode ?? 500;
-        APIResponse(res, null, message, statusCode);
-      }
-    };
-  }
-}
+const CreatePartnershipsController = (
+  createPartnershipsAction: ICreatePartnershipsAction
+): Controller =>
+  createController({
+    execute: (req) =>
+      createPartnershipsAction.execute({
+        partnership: req.body.partnership,
+        initiatorId: requireAuth(req).id,
+      }),
+    successMessage: "Partnership created successfully",
+    successStatus: 201,
+  });
 
 export default CreatePartnershipsController;

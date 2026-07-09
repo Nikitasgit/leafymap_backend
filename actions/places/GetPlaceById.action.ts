@@ -41,7 +41,6 @@ class GetPlaceByIdAction implements IGetPlaceByIdAction {
     "location",
     "rating",
     "placeCategory",
-    "placeType",
     "defaultSchedule",
     "customDates",
     "deleted",

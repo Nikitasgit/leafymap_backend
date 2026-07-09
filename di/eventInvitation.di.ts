@@ -46,14 +46,14 @@ const getEventInvitationsByUserIdAction = new GetEventInvitationsByUserIdAction(
   eventInvitationRepository
 );
 
-export const createEventInvitations = new CreateEventInvitationsController(
+export const createEventInvitations = CreateEventInvitationsController(
   createEventInvitationsAction
 );
-export const updateEventInvitation = new UpdateEventInvitationController(
+export const updateEventInvitation = UpdateEventInvitationController(
   updateEventInvitationAction
 );
-export const getEventInvitations = new GetEventInvitationsController(
+export const getEventInvitations = GetEventInvitationsController(
   getEventInvitationsAction
 );
 export const getEventInvitationsByUserId =
-  new GetEventInvitationsByUserIdController(getEventInvitationsByUserIdAction);
+  GetEventInvitationsByUserIdController(getEventInvitationsByUserIdAction);

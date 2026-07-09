@@ -1,6 +1,7 @@
 import { IUserRepository } from "@/types/repositories/user.repository.types";
 import bcrypt from "bcrypt";
 import { hashToken, isTokenExpired } from "@/utils/tokenHash";
+import { ERROR_CODES, UnauthorizedError } from "@/utils/errors";
 
 export interface ResetPasswordInput {
   token: string;
@@ -32,7 +33,10 @@ class ResetPasswordAction implements IResetPasswordAction {
     });
 
     if (!user || isTokenExpired(user.resetPasswordExpiresAt)) {
-      throw new Error(INVALID_TOKEN_MESSAGE);
+      throw new UnauthorizedError(
+        ERROR_CODES.AUTH_INVALID_RESET_PASSWORD_TOKEN,
+        INVALID_TOKEN_MESSAGE
+      );
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);

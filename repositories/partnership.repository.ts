@@ -3,6 +3,7 @@ import { IPartnership } from "@/types/models/partnership";
 import {
   IPartnershipRepository,
   PartnershipFilters,
+  PartnershipUserFilters,
 } from "@/types/repositories/partnership.repository.types";
 import { Types, FilterQuery } from "mongoose";
 import { PopulateParser } from "./utils/PopulateParser";
@@ -30,7 +31,7 @@ class PartnershipRepository implements IPartnershipRepository {
     }
     if (filters.$or) {
       query.$or = filters.$or.map((condition) => {
-        const orQuery: any = {};
+        const orQuery: Record<string, Types.ObjectId> = {};
         if (condition.initiator) {
           orQuery.initiator = new Types.ObjectId(condition.initiator);
         }
@@ -39,6 +40,9 @@ class PartnershipRepository implements IPartnershipRepository {
         }
         return orQuery;
       });
+    }
+    if (filters.$and) {
+      query.$and = filters.$and;
     }
 
     Object.keys(filters).forEach((key) => {
@@ -50,6 +54,7 @@ class PartnershipRepository implements IPartnershipRepository {
           "status",
           "deleted",
           "$or",
+          "$and",
         ].includes(key)
       ) {
         (query as Record<string, unknown>)[key] = (
@@ -59,6 +64,64 @@ class PartnershipRepository implements IPartnershipRepository {
     });
 
     return query;
+  }
+
+  private buildUserFilters(
+    filters: PartnershipUserFilters
+  ): PartnershipFilters {
+    const queryFilters: PartnershipFilters = { deleted: false };
+    const andConditions: FilterQuery<IPartnership>[] = [];
+
+    if (filters.asCollaborator === true) {
+      queryFilters.collaborator = filters.userId;
+    } else if (filters.asInitiator === true) {
+      queryFilters.initiator = filters.userId;
+    } else {
+      andConditions.push({
+        $or: [
+          { initiator: new Types.ObjectId(filters.userId) },
+          { collaborator: new Types.ObjectId(filters.userId) },
+        ],
+      });
+    }
+
+    if (filters.status) {
+      queryFilters.status = filters.status;
+    } else if (!filters.currentUserId) {
+      queryFilters.status = "accepted";
+    }
+
+    if (filters.currentUserId) {
+      andConditions.push({
+        $or: [
+          { status: "accepted" },
+          { initiator: new Types.ObjectId(filters.currentUserId) },
+          { collaborator: new Types.ObjectId(filters.currentUserId) },
+        ],
+      });
+    } else if (filters.status) {
+      andConditions.push({ status: "accepted" });
+    }
+
+    if (andConditions.length > 0) {
+      queryFilters.$and = andConditions;
+    }
+
+    return queryFilters;
+  }
+
+  async findAllForUser<K extends keyof IPartnership>(params: {
+    filters: PartnershipUserFilters;
+    project: (K | string)[];
+    limit?: number;
+    sort?: { [key: string]: 1 | -1 };
+  }): Promise<Pick<IPartnership, K>[]> {
+    return this.findAll({
+      filters: this.buildUserFilters(params.filters),
+      project: params.project,
+      limit: params.limit,
+      sort: params.sort,
+    });
   }
 
   async create(partnership: Partial<IPartnership>): Promise<Types.ObjectId> {

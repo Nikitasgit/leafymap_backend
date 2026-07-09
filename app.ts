@@ -1,5 +1,4 @@
 import express from "express";
-import connectDB from "./config/db";
 import errorHandler from "./utils/errorHandler";
 import userRoutes from "./routes/user.routes";
 import categorieRoutes from "./routes/categorie.routes";
@@ -27,8 +26,6 @@ import { Request, Response, NextFunction } from "express";
 import { ALLOWED_ORIGINS } from "./utils/constants/common";
 
 const rateLimiterMiddleware = new RateLimiterMiddleware();
-
-connectDB();
 
 const app = express();
 

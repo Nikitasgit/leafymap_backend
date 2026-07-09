@@ -1,7 +1,4 @@
-import {
-  IPartnershipRepository,
-  PartnershipFilters,
-} from "@/types/repositories/partnership.repository.types";
+import { IPartnershipRepository } from "@/types/repositories/partnership.repository.types";
 import { IPartnership } from "@/types/models/partnership";
 
 export interface GetPartnershipsByUserIdInput {
@@ -43,56 +40,11 @@ class GetPartnershipsByUserIdAction implements IGetPartnershipsByUserIdAction {
   }: {
     filters: GetPartnershipsByUserIdInput;
   }): Promise<IPartnership[]> {
-    const queryFilters: PartnershipFilters = {
-      deleted: false,
-    };
-
-    if (filters.asCollaborator === true) {
-      queryFilters.collaborator = filters.userId;
-    } else if (filters.asInitiator === true) {
-      queryFilters.initiator = filters.userId;
-    } else {
-      // Pas de filtre : retourner toutes les partnerships (initiator OU collaborator)
-      queryFilters.$or = [
-        { initiator: filters.userId },
-        { collaborator: filters.userId },
-      ];
-    }
-
-    if (filters.status) {
-      queryFilters.status = filters.status;
-    }
-
-    const partnerships = await this.partnershipRepository.findAll({
-      filters: queryFilters,
+    return this.partnershipRepository.findAllForUser({
+      filters,
       project: this.project,
       sort: { updatedAt: -1 },
     });
-
-    const filteredPartnerships = partnerships.filter((partnership: any) => {
-      if (!filters.currentUserId) {
-        return partnership.status === "accepted";
-      }
-
-      const isInitiator =
-        partnership.initiator &&
-        (typeof partnership.initiator === "object"
-          ? partnership.initiator._id?.toString()
-          : partnership.initiator.toString()) === filters.currentUserId;
-      const isCollaborator =
-        partnership.collaborator &&
-        (typeof partnership.collaborator === "object"
-          ? partnership.collaborator._id?.toString()
-          : partnership.collaborator.toString()) === filters.currentUserId;
-
-      if (isInitiator || isCollaborator) {
-        return true;
-      }
-
-      return partnership.status === "accepted";
-    });
-
-    return filteredPartnerships as IPartnership[];
   }
 }
 

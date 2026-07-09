@@ -1,12 +1,11 @@
 import {
-  PlaceRepository,
-  UserRepository,
-  ImageRepository,
-  EventRepository,
-  ReviewRepository,
-  CommentRepository,
-  FavoriteRepository,
-} from "@/repositories";
+  placeRepository,
+  userRepository,
+  eventRepository,
+  cascadeDeleteService,
+  authMiddleware as sharedAuthMiddleware,
+  rateLimiterMiddleware as sharedRateLimiterMiddleware,
+} from "./container";
 import {
   CreatePlaceAction,
   UpdatePlaceAction,
@@ -23,27 +22,14 @@ import {
   GetPlacesController,
   GetPlacesInViewController,
 } from "@/controllers/places";
-import {
-  AuthMiddleware,
-  PlacesMiddleware,
-  RateLimiterMiddleware,
-} from "@/middlewares";
+import { PlacesMiddleware } from "@/middlewares";
 
-// Initialize repositories
-const placeRepository = new PlaceRepository();
-const userRepository = new UserRepository();
-const imageRepository = new ImageRepository();
-const eventRepository = new EventRepository();
-const reviewRepository = new ReviewRepository();
-const commentRepository = new CommentRepository();
-const favoriteRepository = new FavoriteRepository();
-
-// Initialize middlewares
-export const authMiddleware = new AuthMiddleware(userRepository);
+// Middlewares
+export const authMiddleware = sharedAuthMiddleware;
 export const placesMiddleware = new PlacesMiddleware(placeRepository);
-export const rateLimiterMiddleware = new RateLimiterMiddleware();
+export const rateLimiterMiddleware = sharedRateLimiterMiddleware;
 
-// Initialize actions
+// Actions
 const createPlaceAction = new CreatePlaceAction(
   placeRepository,
   userRepository
@@ -52,11 +38,7 @@ const updatePlaceAction = new UpdatePlaceAction(placeRepository);
 const deletePlaceAction = new DeletePlaceAction(
   placeRepository,
   userRepository,
-  imageRepository,
-  eventRepository,
-  reviewRepository,
-  commentRepository,
-  favoriteRepository
+  cascadeDeleteService
 );
 const getPlaceByIdAction = new GetPlaceByIdAction(
   placeRepository,
@@ -65,12 +47,12 @@ const getPlaceByIdAction = new GetPlaceByIdAction(
 const getPlacesAction = new GetPlacesAction(placeRepository);
 const getPlacesInViewAction = new GetPlacesInViewAction(placeRepository);
 
-// Initialize controllers
-export const createPlace = new CreatePlaceController(createPlaceAction);
-export const updatePlace = new UpdatePlaceController(updatePlaceAction);
-export const deletePlace = new DeletePlaceController(deletePlaceAction);
-export const getPlaceById = new GetPlaceByIdController(getPlaceByIdAction);
-export const getPlaces = new GetPlacesController(getPlacesAction);
-export const getPlacesInView = new GetPlacesInViewController(
+// Controllers
+export const createPlace = CreatePlaceController(createPlaceAction);
+export const updatePlace = UpdatePlaceController(updatePlaceAction);
+export const deletePlace = DeletePlaceController(deletePlaceAction);
+export const getPlaceById = GetPlaceByIdController(getPlaceByIdAction);
+export const getPlaces = GetPlacesController(getPlacesAction);
+export const getPlacesInView = GetPlacesInViewController(
   getPlacesInViewAction
 );

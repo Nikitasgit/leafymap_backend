@@ -6,7 +6,6 @@ import {
   IPlace,
   IPlaceTimeSlot,
 } from "@/types/models/place";
-import "../models/CategoryType";
 
 const timeSlotSchema = new Schema<IPlaceTimeSlot>(
   {
@@ -80,15 +79,6 @@ const placeSchema = new Schema<IPlace>(
     placeCategory: {
       type: Schema.Types.ObjectId,
       ref: "PlaceCategory",
-      required: true,
-    },
-    placeType: {
-      type: [
-        {
-          type: Schema.Types.ObjectId,
-          ref: "CategoryType",
-        },
-      ],
       required: true,
     },
     defaultSchedule: {

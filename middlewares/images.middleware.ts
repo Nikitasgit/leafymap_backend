@@ -1,11 +1,12 @@
-import { Response, NextFunction, RequestHandler } from "express";
-import { CustomRequest } from "@/types/custom";
+import { RequestHandler, Response, NextFunction } from "express";
 import { APIResponse } from "@/utils/response";
+import { CustomRequest } from "@/types/custom";
 import { ImageReferenceType } from "@/types/repositories/image.repository.types";
 import { IImageRepository } from "@/types/repositories/image.repository.types";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
 import { IEventRepository } from "@/types/repositories/event.repository.types";
 import { IEvent, IPlace } from "@/types/models";
+import { resolveOwnerId, toId } from "@/utils/mongoose";
 
 class ImagesMiddleware {
   constructor(
@@ -58,7 +59,7 @@ class ImagesMiddleware {
         }
 
         for (const image of userImages) {
-          if (!image.user || image.user.toString() !== userId) {
+          if (!image.user || toId(image.user) !== userId) {
             APIResponse(
               res,
               null,
@@ -71,7 +72,7 @@ class ImagesMiddleware {
 
         req.images = imageIds;
         next();
-      } catch (error) {
+      } catch {
         APIResponse(
           res,
           null,
@@ -119,7 +120,7 @@ class ImagesMiddleware {
               );
               return;
             }
-            isOwner = place.user.toString() === userId;
+            isOwner = toId(place.user) === userId;
             foundReference = place;
             break;
           }
@@ -140,34 +141,18 @@ class ImagesMiddleware {
               return;
             }
 
-            const eventOwner =
-              event.user && typeof event.user === "object" && "_id" in event.user
-                ? event.user._id.toString()
-                : event.user?.toString();
-
-            if (eventOwner) {
-              isOwner = eventOwner === userId;
-            } else if (event.place) {
-              const place = event.place as IPlace;
-              if (!place.user) {
-                APIResponse(
-                  res,
-                  null,
-                  `Erreur lors de la vérification de propriété`,
-                  500
-                );
-                return;
-              }
-              isOwner = place.user.toString() === userId;
-            } else {
+            const ownerId = resolveOwnerId(event);
+            if (!ownerId) {
               APIResponse(
                 res,
                 null,
-                `Erreur lors de la vérification de propriété`,
+                "Erreur lors de la vérification de propriété",
                 500
               );
               return;
             }
+
+            isOwner = ownerId === userId;
             foundReference = event;
             break;
           }
@@ -198,7 +183,7 @@ class ImagesMiddleware {
         req.imageReference = foundReference;
 
         next();
-      } catch (error) {
+      } catch {
         APIResponse(
           res,
           null,

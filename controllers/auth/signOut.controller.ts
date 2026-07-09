@@ -1,12 +1,8 @@
-import { Response, NextFunction, RequestHandler } from "express";
+import { Controller, createController } from "@/utils/controllerFactory";
 
-class SignOutController {
-  handle(): RequestHandler {
-    return async (
-      req: any,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> => {
+const SignOutController = (): Controller =>
+  createController({
+    execute: async (_req, res) => {
       res
         .clearCookie("token", {
           httpOnly: true,
@@ -17,10 +13,9 @@ class SignOutController {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        })
-        .json({ message: "Logged out" });
-    };
-  }
-}
+        });
+    },
+    successMessage: "Logged out",
+  });
 
 export default SignOutController;

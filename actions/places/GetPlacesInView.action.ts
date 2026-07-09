@@ -42,10 +42,11 @@ class GetPlacesInViewAction implements IGetPlacesInViewAction {
   /**
    * Builds a single aggregation pipeline that:
    *  1. Narrows by geo bounds / IDs (indexed)
-   *  2. Applies simple field filters (placeType, placeCategory, rating)
-   *  3. Conditionally $lookup users   — only on the geo-narrowed set
-   *  4. Conditionally $lookup products — only on the geo-narrowed set
-   *  5. Limits, then populates display fields (placeCategory.name, user.username)
+   *  2. Applies simple field filters (placeCategory, rating)
+   *  3. Applies type filters through PlaceCategory.types
+   *  4. Conditionally $lookup users   — only on the geo-narrowed set
+   *  5. Conditionally $lookup products — only on the geo-narrowed set
+   *  6. Limits, then populates display fields (placeCategory.name, user.username)
    */
   private buildPipeline(
     input: GetPlacesInViewInput,
@@ -79,16 +80,37 @@ class GetPlacesInViewAction implements IGetPlacesInViewAction {
     }
 
     // ── 2. Simple field filters (all uniform: empty = no filter) ──
-    if (placeTypes.length > 0) {
-      pipeline.push({
-        $match: { placeType: { $in: toObjectIds(placeTypes) } },
-      });
-    }
-
     if (placeCategories.length > 0) {
       pipeline.push({
         $match: { placeCategory: { $in: toObjectIds(placeCategories) } },
       });
+    }
+
+    if (placeTypes.length > 0) {
+      pipeline.push(
+        {
+          $lookup: {
+            from: "placecategories",
+            localField: "placeCategory",
+            foreignField: "_id",
+            pipeline: [{ $project: { types: 1 } }],
+            as: "_placeTypeFilterCategory",
+          },
+        },
+        {
+          $unwind: {
+            path: "$_placeTypeFilterCategory",
+            preserveNullAndEmptyArrays: false,
+          },
+        },
+        {
+          $match: {
+            "_placeTypeFilterCategory.types": {
+              $in: toObjectIds(placeTypes),
+            },
+          },
+        }
+      );
     }
 
     if (minRating != null) {

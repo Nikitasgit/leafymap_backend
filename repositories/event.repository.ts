@@ -32,7 +32,13 @@ class EventRepository implements IEventRepository {
       }
     }
     if (filters._id) {
-      query._id = new Types.ObjectId(filters._id);
+      if (typeof filters._id === "string") {
+        query._id = new Types.ObjectId(filters._id);
+      } else if ("$in" in filters._id) {
+        query._id = {
+          $in: filters._id.$in.map((id) => new Types.ObjectId(id)),
+        };
+      }
     }
     if (typeof filters.deleted === "boolean") {
       query.deleted = filters.deleted;
@@ -211,6 +217,10 @@ class EventRepository implements IEventRepository {
   async deleteMany(filters: EventFilters): Promise<void> {
     const query = this.buildQuery(filters);
     await Event.deleteMany(query).exec();
+  }
+
+  async aggregate<T = IEvent>(pipeline: unknown[]): Promise<T[]> {
+    return Event.aggregate(pipeline as any[]).exec();
   }
 }
 

@@ -1,5 +1,6 @@
 import { IUserRepository } from "@/types/repositories/user.repository.types";
 import { hashToken, isTokenExpired } from "@/utils/tokenHash";
+import { ERROR_CODES, UnauthorizedError } from "@/utils/errors";
 
 export interface VerifyEmailInput {
   token: string;
@@ -27,7 +28,10 @@ class VerifyEmailAction implements IVerifyEmailAction {
     });
 
     if (!user || isTokenExpired(user.emailVerificationExpiresAt)) {
-      throw new Error(INVALID_TOKEN_MESSAGE);
+      throw new UnauthorizedError(
+        ERROR_CODES.AUTH_INVALID_EMAIL_VERIFICATION_TOKEN,
+        INVALID_TOKEN_MESSAGE
+      );
     }
 
     await this.userRepository.updateOne(user._id.toString(), {

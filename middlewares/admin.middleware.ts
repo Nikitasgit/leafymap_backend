@@ -2,6 +2,7 @@ import { Response, NextFunction, RequestHandler } from "express";
 import { CustomRequest } from "@/types/custom";
 import { IUserRepository } from "@/types/repositories/user.repository.types";
 import { isBanActive } from "@/utils/ban";
+import { ERROR_CODES, ForbiddenError, UnauthorizedError } from "@/utils/errors";
 
 class AdminMiddleware {
   constructor(private userRepository: IUserRepository) {}
@@ -14,7 +15,7 @@ class AdminMiddleware {
     ): Promise<void> => {
       const decoded = req.decoded;
       if (!decoded?.id) {
-        res.status(401).json({ success: false, message: "Unauthorized" });
+        next(new UnauthorizedError(ERROR_CODES.UNAUTHORIZED, "Unauthorized"));
         return;
       }
 
@@ -27,7 +28,7 @@ class AdminMiddleware {
       ]);
 
       if (!user || user.role !== "admin" || user.deleted || isBanActive(user)) {
-        res.status(403).json({ success: false, message: "Forbidden" });
+        next(new ForbiddenError(ERROR_CODES.FORBIDDEN, "Forbidden"));
         return;
       }
 

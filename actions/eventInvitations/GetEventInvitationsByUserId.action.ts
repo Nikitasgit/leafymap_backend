@@ -1,9 +1,5 @@
-import {
-  IEventInvitationRepository,
-  EventInvitationFilters,
-} from "@/types/repositories/eventInvitation.repository.types";
+import { IEventInvitationRepository } from "@/types/repositories/eventInvitation.repository.types";
 import { IEventInvitation } from "@/types/models/eventInvitation";
-import { IEvent } from "@/types/models";
 
 export interface GetEventInvitationsByUserIdInput {
   userId: string;
@@ -57,90 +53,11 @@ class GetEventInvitationsByUserIdAction
   }: {
     filters: GetEventInvitationsByUserIdInput;
   }): Promise<IEventInvitation[]> {
-    const queryFilters: EventInvitationFilters = {
-      deleted: false,
-    };
-
-    if (filters.asCollaborator) {
-      queryFilters.collaborator = filters.userId;
-    } else {
-      queryFilters.initiator = filters.userId;
-    }
-
-    if (filters.onlyPending) {
-      queryFilters.status = "pending";
-    }
-
-    const eventInvitations = await this.eventInvitationRepository.findAll({
-      filters: queryFilters,
+    return this.eventInvitationRepository.findAllForUser({
+      filters,
       project: this.project,
       sort: { updatedAt: -1 },
     });
-
-    const filteredInvitations = eventInvitations.filter((invitation: any) => {
-      if (filters.onlyPending) {
-        return true;
-      }
-      if (filters.onlyAccepted) {
-        return invitation.status === "accepted";
-      }
-
-      if (!filters.currentUserId) {
-        return invitation.status === "accepted";
-      }
-
-      const isInitiator =
-        invitation.initiator &&
-        (typeof invitation.initiator === "object"
-          ? invitation.initiator._id?.toString()
-          : invitation.initiator.toString()) === filters.currentUserId;
-      const isCollaborator =
-        invitation.collaborator &&
-        (typeof invitation.collaborator === "object"
-          ? invitation.collaborator._id?.toString()
-          : invitation.collaborator.toString()) === filters.currentUserId;
-
-      if (isInitiator || isCollaborator) {
-        return true;
-      }
-
-      return invitation.status === "accepted";
-    });
-
-    let validInvitations = filteredInvitations.filter((invitation: any) => {
-      if (!invitation.event) {
-        return false;
-      }
-      return true;
-    });
-
-    if (filters.includeCancelledEvents !== true) {
-      validInvitations = validInvitations.filter((invitation: any) => {
-        if (!invitation.event) {
-          return true;
-        }
-        const event = invitation.event as Partial<IEvent>;
-        return event.status !== "cancelled";
-      });
-    }
-
-    if (filters.includePastEvents !== true) {
-      validInvitations = validInvitations.filter((invitation: any) => {
-        if (!invitation.event) {
-          return true;
-        }
-        const event = invitation.event as IEvent;
-        if (!event.lifecycleStatus) {
-          return true;
-        }
-        return (
-          event.lifecycleStatus === "ongoing" ||
-          event.lifecycleStatus === "upcoming"
-        );
-      });
-    }
-
-    return validInvitations as IEventInvitation[];
   }
 }
 

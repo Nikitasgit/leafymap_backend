@@ -5,7 +5,6 @@ export interface PlaceFilters {
   _id?: string | { $in: string[] };
   user?: string | { $in: string[] };
   placeCategory?: string | { $in: string[] };
-  placeType?: string | { $in: string[] };
   rating?: { $gte: number };
   deleted?: boolean;
   location?: {

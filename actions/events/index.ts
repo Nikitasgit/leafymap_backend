@@ -8,5 +8,7 @@ export { default as GetEventByIdAction } from "./GetEventById.action";
 export type { IGetEventByIdAction } from "./GetEventById.action";
 export { default as GetEventsAction } from "./GetEvents.action";
 export type { GetEventsInput, IGetEventsAction } from "./GetEvents.action";
+export { default as GetEventsInViewAction } from "./GetEventsInView.action";
+export type { GetEventsInViewInput, IGetEventsInViewAction } from "./GetEventsInView.action";
 export { default as UpdateEventLifecycleStatusAction } from "./UpdateEventLifecycleStatus.action";
 export type { IUpdateEventLifecycleStatusAction } from "./UpdateEventLifecycleStatus.action";

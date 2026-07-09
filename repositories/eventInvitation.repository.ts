@@ -1,8 +1,11 @@
 import { EventInvitation } from "../models/EventInvitation";
+import Event from "../models/Event";
 import { IEventInvitation } from "@/types/models/eventInvitation";
+import { IEvent } from "@/types/models/event";
 import {
   IEventInvitationRepository,
   EventInvitationFilters,
+  EventInvitationUserFilters,
 } from "@/types/repositories/eventInvitation.repository.types";
 import { Types, FilterQuery } from "mongoose";
 import { PopulateParser } from "./utils/PopulateParser";
@@ -39,15 +42,21 @@ class EventInvitationRepository implements IEventInvitationRepository {
     }
     if (filters.$or) {
       query.$or = filters.$or.map((condition) => {
-        const orQuery: any = {};
+        const orQuery: Record<string, Types.ObjectId | string> = {};
         if (condition.initiator) {
           orQuery.initiator = new Types.ObjectId(condition.initiator);
         }
         if (condition.collaborator) {
           orQuery.collaborator = new Types.ObjectId(condition.collaborator);
         }
+        if (typeof condition.status === "string") {
+          orQuery.status = condition.status;
+        }
         return orQuery;
       });
+    }
+    if (filters.$and) {
+      query.$and = filters.$and;
     }
 
     Object.keys(filters).forEach((key) => {
@@ -61,6 +70,7 @@ class EventInvitationRepository implements IEventInvitationRepository {
           "status",
           "deleted",
           "$or",
+          "$and",
         ].includes(key)
       ) {
         (query as Record<string, unknown>)[key] = (
@@ -70,6 +80,83 @@ class EventInvitationRepository implements IEventInvitationRepository {
     });
 
     return query;
+  }
+
+  private buildUserFilters(
+    filters: EventInvitationUserFilters
+  ): EventInvitationFilters {
+    const queryFilters: EventInvitationFilters = { deleted: false };
+
+    if (filters.asCollaborator) {
+      queryFilters.collaborator = filters.userId;
+    } else {
+      queryFilters.initiator = filters.userId;
+    }
+
+    if (filters.onlyPending) {
+      queryFilters.status = "pending";
+    } else if (filters.onlyAccepted) {
+      queryFilters.status = "accepted";
+    } else if (!filters.currentUserId) {
+      queryFilters.status = "accepted";
+    } else {
+      queryFilters.$or = [
+        { status: "accepted" },
+        { initiator: filters.currentUserId },
+        { collaborator: filters.currentUserId },
+      ];
+    }
+
+    return queryFilters;
+  }
+
+  private async getEligibleEventIds(
+    filters: EventInvitationUserFilters
+  ): Promise<Types.ObjectId[] | null> {
+    const needsEventFilter =
+      filters.includeCancelledEvents !== true ||
+      filters.includePastEvents !== true;
+
+    if (!needsEventFilter) {
+      return null;
+    }
+
+    const eventQuery: FilterQuery<IEvent> = { deleted: false };
+
+    if (filters.includeCancelledEvents !== true) {
+      eventQuery.status = { $ne: "cancelled" };
+    }
+
+    if (filters.includePastEvents !== true) {
+      eventQuery.$or = [
+        { lifecycleStatus: { $in: ["ongoing", "upcoming"] } },
+        { lifecycleStatus: { $exists: false } },
+      ];
+    }
+
+    const events = await Event.find(eventQuery).select("_id").lean();
+    return events.map((event) => event._id);
+  }
+
+  async findAllForUser<K extends keyof IEventInvitation>(params: {
+    filters: EventInvitationUserFilters;
+    project: (K | string)[];
+    limit?: number;
+    sort?: { [key: string]: 1 | -1 };
+  }): Promise<Pick<IEventInvitation, K>[]> {
+    const queryFilters = this.buildUserFilters(params.filters);
+    const eligibleEventIds = await this.getEligibleEventIds(params.filters);
+
+    if (eligibleEventIds) {
+      queryFilters.eventIn = eligibleEventIds.map((id) => id.toString());
+    }
+
+    return this.findAll({
+      filters: queryFilters,
+      project: params.project,
+      limit: params.limit,
+      sort: params.sort,
+    });
   }
 
   async create(

@@ -1,35 +1,16 @@
-import { Response, NextFunction, RequestHandler } from "express";
-import { CustomRequest } from "@/types/custom";
-import { APIResponse } from "@/utils/response";
-import logger from "@/utils/logger";
 import { IDeleteImagesAction } from "@/actions/images";
+import { Controller, createController } from "@/utils/controllerFactory";
 
-class DeleteImagesController {
-  constructor(private deleteImagesAction: IDeleteImagesAction) {}
-
-  handle(): RequestHandler {
-    return async (
-      req: CustomRequest,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> => {
-      try {
-        await this.deleteImagesAction.execute({
-          imageIds: req.images!,
-        });
-
-        APIResponse(res, null, "Images supprimées avec succès", 200);
-      } catch (error) {
-        logger.error("Erreur lors de la suppression des images:", error);
-        APIResponse(
-          res,
-          null,
-          "Erreur serveur lors de la suppression des images",
-          500
-        );
-      }
-    };
-  }
-}
+const DeleteImagesController = (
+  deleteImagesAction: IDeleteImagesAction
+): Controller =>
+  createController({
+    execute: async (req) => {
+      await deleteImagesAction.execute({
+        imageIds: req.images!,
+      });
+    },
+    successMessage: "Images supprimées avec succès",
+  });
 
 export default DeleteImagesController;

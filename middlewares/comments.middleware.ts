@@ -1,14 +1,16 @@
-import { Response, NextFunction, RequestHandler } from "express";
+import { RequestHandler, Response, NextFunction } from "express";
 import { APIResponse } from "@/utils/response";
-import { getParam } from "@/utils/request";
 import { CustomRequest } from "@/types/custom";
-import { isValidObjectId } from "mongoose";
 import { ICommentRepository } from "@/types/repositories/comment.repository.types";
 import { IImageRepository } from "@/types/repositories/image.repository.types";
 import { IReviewRepository } from "@/types/repositories/review.repository.types";
 import { CommentReferenceType } from "@/types/models/comment";
 import { IImage } from "@/types/models/Image";
 import { IReview } from "@/types/models/review";
+import {
+  createOwnershipMiddleware,
+  getEntityOwnerId,
+} from "./createOwnershipMiddleware";
 
 class CommentsMiddleware {
   constructor(
@@ -18,54 +20,19 @@ class CommentsMiddleware {
   ) {}
 
   ownership(): RequestHandler {
-    return async (
-      req: CustomRequest,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> => {
-      try {
-        const decoded = req.decoded!;
-        const commentId = getParam(req.params, "commentId");
-
-        if (!commentId) {
-          APIResponse(res, null, "Commentaire ID requis", 400);
-          return;
-        }
-
-        if (!isValidObjectId(commentId)) {
-          APIResponse(res, null, "ID de commentaire invalide", 400);
-          return;
-        }
-
-        const comment = await this.commentRepository.findById(commentId, [
-          "author",
-        ]);
-        if (!comment) {
-          APIResponse(res, null, "Commentaire non trouvé", 404);
-          return;
-        }
-
-        if (comment.author.toString() !== decoded.id) {
-          APIResponse(
-            res,
-            null,
-            "Vous n'êtes pas autorisé à modifier ou supprimer ce commentaire",
-            403
-          );
-          return;
-        }
-
-        req.comment = comment as any;
-        next();
-      } catch (error) {
-        APIResponse(
-          res,
-          null,
-          "Erreur lors de la vérification de propriété",
-          500
-        );
-      }
-    };
+    return createOwnershipMiddleware({
+      paramName: "commentId",
+      findById: (commentId) =>
+        this.commentRepository.findById(commentId, ["author"]),
+      getOwnerId: getEntityOwnerId,
+      notFoundMessage: "Commentaire non trouvé",
+      forbiddenMessage:
+        "Vous n'êtes pas autorisé à modifier ou supprimer ce commentaire",
+      invalidIdMessage: "ID de commentaire invalide",
+      missingParamMessage: "Commentaire ID requis",
+      validateObjectId: true,
+      reqKey: "comment",
+    });
   }
 
   referenceOwnership(): RequestHandler {
@@ -142,7 +109,7 @@ class CommentsMiddleware {
 
         req.commentReference = foundReference;
         next();
-      } catch (error) {
+      } catch {
         APIResponse(
           res,
           null,

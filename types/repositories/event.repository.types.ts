@@ -4,7 +4,7 @@ import { Types } from "mongoose";
 export interface EventFilters {
   place?: string | { $in: string[] };
   user?: string | { $in: string[] };
-  _id?: string;
+  _id?: string | { $in: string[] };
   deleted?: boolean;
   status?:
     | "cancelled"
@@ -40,4 +40,5 @@ export interface IEventRepository {
   updateMany(filters: EventFilters, update: Partial<IEvent>): Promise<void>;
   deleteOne(id: string): Promise<void>;
   deleteMany(filters: EventFilters): Promise<void>;
+  aggregate<T = IEvent>(pipeline: unknown[]): Promise<T[]>;
 }

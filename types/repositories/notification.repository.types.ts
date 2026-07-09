@@ -52,4 +52,6 @@ export interface INotificationRepository {
     receiverId: string
   ): Promise<number>;
   markAllUserNotificationsAsRead(receiverId: string): Promise<number>;
+  deleteByReferences(referenceIds: string[]): Promise<void>;
+  deleteByUser(userId: string): Promise<void>;
 }

@@ -1,4 +1,5 @@
 import { IPartnershipRepository } from "@/types/repositories/partnership.repository.types";
+import { ERROR_CODES, ForbiddenError, NotFoundError } from "@/utils/errors";
 
 export interface IDeletePartnershipAction {
   execute(params: { partnershipId: string; userId: string }): Promise<void>;
@@ -19,7 +20,10 @@ class DeletePartnershipAction implements IDeletePartnershipAction {
     );
 
     if (!existingPartnership) {
-      throw new Error(`Partnership ${partnershipId} not found`);
+      throw new NotFoundError(
+        ERROR_CODES.PARTNERSHIP_NOT_FOUND,
+        `Partnership ${partnershipId} not found`
+      );
     }
 
     const isInitiator = existingPartnership.initiator.toString() === userId;
@@ -27,7 +31,10 @@ class DeletePartnershipAction implements IDeletePartnershipAction {
       existingPartnership.collaborator.toString() === userId;
 
     if (!isInitiator && !isCollaborator) {
-      throw new Error("You don't have permission to delete this partnership");
+      throw new ForbiddenError(
+        ERROR_CODES.PARTNERSHIP_DELETE_FORBIDDEN,
+        "You don't have permission to delete this partnership"
+      );
     }
 
     await this.partnershipRepository.deleteOne(partnershipId);

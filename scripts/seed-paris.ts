@@ -146,7 +146,6 @@ async function seed() {
         user: users[i],
         location: getParisLocation(i + 1),
         placeCategory: placeCategory._id,
-        placeType: [artCategoryType._id],
         defaultSchedule,
         customDates: [],
       });

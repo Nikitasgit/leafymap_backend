@@ -1,5 +1,5 @@
 import { IEventInvitation } from "../models/eventInvitation";
-import { Types } from "mongoose";
+import { Types, FilterQuery } from "mongoose";
 
 export interface EventInvitationFilters {
   _id?: string;
@@ -9,8 +9,23 @@ export interface EventInvitationFilters {
   collaborator?: string;
   status?: "pending" | "accepted" | "refused" | "cancelled" | "completed";
   deleted?: boolean;
-  $or?: Array<{ initiator?: string; collaborator?: string }>;
+  $or?: Array<{
+    initiator?: string;
+    collaborator?: string;
+    status?: "pending" | "accepted" | "refused" | "cancelled" | "completed";
+  }>;
+  $and?: FilterQuery<IEventInvitation>[];
   [key: string]: unknown;
+}
+
+export interface EventInvitationUserFilters {
+  userId: string;
+  asCollaborator?: boolean;
+  onlyAccepted?: boolean;
+  onlyPending?: boolean;
+  currentUserId?: string;
+  includeCancelledEvents?: boolean;
+  includePastEvents?: boolean;
 }
 
 export interface IEventInvitationRepository {
@@ -25,6 +40,12 @@ export interface IEventInvitationRepository {
   ): Promise<IEventInvitation | null>;
   findAll<K extends keyof IEventInvitation>(params: {
     filters?: EventInvitationFilters;
+    project: (K | string)[];
+    limit?: number;
+    sort?: { [key: string]: 1 | -1 };
+  }): Promise<Pick<IEventInvitation, K>[]>;
+  findAllForUser<K extends keyof IEventInvitation>(params: {
+    filters: EventInvitationUserFilters;
     project: (K | string)[];
     limit?: number;
     sort?: { [key: string]: 1 | -1 };

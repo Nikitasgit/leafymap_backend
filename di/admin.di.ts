@@ -49,17 +49,17 @@ const softDeleteAdminResourceAction = new SoftDeleteAdminResourceAction(
 );
 const softDeleteAdminUserAction = new SoftDeleteAdminUserAction(userRepository);
 
-export const searchAdminUsers = new SearchAdminUsersController(
+export const searchAdminUsers = SearchAdminUsersController(
   searchAdminUsersAction
 );
-export const getAdminUser = new GetAdminUserController(getAdminUserAction);
-export const getAdminUserContent = new GetAdminUserContentController(
+export const getAdminUser = GetAdminUserController(getAdminUserAction);
+export const getAdminUserContent = GetAdminUserContentController(
   getAdminUserContentAction
 );
-export const banAdminUser = new BanAdminUserController(banAdminUserAction);
-export const softDeleteAdminResource = new SoftDeleteAdminResourceController(
+export const banAdminUser = BanAdminUserController(banAdminUserAction);
+export const softDeleteAdminResource = SoftDeleteAdminResourceController(
   softDeleteAdminResourceAction
 );
-export const softDeleteAdminUser = new SoftDeleteAdminUserController(
+export const softDeleteAdminUser = SoftDeleteAdminUserController(
   softDeleteAdminUserAction
 );

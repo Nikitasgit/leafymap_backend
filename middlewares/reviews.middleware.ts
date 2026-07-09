@@ -1,13 +1,16 @@
-import { Response, NextFunction, RequestHandler } from "express";
+import { RequestHandler, Response, NextFunction } from "express";
 import { APIResponse } from "@/utils/response";
-import { getParam } from "@/utils/request";
 import { CustomRequest } from "@/types/custom";
 import { IReviewRepository } from "@/types/repositories/review.repository.types";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
 import { IEventRepository } from "@/types/repositories/event.repository.types";
 import { ReviewReferenceType } from "@/types/models/review";
-import { isValidObjectId } from "mongoose";
 import { IEvent, IPlace } from "@/types/models";
+import { resolveOwnerId, toId } from "@/utils/mongoose";
+import {
+  createOwnershipMiddleware,
+  getEntityOwnerId,
+} from "./createOwnershipMiddleware";
 
 class ReviewsMiddleware {
   constructor(
@@ -17,54 +20,19 @@ class ReviewsMiddleware {
   ) {}
 
   ownership(): RequestHandler {
-    return async (
-      req: CustomRequest,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> => {
-      try {
-        const decoded = req.decoded!;
-        const reviewId = getParam(req.params, "reviewId");
-
-        if (!reviewId) {
-          APIResponse(res, null, "Review ID requis", 400);
-          return;
-        }
-
-        if (!isValidObjectId(reviewId)) {
-          APIResponse(res, null, "ID de review invalide", 400);
-          return;
-        }
-
-        const review = await this.reviewRepository.findById(reviewId, [
-          "author",
-        ]);
-        if (!review) {
-          APIResponse(res, null, "Review non trouvé", 404);
-          return;
-        }
-
-        if (review.author.toString() !== decoded.id) {
-          APIResponse(
-            res,
-            null,
-            "Vous n'êtes pas autorisé à modifier ou supprimer ce review",
-            403
-          );
-          return;
-        }
-
-        req.review = review as any;
-        next();
-      } catch (error) {
-        APIResponse(
-          res,
-          null,
-          "Erreur lors de la vérification de propriété",
-          500
-        );
-      }
-    };
+    return createOwnershipMiddleware({
+      paramName: "reviewId",
+      findById: (reviewId) =>
+        this.reviewRepository.findById(reviewId, ["author"]),
+      getOwnerId: getEntityOwnerId,
+      notFoundMessage: "Review non trouvé",
+      forbiddenMessage:
+        "Vous n'êtes pas autorisé à modifier ou supprimer ce review",
+      invalidIdMessage: "ID de review invalide",
+      missingParamMessage: "Review ID requis",
+      validateObjectId: true,
+      reqKey: "review",
+    });
   }
 
   referenceOwnership(): RequestHandler {
@@ -104,7 +72,7 @@ class ReviewsMiddleware {
               );
               return;
             }
-            isOwner = place.user.toString() === userId;
+            isOwner = toId(place.user) === userId;
             foundReference = place;
             break;
           }
@@ -125,26 +93,8 @@ class ReviewsMiddleware {
               return;
             }
 
-            const eventOwner =
-              event.user && typeof event.user === "object" && "_id" in event.user
-                ? event.user._id.toString()
-                : event.user?.toString();
-
-            if (eventOwner) {
-              isOwner = eventOwner === userId;
-            } else if (event.place) {
-              const place = event.place as IPlace;
-              if (!place.user) {
-                APIResponse(
-                  res,
-                  null,
-                  "Erreur lors de la vérification de propriété",
-                  500
-                );
-                return;
-              }
-              isOwner = place.user.toString() === userId;
-            } else {
+            const ownerId = resolveOwnerId(event);
+            if (!ownerId) {
               APIResponse(
                 res,
                 null,
@@ -153,6 +103,8 @@ class ReviewsMiddleware {
               );
               return;
             }
+
+            isOwner = ownerId === userId;
             foundReference = event;
             break;
           }
@@ -166,7 +118,7 @@ class ReviewsMiddleware {
         req.reviewReference = foundReference;
 
         next();
-      } catch (error) {
+      } catch {
         APIResponse(
           res,
           null,
