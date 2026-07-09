@@ -4,6 +4,6 @@
  */
 describe("CI failure check (temporary)", () => {
   it("should fail on purpose to verify GitHub Actions detection", () => {
-    expect(true).toBe(false);
+    expect(true).toBe(true);
   });
 });
