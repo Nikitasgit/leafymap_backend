@@ -92,7 +92,10 @@ class GoogleAuthAction implements IGoogleAuthAction {
         );
       }
       if (isBanActive(user)) {
-        throw new ForbiddenError(ERROR_CODES.AUTH_USER_BANNED, getBanMessage(user));
+        throw new ForbiddenError(
+          ERROR_CODES.AUTH_USER_BANNED,
+          getBanMessage(user)
+        );
       }
       await this.userRepository.updateOne(user._id.toString(), {
         lastLogin: new Date(),
@@ -118,7 +121,10 @@ class GoogleAuthAction implements IGoogleAuthAction {
       );
     }
     if (isBanActive(user)) {
-      throw new ForbiddenError(ERROR_CODES.AUTH_USER_BANNED, getBanMessage(user));
+      throw new ForbiddenError(
+        ERROR_CODES.AUTH_USER_BANNED,
+        getBanMessage(user)
+      );
     }
     await this.userRepository.updateOne(user._id.toString(), {
       lastLogin: new Date(),
@@ -143,21 +149,19 @@ class GoogleAuthAction implements IGoogleAuthAction {
     const payload = await verifyGoogleIdToken(googleAuthData.idToken);
     const { email, sub: googleId, picture, given_name, family_name } = payload;
 
-    const existingByGoogleId = await this.userRepository.findOne(
-      { googleId },
-      [...USER_PROJECT]
-    );
+    const existingByGoogleId = await this.userRepository.findOne({ googleId }, [
+      ...USER_PROJECT,
+    ]);
     if (existingByGoogleId) {
       return this.buildAuthResponse(
         existingByGoogleId._id.toString(),
         existingByGoogleId.userType
       );
     }
-
-    const existingByEmail = await this.userRepository.findOne(
-      { email },
-      [...USER_PROJECT, "emailVerified"]
-    );
+    const existingByEmail = await this.userRepository.findOne({ email }, [
+      ...USER_PROJECT,
+      "emailVerified",
+    ]);
     if (existingByEmail) {
       const isUnverified = existingByEmail.emailVerified === false;
       const updatePayload: Record<string, unknown> = {
