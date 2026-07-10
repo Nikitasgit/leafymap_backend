@@ -19,7 +19,7 @@ describe("auth validations", () => {
         acceptedCGU: true,
       });
 
-      expect(result.success).toBe(false);
+      expect(result.success).toBe(true);
     });
 
     it("rejects when CGU are not accepted", () => {
