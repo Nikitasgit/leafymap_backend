@@ -7,7 +7,7 @@ export interface IAcceptCguAction {
     emailNotifications?: boolean;
   }): Promise<void>;
 }
-//test
+//tes
 class AcceptCguAction implements IAcceptCguAction {
   constructor(private userRepository: IUserRepository) {}
 
