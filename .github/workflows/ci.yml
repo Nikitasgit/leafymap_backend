@@ -1,4 +1,4 @@
-name: Backend tests
+name: Backend CI
 
 on:
   push:
@@ -11,7 +11,8 @@ env:
   JWT_SECRET: test-secret
 
 jobs:
-  test:
+  ci:
+    name: Backend CI
     runs-on: ubuntu-latest
 
     steps:
