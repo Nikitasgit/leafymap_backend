@@ -135,17 +135,22 @@ const lifecycleStatusEnum = z.enum([
   "unvalid",
 ]);
 
+const lifecycleStatusesSchema = z
+  .string()
+  .optional()
+  .transform((value) =>
+    value?.trim()
+      ? value.split(",").map((status) => status.trim())
+      : undefined
+  )
+  .pipe(z.array(lifecycleStatusEnum).optional());
+
 export const getEventsQuerySchema = z.object({
   placeId: z.string().optional(),
   userId: z.string().optional(),
   search: z.string().optional(),
   limit: z.coerce.number().optional(),
-  lifecycleStatus: z
-    .string()
-    .optional()
-    .transform((val) =>
-      val ? (val.split(",") as z.infer<typeof lifecycleStatusEnum>[]) : undefined
-    ),
+  lifecycleStatus: lifecycleStatusesSchema,
   sortBy: z.enum(["createdAt", "dateRange.firstDate"]).optional(),
   order: z.enum(["asc", "desc"]).optional(),
 });

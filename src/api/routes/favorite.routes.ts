@@ -4,7 +4,7 @@ import {
   deleteFavorite,
   findFavoritesByType,
   authMiddleware,
-} from "../di/favorite.di";
+} from "@src/api/composition/favorites.composition";
 
 const router: Router = express.Router();
 

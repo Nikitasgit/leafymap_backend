@@ -2,7 +2,7 @@ import { Response } from "express";
 
 export const APIResponse = (
   response: Response,
-  data: any,
+  data: unknown,
   message: string,
   status: number = 200,
   code?: string

@@ -6,7 +6,6 @@ import {
   findFollowing,
   findOneFollow,
   authMiddleware,
-  rateLimiterMiddleware,
 } from "../di/follow.di";
 
 const router: Router = express.Router();

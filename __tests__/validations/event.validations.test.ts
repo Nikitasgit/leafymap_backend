@@ -1,4 +1,7 @@
-import { newEventSchema } from "@/validations/event.validations";
+import {
+  getEventsQuerySchema,
+  newEventSchema,
+} from "@/validations/event.validations";
 import { buildEventValidationPayload } from "../helpers/mockRepositories";
 
 const location = {
@@ -30,6 +33,35 @@ describe("event validations", () => {
       const result = newEventSchema.safeParse(
         buildEventValidationPayload({ online: false })
       );
+
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe("getEventsQuerySchema", () => {
+    it("parses comma-separated lifecycle statuses", () => {
+      const result = getEventsQuerySchema.safeParse({
+        lifecycleStatus: "upcoming, ongoing",
+      });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.lifecycleStatus).toEqual(["upcoming", "ongoing"]);
+      }
+    });
+
+    it("rejects a mix of valid and invalid lifecycle statuses", () => {
+      const result = getEventsQuerySchema.safeParse({
+        lifecycleStatus: "upcoming,unknown",
+      });
+
+      expect(result.success).toBe(false);
+    });
+
+    it("rejects an invalid lifecycle status", () => {
+      const result = getEventsQuerySchema.safeParse({
+        lifecycleStatus: "unknown",
+      });
 
       expect(result.success).toBe(false);
     });

@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import { IEventInvitationRepository } from "@/types/repositories/eventInvitation.repository.types";
 import { IEventRepository } from "@/types/repositories/event.repository.types";
-import { IEvent, IEventPeriod } from "@/types/models/event";
+import { IEventPeriod } from "@/types/models/event";
 
 class EventInvitationService {
   constructor(

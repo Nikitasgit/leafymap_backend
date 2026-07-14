@@ -66,7 +66,7 @@ class UpdateEventInvitationAction implements IUpdateEventInvitationAction {
           );
         }
 
-        let updateData: Partial<IEventInvitation> = {};
+        const updateData: Partial<IEventInvitation> = {};
 
         if (isInitiator) {
           if (eventInvitation.deleted) {

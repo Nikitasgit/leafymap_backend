@@ -3,7 +3,7 @@ import { APIResponse } from "@/utils/response";
 import { getParam } from "@/utils/request";
 import { CustomRequest } from "@/types/custom";
 import { IMessageRepository } from "@/types/repositories/message.repository.types";
-import { isValidObjectId, Types } from "mongoose";
+import { isValidObjectId } from "mongoose";
 
 class MessagesMiddleware {
   constructor(private messageRepository: IMessageRepository) {}
@@ -46,9 +46,9 @@ class MessagesMiddleware {
           return;
         }
 
-        req.message = message as any;
+        req.message = message;
         next();
-      } catch (error) {
+      } catch {
         APIResponse(
           res,
           null,

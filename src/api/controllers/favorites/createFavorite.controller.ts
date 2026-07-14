@@ -1,13 +1,5 @@
-import {
-  createFavoriteSchema,
-  deleteFavoriteSchema,
-  findFavoritesByTypeQuerySchema,
-} from "../../validations/favorite.validations";
-import {
-  ICreateFavoriteAction,
-  IDeleteFavoriteAction,
-  IFindFavoritesByUserAndTypeAction,
-} from "@/actions/favorites";
+import { createFavoriteSchema } from "@src/api/dto/favorites/favorite.dto";
+import { ICreateFavoriteUseCase } from "@src/application/usecases/favorites/CreateFavorite.usecase";
 import {
   Controller,
   createController,
@@ -16,7 +8,7 @@ import {
 } from "@/utils/controllerFactory";
 
 const CreateFavoriteController = (
-  createFavoriteAction: ICreateFavoriteAction
+  createFavoriteUseCase: ICreateFavoriteUseCase
 ): Controller =>
   createController({
     execute: (req) => {
@@ -24,7 +16,7 @@ const CreateFavoriteController = (
         createFavoriteSchema,
         req.body
       );
-      return createFavoriteAction.execute({
+      return createFavoriteUseCase.execute({
         userId: requireAuth(req).id,
         referenceId,
         referenceType,
@@ -32,6 +24,7 @@ const CreateFavoriteController = (
     },
     successMessage: "Favori ajouté avec succès",
     successStatus: 201,
+    mapResult: (result) => ({ _id: result.id }),
   });
 
 export default CreateFavoriteController;

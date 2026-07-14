@@ -1,4 +1,4 @@
-import { model, Schema } from "mongoose";
+import { model, Schema, UpdateQuery } from "mongoose";
 import { IEventTimeSlot, IEventPeriod, IEvent } from "@/types/models/event";
 import "../models/EventCategory";
 import EventStatusService from "@/services/eventStatusService";
@@ -137,7 +137,7 @@ eventSchema.pre("save", function (next) {
 });
 
 eventSchema.pre("findOneAndUpdate", function (next) {
-  const update = this.getUpdate() as any;
+  const update = this.getUpdate() as UpdateQuery<IEvent> | null;
   if (update && update.schedule) {
     const { dateRange, lifecycleStatus } =
       eventStatusService.calculateEventStatus(update.schedule);

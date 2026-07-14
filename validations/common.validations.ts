@@ -1,10 +1,5 @@
 import { z } from "zod";
 
-interface ValidationResult {
-  errors: Record<string, string>;
-  isValid: boolean;
-}
-
 export const phoneSchema = z
   .string()
   .refine((val) => !val || val.trim() === "" || /^[0-9]{10}$/.test(val), {

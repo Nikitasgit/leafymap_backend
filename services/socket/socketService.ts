@@ -5,6 +5,7 @@ import { IDecodedToken } from "@/types/custom";
 import { IUserRepository } from "@/types/repositories/user.repository.types";
 import { IMessageRepository } from "@/types/repositories/message.repository.types";
 import { Types } from "mongoose";
+import { IMessage } from "@/types/models/message";
 import logger from "@/utils/logger";
 import { ALLOWED_ORIGINS } from "@/utils/constants/common";
 
@@ -41,7 +42,8 @@ class SocketService {
   }
 
   private setupMiddleware() {
-    this.io.use(async (socket: Socket, next: (err?: Error) => void) => {
+    this.io.use((socket: Socket, next: (err?: Error) => void) => {
+      void (async () => {
       try {
         const parseCookies = (
           cookieHeader: string | undefined
@@ -103,6 +105,7 @@ class SocketService {
         logger.error("Socket authentication error:", error);
         next(new Error("Authentication error"));
       }
+      })();
     });
   }
 
@@ -111,9 +114,10 @@ class SocketService {
       const userId = socket.data.userId;
       logger.info(`User ${userId} connected to Socket.io`);
 
-      socket.on("join_conversation", async (conversationId: string) => {
+      socket.on("join_conversation", (conversationId: string) => {
+        void (async () => {
         const room = `conversation:${conversationId}`;
-        socket.join(room);
+        void socket.join(room);
         logger.info(`User ${userId} joined conversation ${conversationId}`);
 
         try {
@@ -145,11 +149,12 @@ class SocketService {
             error
           );
         }
+        })();
       });
 
       socket.on("leave_conversation", (conversationId: string) => {
         const room = `conversation:${conversationId}`;
-        socket.leave(room);
+        void socket.leave(room);
         logger.info(`User ${userId} left conversation ${conversationId}`);
       });
 
@@ -163,7 +168,7 @@ class SocketService {
     });
   }
 
-  emitNewMessage(conversationId: string, message: any) {
+  emitNewMessage(conversationId: string, message: Partial<IMessage>) {
     this.io.to(`conversation:${conversationId}`).emit("new_message", message);
     logger.info(`New message emitted to conversation ${conversationId}`);
   }

@@ -13,9 +13,10 @@ import {
   ReviewRepository,
   NotificationRepository,
   FollowRepository,
-  FavoriteRepository,
   ProductRepository,
 } from "@/repositories";
+import MongooseFavoriteRepository from "@src/infrastructure/repositories/MongooseFavoriteRepository";
+import LegacyFavoriteRepositoryAdapter from "@src/infrastructure/repositories/LegacyFavoriteRepositoryAdapter";
 import { DeleteImagesAction } from "@/actions/images";
 import CascadeDeleteService from "@/services/cascadeDeleteService";
 import { AuthMiddleware, RateLimiterMiddleware } from "@/middlewares";
@@ -35,7 +36,10 @@ export const eventBookingRepository = new EventBookingRepository();
 export const reviewRepository = new ReviewRepository();
 export const notificationRepository = new NotificationRepository();
 export const followRepository = new FollowRepository();
-export const favoriteRepository = new FavoriteRepository();
+export const mongooseFavoriteRepository = new MongooseFavoriteRepository();
+export const favoriteRepository = new LegacyFavoriteRepositoryAdapter(
+  mongooseFavoriteRepository
+);
 export const productRepository = new ProductRepository();
 
 // Shared middlewares

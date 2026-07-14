@@ -1,6 +1,20 @@
 import { IFollowRepository } from "@/types/repositories/follow.repository.types";
 import { Types } from "mongoose";
 
+type PopulatedFollowUser = {
+  _id: Types.ObjectId;
+  username?: string;
+  firstname?: string;
+  lastname?: string;
+  image?: FollowUser["image"];
+  userType: "creator" | "guest";
+};
+
+type FollowWithPopulatedFollowing = {
+  _id: Types.ObjectId;
+  following: PopulatedFollowUser;
+};
+
 export interface FollowUser {
   _id: string;
   followId: string;
@@ -44,7 +58,7 @@ class FindFollowingAction implements IFindFollowingAction {
       ],
     });
 
-    return follows.map((follow: any) => {
+    return (follows as unknown as FollowWithPopulatedFollowing[]).map((follow) => {
       const following = follow.following;
       return {
         _id: following._id.toString(),

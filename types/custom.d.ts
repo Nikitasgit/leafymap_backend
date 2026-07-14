@@ -1,5 +1,4 @@
 import { Request } from "express";
-import { ImageDTO } from "./api/image.dto";
 import { IReview } from "./models/review";
 import { IComment } from "./models/comment";
 import { IMessage } from "./models/message";

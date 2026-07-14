@@ -5,19 +5,21 @@
 ```
 __tests__/
   helpers/        Mocks partagés (createMockRepository, builders, mongoTestSetup)
-  actions/        Tests unitaires des actions métier (repos mockés) — rapides
+  actions/        Tests unitaires legacy (repos mockés) — rapides
+  favorites/      Tests Clean Architecture (domain, usecases, infrastructure)
   validations/    Tests des schémas Zod — rapides
   utils/          Tests des utilitaires (errorHandler, controllerFactory…) — rapides
   controllers/    Smoke tests controllers (peu nombreux, ne pas étendre)
   repositories/   Tests d'intégration Mongo — EXCLUS du run par défaut
 ```
 
-- `npm test` : run unitaire rapide (exclut `repositories/`).
+- `npm test` : run unitaire rapide (exclut `repositories/` et `favorites/infrastructure/`).
 - `npm run test:integration` : tests Mongo (`mongodb-memory-server`, lent).
 
 ## Fichiers de référence à imiter
 
-- **Action métier** : `actions/eventBookings/CreateEventBookingAction.test.ts`
+- **Use case (Clean Architecture)** : `favorites/usecases/CreateFavorite.usecase.test.ts`
+- **Action métier (legacy)** : `actions/eventBookings/CreateEventBookingAction.test.ts`
 - **Validation Zod** : `validations/eventBooking.validations.test.ts`
 
 ## Conventions

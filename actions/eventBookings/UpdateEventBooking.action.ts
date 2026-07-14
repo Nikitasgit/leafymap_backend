@@ -8,6 +8,7 @@ import {
   NotFoundError,
   ValidationError,
 } from "@/utils/errors";
+import { toId } from "@/utils/mongoose";
 
 export interface UpdateEventBookingDTO {
   bookingId: string;
@@ -18,14 +19,6 @@ export interface UpdateEventBookingDTO {
 export interface IUpdateEventBookingAction {
   execute(params: UpdateEventBookingDTO): Promise<void>;
 }
-
-const getOwnerId = (owner: unknown): string | undefined => {
-  if (!owner) return undefined;
-  if (typeof owner === "object" && "_id" in (owner as any)) {
-    return (owner as any)._id.toString();
-  }
-  return owner.toString();
-};
 
 class UpdateEventBookingAction implements IUpdateEventBookingAction {
   constructor(
@@ -53,7 +46,7 @@ class UpdateEventBookingAction implements IUpdateEventBookingAction {
       );
     }
 
-    const eventId = getOwnerId(booking.event) as string;
+    const eventId = toId(booking.event) as string;
     const event = await this.eventRepository.findById(eventId, [
       "_id",
       "user",
@@ -96,8 +89,8 @@ class UpdateEventBookingAction implements IUpdateEventBookingAction {
 
     await this.eventBookingRepository.updateOne(bookingId, { seats });
 
-    const bookingUserId = getOwnerId(booking.user) as string;
-    const eventOwnerId = getOwnerId(event.user);
+    const bookingUserId = toId(booking.user) as string;
+    const eventOwnerId = toId(event.user);
     const isOrganizerUpdating =
       eventOwnerId === requesterId && bookingUserId !== requesterId;
 

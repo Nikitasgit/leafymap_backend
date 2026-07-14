@@ -24,7 +24,7 @@ class DeleteImagesAction implements IDeleteImagesAction {
     await this.imageRepository.deleteMany(imageIds);
 
     await Promise.allSettled(
-      images.map(async (image: any) => {
+      images.map(async (image) => {
         if (!image.urls) {
           logger.warn(`No URLs found for image ${image._id}`);
           return;

@@ -7,6 +7,7 @@ import {
   NotFoundError,
   ValidationError,
 } from "@/utils/errors";
+import { toId } from "@/utils/mongoose";
 
 export interface CreateEventBookingDTO {
   eventId: string;
@@ -17,14 +18,6 @@ export interface CreateEventBookingDTO {
 export interface ICreateEventBookingAction {
   execute(params: CreateEventBookingDTO): Promise<{ _id: string }>;
 }
-
-const getOwnerId = (owner: unknown): string | undefined => {
-  if (!owner) return undefined;
-  if (typeof owner === "object" && "_id" in (owner as any)) {
-    return (owner as any)._id.toString();
-  }
-  return owner.toString();
-};
 
 class CreateEventBookingAction implements ICreateEventBookingAction {
   constructor(
@@ -65,7 +58,7 @@ class CreateEventBookingAction implements ICreateEventBookingAction {
       );
     }
 
-    const eventOwnerId = getOwnerId(event.user);
+    const eventOwnerId = toId(event.user);
     if (eventOwnerId === userId) {
       throw new ForbiddenError(
         ERROR_CODES.EVENT_BOOKING_OWN_EVENT,

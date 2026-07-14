@@ -1,7 +1,6 @@
 import {
   MessageRepository,
   UserRepository,
-  PartnershipRepository,
   ConversationRepository,
 } from "@/repositories";
 import {

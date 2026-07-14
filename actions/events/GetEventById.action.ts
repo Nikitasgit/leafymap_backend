@@ -1,6 +1,15 @@
 import { IEventRepository } from "@/types/repositories/event.repository.types";
 import { IEventBookingRepository } from "@/types/repositories/eventBooking.repository.types";
 import { IEvent } from "@/types/models/event";
+import { Types } from "mongoose";
+
+type PopulatedCollaborator =
+  | Types.ObjectId
+  | {
+      _id: Types.ObjectId;
+      username?: string;
+      image?: { urls?: { thumbnail?: string | null } };
+    };
 
 export interface IGetEventByIdAction {
   execute(params: { eventId: string }): Promise<IEvent>;
@@ -82,16 +91,18 @@ class GetEventByIdAction implements IGetEventByIdAction {
         ...period,
         timeSlots: period.timeSlots?.map((slot) => ({
           ...slot,
-          collaborators: slot.collaborators.map((collaborator: any) => {
-            if (typeof collaborator === "object" && collaborator !== null) {
-              return {
-                name: collaborator.username,
-                image: collaborator.image?.urls?.thumbnail || null,
-                _id: collaborator._id,
-              };
+          collaborators: (slot.collaborators as PopulatedCollaborator[]).map(
+            (collaborator) => {
+            if (collaborator instanceof Types.ObjectId) {
+              return collaborator;
             }
-            return collaborator;
-          }),
+            return {
+              name: collaborator.username,
+              image: collaborator.image?.urls?.thumbnail || null,
+              _id: collaborator._id,
+            };
+          }
+          ),
         })),
       })),
     };

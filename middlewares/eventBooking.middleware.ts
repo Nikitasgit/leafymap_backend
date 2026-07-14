@@ -4,14 +4,7 @@ import { getParam } from "@/utils/request";
 import { CustomRequest } from "@/types/custom";
 import { IEventBookingRepository } from "@/types/repositories/eventBooking.repository.types";
 import { IEventRepository } from "@/types/repositories/event.repository.types";
-
-const getOwnerId = (owner: unknown): string | undefined => {
-  if (!owner) return undefined;
-  if (typeof owner === "object" && "_id" in (owner as any)) {
-    return (owner as any)._id.toString();
-  }
-  return owner.toString();
-};
+import { toId } from "@/utils/mongoose";
 
 class EventBookingMiddleware {
   constructor(
@@ -44,15 +37,15 @@ class EventBookingMiddleware {
           return;
         }
 
-        const bookingOwnerId = getOwnerId(booking.user);
+        const bookingOwnerId = toId(booking.user);
         if (bookingOwnerId === decoded.id) {
           next();
           return;
         }
 
-        const eventId = getOwnerId(booking.event) as string;
+        const eventId = toId(booking.event) as string;
         const event = await this.eventRepository.findById(eventId, ["user"]);
-        const eventOwnerId = event ? getOwnerId(event.user) : undefined;
+        const eventOwnerId = event ? toId(event.user) : null;
 
         if (eventOwnerId === decoded.id) {
           next();
@@ -65,7 +58,7 @@ class EventBookingMiddleware {
           "You don't have permission to manage this booking",
           403
         );
-      } catch (error) {
+      } catch {
         APIResponse(res, null, "Failed to verify booking ownership", 500);
       }
     };
@@ -93,7 +86,7 @@ class EventBookingMiddleware {
           return;
         }
 
-        const eventOwnerId = getOwnerId(event.user);
+        const eventOwnerId = toId(event.user);
 
         if (eventOwnerId !== decoded.id) {
           APIResponse(
@@ -106,7 +99,7 @@ class EventBookingMiddleware {
         }
 
         next();
-      } catch (error) {
+      } catch {
         APIResponse(res, null, "Failed to verify event ownership", 500);
       }
     };

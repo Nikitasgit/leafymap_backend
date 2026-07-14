@@ -1,5 +1,5 @@
-import { deleteFavoriteSchema } from "../../validations/favorite.validations";
-import { IDeleteFavoriteAction } from "@/actions/favorites";
+import { deleteFavoriteSchema } from "@src/api/dto/favorites/favorite.dto";
+import { IDeleteFavoriteUseCase } from "@src/application/usecases/favorites/DeleteFavorite.usecase";
 import {
   Controller,
   createController,
@@ -8,7 +8,7 @@ import {
 } from "@/utils/controllerFactory";
 
 const DeleteFavoriteController = (
-  deleteFavoriteAction: IDeleteFavoriteAction
+  deleteFavoriteUseCase: IDeleteFavoriteUseCase
 ): Controller =>
   createController({
     execute: async (req) => {
@@ -16,7 +16,7 @@ const DeleteFavoriteController = (
         deleteFavoriteSchema,
         req.body
       );
-      await deleteFavoriteAction.execute({
+      await deleteFavoriteUseCase.execute({
         userId: requireAuth(req).id,
         referenceId,
         referenceType,
