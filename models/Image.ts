@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 import AwsService from "@/services/awsService";
 import logger from "@/utils/logger";
+import { IImage } from "@/types/models/Image";
 
 const awsService = new AwsService();
 
@@ -50,7 +51,7 @@ imageSchema.post(
   async function (docs) {
     if (!docs) return;
 
-    const processDoc = async (doc: any) => {
+    const processDoc = async (doc: Pick<IImage, "urls">) => {
       if (doc && doc.urls) {
         try {
           doc.urls.original = await awsService.generateSignedUrlFromFullUrl(

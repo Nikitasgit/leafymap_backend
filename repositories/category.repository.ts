@@ -7,30 +7,39 @@ import {
   ICategoryRepository,
   CategoriesResponse,
 } from "@/types/repositories/category.repository.types";
+import { ICategoryType } from "@/types/models/categoryType";
+import { IUserCategory } from "@/types/models/userCategory";
+import { IPlaceCategory } from "@/types/models/placeCategory";
+import { IProductCategory } from "@/types/models/productCategory";
+import { IEventCategory } from "@/types/models/eventCategory";
 
 class CategoryRepository implements ICategoryRepository {
   async getAllCategories(): Promise<CategoriesResponse> {
-    const categoryTypes = await CategoryType.find().sort({ name: 1 }).lean();
+    const categoryTypes = await CategoryType.find()
+      .sort({ name: 1 })
+      .lean<ICategoryType[]>();
     const userCategories = await UserCategory.find()
       .populate("type")
       .sort({ name: 1 })
-      .lean();
+      .lean<IUserCategory[]>();
     const placeCategories = await PlaceCategory.find()
       .populate("types")
       .sort({ name: 1 })
-      .lean();
+      .lean<IPlaceCategory[]>();
     const productCategories = await ProductCategory.find()
       .populate("type")
       .sort({ name: 1 })
-      .lean();
-    const eventCategories = await EventCategory.find().sort({ name: 1 }).lean();
+      .lean<IProductCategory[]>();
+    const eventCategories = await EventCategory.find()
+      .sort({ name: 1 })
+      .lean<IEventCategory[]>();
 
     return {
-      categoryTypes: categoryTypes as any,
-      userCategories: userCategories as any,
-      placeCategories: placeCategories as any,
-      productCategories: productCategories as any,
-      eventCategories: eventCategories as any,
+      categoryTypes,
+      userCategories,
+      placeCategories,
+      productCategories,
+      eventCategories,
     };
   }
 }

@@ -1,3 +1,4 @@
+import { Response } from "express";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -18,7 +19,7 @@ export const generateToken = (payload: JWTPayload): string => {
   });
 };
 
-export const setTokenCookie = (res: any, token: string): void => {
+export const setTokenCookie = (res: Response, token: string): void => {
   const isProduction = process.env.NODE_ENV === "production";
   res.cookie("token", token, {
     httpOnly: true,

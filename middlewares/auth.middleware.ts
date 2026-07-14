@@ -53,7 +53,7 @@ class AuthMiddleware {
         req.decoded = decoded;
 
         next();
-      } catch (error) {
+      } catch {
         next(
           new UnauthorizedError(
             ERROR_CODES.UNAUTHORIZED,
@@ -97,10 +97,12 @@ class AuthMiddleware {
               req.decoded = decoded;
             }
           }
-        } catch (error) {}
+        } catch {
+          // Invalid token — continue without authentication
+        }
 
         next();
-      } catch (error) {
+      } catch {
         next();
       }
     };

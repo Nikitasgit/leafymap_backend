@@ -47,27 +47,78 @@ npm run build
 # Build en mode watch
 npm run watch
 
+# Vérification ESLint
+npm run lint
+
+# Correction automatique des problèmes ESLint compatibles
+npm run lint:fix
+
 # Démarrage en production
 npm start
 ```
 
+La CI exécute `npm run lint:ci` avec une baseline de 79 warnings. Lorsqu'une
+correction réduit leur nombre, diminuez aussi `--max-warnings` dans
+`package.json` afin d'empêcher leur réintroduction.
+
 ## Architecture du projet
 
+Le backend est en **migration progressive** vers une Clean Architecture. Le code legacy coexiste avec le nouveau dossier `src/`.
+
 ```
-leafymap-backend/
-├── app.ts                 # Configuration Express et middlewares
-├── server.ts              # Point d'entrée de l'application
-├── config/                # Configuration (DB, AWS, etc.)
-├── controllers/           # Logique métier des routes
-├── middlewares/           # Middlewares personnalisés
-├── models/                # Modèles Mongoose
-├── routes/                # Définition des routes API
-├── services/              # Services réutilisables
-├── types/                 # Types et interfaces TypeScript
-├── utils/                 # Fonctions utilitaires
-├── validations/           # Schémas de validation Zod
-└── logs/                  # Logs d'application (Winston)
+leafymap_backend/
+├── src/                          # Nouvelle architecture (Clean Architecture)
+│   ├── api/                      # Présentation HTTP (controllers, dto, routes, composition)
+│   ├── application/              # Use cases + DTOs application
+│   ├── domain/                   # Entités, value objects, ports (interfaces)
+│   ├── infrastructure/           # Repositories Mongoose, mappers, schémas
+│   └── shared/                   # Re-exports transverses (errors, etc.)
+├── app.ts                        # Configuration Express
+├── server.ts                     # Point d'entrée
+├── actions/                      # Legacy — use cases (à migrer vers src/application/usecases)
+├── controllers/                  # Legacy — adapters HTTP
+├── repositories/                 # Legacy — accès données
+├── models/                       # Legacy — schémas Mongoose
+├── routes/                       # Legacy — routes API
+├── di/                           # Composition root partagé (container.ts)
+├── middlewares/
+├── services/
+├── types/
+├── utils/
+└── validations/
 ```
+
+### Module pilote : Favorites
+
+Favorites est le premier module migré. Flux :
+
+```
+Route → Controller → UseCase → Domain Entity / Port → Mongoose Repository
+```
+
+| Couche | Emplacement | Rôle |
+| --- | --- | --- |
+| API | `src/api/` | Validation Zod, mapping HTTP, routes |
+| Application | `src/application/usecases/` | Orchestration métier (ex-`actions/`) |
+| Domain | `src/domain/` | Entité `Favorite`, règles (`belongsTo`), port `IFavoriteRepository` |
+| Infrastructure | `src/infrastructure/` | Mongoose, mapper, adaptateur legacy |
+
+Les consommateurs legacy (`CascadeDeleteService`, `DeleteAccount`) utilisent `LegacyFavoriteRepositoryAdapter` via `di/container.ts`.
+
+### Template de migration (prochaines entités)
+
+1. Créer entité + value objects dans `src/domain/`
+2. Définir le port repository dans `src/domain/interfaces/`
+3. Ajouter DTOs application dans `src/application/dtos/{entity}/`
+4. Implémenter use cases dans `src/application/usecases/{entity}/`
+5. Migrer schéma, mapper et repository dans `src/infrastructure/`
+6. Ajouter DTOs HTTP, controllers, routes et composition dans `src/api/`
+7. Brancher dans `app.ts`, ajouter un adaptateur legacy si nécessaire
+8. Écrire tests dans `__tests__/{entity}/`
+9. Supprimer le code legacy correspondant
+
+Ordre suggéré : Categories → Follows → Products → Images → Events/EventBookings
+
 
 ## Fonctionnalités principales
 
@@ -281,10 +332,10 @@ imageSchema.post(
 
 ### Architecture
 
-- **Séparation des responsabilités** :
-  - Routes → Controllers → Services → Models
-  - Middlewares réutilisables
-  - Utilitaires isolés
+- **Code legacy** : Routes → Controllers → Actions → Repositories → Models
+- **Code migré (`src/`)** : Routes → Controllers → UseCases → Domain → Infrastructure
+- **Alias TypeScript** : `@/*` (legacy), `@src/*` (nouvelle architecture)
+- **Renommage** : `actions/` devient `application/usecases/` dans `src/`
 
 ### Nommage
 
@@ -305,7 +356,7 @@ imageSchema.post(
   {
     success: boolean,
     message: string,
-    data?: any,
+    data?: unknown,
     error?: string
   }
   ```

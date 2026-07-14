@@ -15,7 +15,7 @@ import commentRoutes from "./routes/comment.routes";
 import messageRoutes from "./routes/message.routes";
 import notificationRoutes from "./routes/notification.routes";
 import followRoutes from "./routes/follow.routes";
-import favoriteRoutes from "./routes/favorite.routes";
+import favoriteRoutes from "@src/api/routes/favorite.routes";
 import productRoutes from "./routes/product.routes";
 import adminRoutes from "./routes/admin.routes";
 import cors from "cors";
@@ -32,7 +32,10 @@ const app = express();
 const allowedOrigins = ALLOWED_ORIGINS;
 
 const corsOptions = {
-  origin: (origin: string | undefined, callback: Function) => {
+  origin: (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void
+  ) => {
     if (!origin) {
       return callback(null, true);
     }
@@ -66,7 +69,6 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
   const method = req.method;
   const url = req.originalUrl || req.url;
-  const ip = req.ip || req.socket.remoteAddress;
 
   logger.info(`${method} ${url}`);
   res.on("finish", () => {

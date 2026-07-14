@@ -6,7 +6,11 @@ module.exports = {
   // Le run par défaut n'exécute que les tests unitaires rapides. Les tests
   // d'intégration Mongo (__tests__/repositories) passent par `npm run
   // test:integration`.
-  testPathIgnorePatterns: ["/node_modules/", "/__tests__/repositories/"],
+  testPathIgnorePatterns: [
+    "/node_modules/",
+    "/__tests__/repositories/",
+    "/__tests__/favorites/infrastructure/",
+  ],
   transform: {
     "^.+\\.ts$": "ts-jest",
   },
@@ -21,6 +25,7 @@ module.exports = {
   ],
   moduleFileExtensions: ["ts", "js", "json"],
   moduleNameMapper: {
+    "^@src/(.*)$": "<rootDir>/src/$1",
     "^@/(.*)$": "<rootDir>/$1",
     "^types/(.*)$": "<rootDir>/types/$1",
   },

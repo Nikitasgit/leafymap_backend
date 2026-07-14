@@ -1,5 +1,5 @@
-import { findFavoritesByTypeQuerySchema } from "../../validations/favorite.validations";
-import { IFindFavoritesByUserAndTypeAction } from "@/actions/favorites";
+import { findFavoritesByTypeQuerySchema } from "@src/api/dto/favorites/favorite.dto";
+import { IFindFavoritesByUserAndTypeUseCase } from "@src/application/usecases/favorites/FindFavoritesByUserAndType.usecase";
 import {
   Controller,
   createController,
@@ -8,7 +8,7 @@ import {
 } from "@/utils/controllerFactory";
 
 const FindFavoritesByTypeController = (
-  findFavoritesByUserAndTypeAction: IFindFavoritesByUserAndTypeAction
+  findFavoritesByUserAndTypeUseCase: IFindFavoritesByUserAndTypeUseCase
 ): Controller =>
   createController({
     execute: async (req) => {
@@ -16,11 +16,11 @@ const FindFavoritesByTypeController = (
         findFavoritesByTypeQuerySchema,
         req.query
       );
-      const ids = await findFavoritesByUserAndTypeAction.execute({
+      const output = await findFavoritesByUserAndTypeUseCase.execute({
         userId: requireAuth(req).id,
         referenceType,
       });
-      return { ids };
+      return { ids: output.referenceIds };
     },
     successMessage: "Favoris récupérés avec succès",
   });

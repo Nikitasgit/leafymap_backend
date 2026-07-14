@@ -2,6 +2,7 @@ import { IEventBookingRepository } from "@/types/repositories/eventBooking.repos
 import { IEventRepository } from "@/types/repositories/event.repository.types";
 import NotificationService from "@/services/notificationService";
 import { ERROR_CODES, ForbiddenError, NotFoundError } from "@/utils/errors";
+import { toId } from "@/utils/mongoose";
 
 export interface CancelEventBookingDTO {
   bookingId: string;
@@ -11,14 +12,6 @@ export interface CancelEventBookingDTO {
 export interface ICancelEventBookingAction {
   execute(params: CancelEventBookingDTO): Promise<void>;
 }
-
-const getOwnerId = (owner: unknown): string | undefined => {
-  if (!owner) return undefined;
-  if (typeof owner === "object" && "_id" in (owner as any)) {
-    return (owner as any)._id.toString();
-  }
-  return owner.toString();
-};
 
 class CancelEventBookingAction implements ICancelEventBookingAction {
   constructor(
@@ -46,7 +39,7 @@ class CancelEventBookingAction implements ICancelEventBookingAction {
       return;
     }
 
-    const eventId = getOwnerId(booking.event) as string;
+    const eventId = toId(booking.event) as string;
     const event = await this.eventRepository.findById(eventId, [
       "_id",
       "user",
@@ -65,13 +58,13 @@ class CancelEventBookingAction implements ICancelEventBookingAction {
       cancelledAt: new Date(),
     });
 
-    const bookingUserId = getOwnerId(booking.user) as string;
+    const bookingUserId = toId(booking.user) as string;
 
     if (bookingUserId === requesterId) {
       return;
     }
 
-    const eventOwnerId = event ? getOwnerId(event.user) : undefined;
+    const eventOwnerId = event ? toId(event.user) : null;
 
     if (eventOwnerId === requesterId) {
       await this.notificationService.createNotification({

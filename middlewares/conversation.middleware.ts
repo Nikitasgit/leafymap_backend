@@ -58,7 +58,7 @@ class ConversationMiddleware {
 
         req.conversation = conversation as IConversation;
         next();
-      } catch (error) {
+      } catch {
         APIResponse(
           res,
           null,

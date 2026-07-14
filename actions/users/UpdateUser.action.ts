@@ -20,20 +20,20 @@ class UpdateUserAction implements IUpdateUserAction {
     updateData: Partial<IUser>;
   }): Promise<{ token?: string }> {
     const {
-      password,
-      email,
-      acceptedCGU,
-      acceptedAt,
-      deleted,
-      role,
-      bannedAt,
-      banReason,
-      banDuration,
-      banExpiresAt,
-      lastLogin,
+      password: _password,
+      email: _email,
+      acceptedCGU: _acceptedCGU,
+      acceptedAt: _acceptedAt,
+      deleted: _deleted,
+      role: _role,
+      bannedAt: _bannedAt,
+      banReason: _banReason,
+      banDuration: _banDuration,
+      banExpiresAt: _banExpiresAt,
+      lastLogin: _lastLogin,
       _id,
-      createdAt,
-      updatedAt,
+      createdAt: _createdAt,
+      updatedAt: _updatedAt,
       ...sanitizedData
     } = updateData;
 

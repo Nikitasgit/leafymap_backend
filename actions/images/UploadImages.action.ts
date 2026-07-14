@@ -67,7 +67,7 @@ class UploadImagesAction implements IUploadImagesAction {
     });
 
     const imagesWithSignedUrls = await Promise.all(
-      createdImages.map(async (image: any) => {
+      createdImages.map(async (image) => {
         const signedUrls = {
           original: await this.awsService.generateSignedUrlFromFullUrl(
             image.urls.original

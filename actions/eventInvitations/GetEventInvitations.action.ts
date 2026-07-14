@@ -3,6 +3,17 @@ import {
   EventInvitationFilters,
 } from "@/types/repositories/eventInvitation.repository.types";
 import { IEventInvitation } from "@/types/models/eventInvitation";
+import { IUser } from "@/types/models/user";
+import { Types } from "mongoose";
+
+const getParticipantId = (
+  participant: Types.ObjectId | Partial<IUser>
+): string | undefined => {
+  if (participant instanceof Types.ObjectId) {
+    return participant.toString();
+  }
+  return participant._id?.toString();
+};
 
 export interface GetEventInvitationsInput {
   eventId: string;
@@ -51,20 +62,16 @@ class GetEventInvitationsAction implements IGetEventInvitationsAction {
       project: this.project,
     });
 
-    const filteredInvitations = eventInvitations.filter((invitation: any) => {
+    const filteredInvitations = eventInvitations.filter((invitation) => {
       if (!filters.currentUserId || filters.onlyAccepted) {
         return invitation.status === "accepted";
       }
       const isInitiator =
         invitation.initiator &&
-        (typeof invitation.initiator === "object"
-          ? invitation.initiator._id?.toString()
-          : invitation.initiator.toString()) === filters.currentUserId;
+        getParticipantId(invitation.initiator) === filters.currentUserId;
       const isCollaborator =
         invitation.collaborator &&
-        (typeof invitation.collaborator === "object"
-          ? invitation.collaborator._id?.toString()
-          : invitation.collaborator.toString()) === filters.currentUserId;
+        getParticipantId(invitation.collaborator) === filters.currentUserId;
 
       if (isInitiator || isCollaborator) {
         return true;

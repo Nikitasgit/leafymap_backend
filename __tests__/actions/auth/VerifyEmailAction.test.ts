@@ -1,4 +1,3 @@
-import { Types } from "mongoose";
 import VerifyEmailAction from "@/actions/auth/VerifyEmail.action";
 import { IUserRepository } from "@/types/repositories/user.repository.types";
 import { ERROR_CODES } from "@/utils/errors";
