@@ -88,9 +88,9 @@ leafymap_backend/
 └── validations/
 ```
 
-### Module pilote : Favorites
+### Modules migrés : Favorites, Follows, Comments, Reviews
 
-Favorites est le premier module migré. Flux :
+Flux :
 
 ```
 Route → Controller → UseCase → Domain Entity / Port → Mongoose Repository
@@ -98,26 +98,33 @@ Route → Controller → UseCase → Domain Entity / Port → Mongoose Repositor
 
 | Couche | Emplacement | Rôle |
 | --- | --- | --- |
-| API | `src/api/` | Validation Zod, mapping HTTP, routes |
+| API | `src/api/` | Validation Zod, mapping HTTP, routes, composition |
 | Application | `src/application/usecases/` | Orchestration métier (ex-`actions/`) |
-| Domain | `src/domain/` | Entité `Favorite`, règles (`belongsTo`), port `IFavoriteRepository` |
-| Infrastructure | `src/infrastructure/` | Mongoose, mapper, adaptateur legacy |
+| Domain | `src/domain/` | Entités, value objects, ports (`IFavoriteRepository`, `IFollowRepository`, `ICommentRepository`, `IReviewRepository`, …) |
+| Infrastructure | `src/infrastructure/` | Mongoose, mappers, adapters de side-effects |
 
-Les consommateurs legacy (`CascadeDeleteService`, `DeleteAccount`) utilisent `LegacyFavoriteRepositoryAdapter` via `di/container.ts`.
+Points d’attention :
+
+- Validation ObjectId via `utils/objectId.ts` (mongoose) aux frontières API ; les VOs domain ne font que le branding.
+- `CascadeDeleteService` / `DeleteAccount` / admin consomment directement les ports domain (Favorite, Follow, Comment, Review).
+- Follows ajoute des ports `IFollowCounter` / `IFollowNotifier` (adapters autour des services legacy) et `deleteAllInvolvingUser` à la suppression de compte.
+- Comments réutilise le pattern polymorphe `reference` / `referenceType` (comme Favorites) et expose `findIdsByReferences` / `softDelete` pour cascade et moderation.
+- Reviews : même forme polymorphe (`Place` / `Event`), unicité `(author, reference, referenceType)`, ports `IReviewTargetChecker` / `IReviewRatingUpdater` (adapters Place/Event legacy), soft-delete admin + cascade.
+- Ownership des mutations (delete/update) : règle métier via `entity.belongsTo(actorId)` dans le use case (Follows, Favorites, Comments, Reviews) — pas via middleware HTTP.
+- Existence de la référence à la création d’un comment : port `ICommentReferenceChecker` (+ adapter legacy Image/Review), appelé depuis `CreateCommentUseCase`.
 
 ### Template de migration (prochaines entités)
 
 1. Créer entité + value objects dans `src/domain/`
-2. Définir le port repository dans `src/domain/interfaces/`
-3. Ajouter DTOs application dans `src/application/dtos/{entity}/`
-4. Implémenter use cases dans `src/application/usecases/{entity}/`
-5. Migrer schéma, mapper et repository dans `src/infrastructure/`
-6. Ajouter DTOs HTTP, controllers, routes et composition dans `src/api/`
-7. Brancher dans `app.ts`, ajouter un adaptateur legacy si nécessaire
-8. Écrire tests dans `__tests__/{entity}/`
-9. Supprimer le code legacy correspondant
+2. Définir le port repository (et ports side-effects si besoin) dans `src/domain/interfaces/`
+3. Implémenter use cases dans `src/application/usecases/{entity}/` (DTOs application co-localisés si simples)
+4. Migrer schéma, mapper et repository dans `src/infrastructure/`
+5. Ajouter DTOs HTTP, controllers, routes et composition dans `src/api/`
+6. Brancher dans `app.ts` / `di/container.ts`
+7. Écrire tests dans `__tests__/{entity}/`
+8. Supprimer le code legacy correspondant
 
-Ordre suggéré : Categories → Follows → Products → Images → Events/EventBookings
+Ordre suggéré : **Events/EventBookings** (domaine riche) → Categories / Products / Images (variante légère)
 
 
 ## Fonctionnalités principales

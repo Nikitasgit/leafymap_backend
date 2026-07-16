@@ -1,5 +1,5 @@
 import { Response, NextFunction, RequestHandler } from "express";
-import { isValidObjectId } from "mongoose";
+import { isValidObjectId } from "@/utils/objectId";
 import { z } from "zod";
 import { CustomRequest, IDecodedToken } from "@/types/custom";
 import { APIResponse } from "./response";

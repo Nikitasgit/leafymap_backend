@@ -4,7 +4,9 @@ import { IEventRepository } from "@/types/repositories/event.repository.types";
 import { IPartnershipRepository } from "@/types/repositories/partnership.repository.types";
 import { IEventBookingRepository } from "@/types/repositories/eventBooking.repository.types";
 import { IEventInvitationRepository } from "@/types/repositories/eventInvitation.repository.types";
-import { IFavoriteRepository } from "@/types/repositories/favorite.repository.types";
+import { IFavoriteRepository } from "@src/domain/interfaces/IFavoriteRepository";
+import { IFollowRepository } from "@src/domain/interfaces/IFollowRepository";
+import { UserId } from "@src/domain/value-objects/ObjectId.vo";
 import { INotificationRepository } from "@/types/repositories/notification.repository.types";
 import { IImageRepository } from "@/types/repositories/image.repository.types";
 import CascadeDeleteService from "@/services/cascadeDeleteService";
@@ -23,6 +25,7 @@ class DeleteAccountAction implements IDeleteAccountAction {
     private eventBookingRepository: IEventBookingRepository,
     private eventInvitationRepository: IEventInvitationRepository,
     private favoriteRepository: IFavoriteRepository,
+    private followRepository: IFollowRepository,
     private notificationRepository: INotificationRepository,
     private imageRepository: IImageRepository,
     private cascadeDeleteService: CascadeDeleteService
@@ -68,7 +71,8 @@ class DeleteAccountAction implements IDeleteAccountAction {
       $or: [{ initiator: userId }, { collaborator: userId }],
     });
     await this.eventBookingRepository.deleteMany({ user: userId });
-    await this.favoriteRepository.deleteMany({ user: userId });
+    await this.favoriteRepository.deleteAllByUserId(UserId.from(userId));
+    await this.followRepository.deleteAllInvolvingUser(UserId.from(userId));
     await this.notificationRepository.deleteByUser(userId);
 
     // Images owned by the user or attached to their profile

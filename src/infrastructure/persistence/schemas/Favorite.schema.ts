@@ -1,5 +1,8 @@
 import { Schema, model, Types } from "mongoose";
-import { FavoriteReferenceType } from "@src/domain/value-objects/FavoriteReferenceType.vo";
+import {
+  FAVORITE_REFERENCE_TYPES,
+  FavoriteReferenceType,
+} from "@src/domain/value-objects/FavoriteReferenceType.vo";
 
 export interface FavoriteDocumentProps {
   _id?: Types.ObjectId;
@@ -25,7 +28,7 @@ const favoriteSchema = new Schema<FavoriteDocumentProps>(
     referenceType: {
       type: String,
       required: true,
-      enum: ["Place"] as FavoriteReferenceType[],
+      enum: [...FAVORITE_REFERENCE_TYPES],
     },
   },
   { timestamps: true }

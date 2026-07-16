@@ -1,9 +1,14 @@
 import { Types } from "mongoose";
-import { ICommentRepository } from "@/types/repositories/comment.repository.types";
+import { ICommentRepository } from "@src/domain/interfaces/ICommentRepository";
+import { IReviewRepository } from "@src/domain/interfaces/IReviewRepository";
+import {
+  CommentId,
+  ReviewId,
+  UserId,
+} from "@src/domain/value-objects/ObjectId.vo";
 import { IEventRepository } from "@/types/repositories/event.repository.types";
 import { IImageRepository } from "@/types/repositories/image.repository.types";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
-import { IReviewRepository } from "@/types/repositories/review.repository.types";
 import { ERROR_CODES, NotFoundError } from "@/utils/errors";
 
 export type AdminResource =
@@ -39,6 +44,42 @@ class SoftDeleteAdminResourceAction implements ISoftDeleteAdminResourceAction {
     deleted: boolean;
     reason?: string;
   }): Promise<void> {
+    if (params.resource === "comments") {
+      const commentId = CommentId.from(params.resourceId);
+      const comment = await this.commentRepository.findById(commentId);
+      if (!comment) {
+        throw new NotFoundError(
+          ERROR_CODES.ADMIN_RESOURCE_NOT_FOUND,
+          "Resource not found"
+        );
+      }
+
+      await this.commentRepository.softDelete(commentId, {
+        deleted: params.deleted,
+        adminId: UserId.from(params.adminId),
+        reason: params.reason,
+      });
+      return;
+    }
+
+    if (params.resource === "reviews") {
+      const reviewId = ReviewId.from(params.resourceId);
+      const review = await this.reviewRepository.findById(reviewId);
+      if (!review) {
+        throw new NotFoundError(
+          ERROR_CODES.ADMIN_RESOURCE_NOT_FOUND,
+          "Resource not found"
+        );
+      }
+
+      await this.reviewRepository.softDelete(reviewId, {
+        deleted: params.deleted,
+        adminId: UserId.from(params.adminId),
+        reason: params.reason,
+      });
+      return;
+    }
+
     const update = params.deleted
       ? {
           deleted: true,
@@ -65,13 +106,13 @@ class SoftDeleteAdminResourceAction implements ISoftDeleteAdminResourceAction {
     await repo.updateOne(params.resourceId, update as never);
   }
 
-  private getRepository(resource: AdminResource) {
+  private getRepository(
+    resource: Exclude<AdminResource, "comments" | "reviews">
+  ) {
     const repositories = {
       events: this.eventRepository,
       places: this.placeRepository,
       images: this.imageRepository,
-      reviews: this.reviewRepository,
-      comments: this.commentRepository,
     };
 
     return repositories[resource];

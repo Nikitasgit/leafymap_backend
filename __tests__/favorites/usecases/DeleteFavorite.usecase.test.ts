@@ -68,9 +68,9 @@ describe("DeleteFavoriteUseCase", () => {
     expect(favoriteRepository.delete).not.toHaveBeenCalled();
   });
 
-  it("rejects when the favorite belongs to another user", async () => {
+  it("rejects when the user does not own the favorite", async () => {
+    const userId = mockObjectId();
     const ownerId = mockObjectId();
-    const otherUserId = mockObjectId();
     const referenceId = mockObjectId();
 
     favoriteRepository.findByUserAndReference.mockResolvedValue(
@@ -85,7 +85,7 @@ describe("DeleteFavoriteUseCase", () => {
 
     await expect(
       useCase.execute({
-        userId: otherUserId,
+        userId,
         referenceId,
         referenceType: "Place",
       })

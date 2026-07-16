@@ -1,8 +1,12 @@
 import { IEventRepository } from "@/types/repositories/event.repository.types";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
-import { IReviewRepository } from "@/types/repositories/review.repository.types";
-import { ICommentRepository } from "@/types/repositories/comment.repository.types";
-import { IFavoriteRepository } from "@/types/repositories/favorite.repository.types";
+import { IReviewRepository } from "@src/domain/interfaces/IReviewRepository";
+import { ICommentRepository } from "@src/domain/interfaces/ICommentRepository";
+import { IFavoriteRepository } from "@src/domain/interfaces/IFavoriteRepository";
+import { FavoriteReferenceType } from "@src/domain/value-objects/FavoriteReferenceType.vo";
+import { CommentReferenceType } from "@src/domain/value-objects/CommentReferenceType.vo";
+import { ReviewReferenceType } from "@src/domain/value-objects/ReviewReferenceType.vo";
+import { CommentId, ReferenceId } from "@src/domain/value-objects/ObjectId.vo";
 import { IEventBookingRepository } from "@/types/repositories/eventBooking.repository.types";
 import { IEventInvitationRepository } from "@/types/repositories/eventInvitation.repository.types";
 import { INotificationRepository } from "@/types/repositories/notification.repository.types";
@@ -39,21 +43,21 @@ class CascadeDeleteService {
   ): Promise<void> {
     if (rootIds.length === 0) return;
 
-    const direct = await this.commentRepository.findAll({
-      filters: { reference: { $in: rootIds }, referenceType: rootType },
-      project: ["_id"],
-    });
+    const direct = await this.commentRepository.findIdsByReferences(
+      rootIds.map((id) => ReferenceId.from(id)),
+      CommentReferenceType.from(rootType)
+    );
 
-    let frontier = direct.map((c) => c._id.toString());
+    let frontier = direct.map((id) => id.toString());
     const allIds = new Set(frontier);
 
     while (frontier.length > 0) {
-      const children = await this.commentRepository.findAll({
-        filters: { reference: { $in: frontier }, referenceType: "Comment" },
-        project: ["_id"],
-      });
+      const children = await this.commentRepository.findIdsByReferences(
+        frontier.map((id) => ReferenceId.from(id)),
+        CommentReferenceType.from("Comment")
+      );
       const next = children
-        .map((c) => c._id.toString())
+        .map((id) => id.toString())
         .filter((id) => !allIds.has(id));
       if (next.length === 0) break;
       next.forEach((id) => allIds.add(id));
@@ -61,7 +65,9 @@ class CascadeDeleteService {
     }
 
     if (allIds.size > 0) {
-      await this.commentRepository.deleteMany({ _id: { $in: [...allIds] } });
+      await this.commentRepository.deleteManyByIds(
+        [...allIds].map((id) => CommentId.from(id))
+      );
     }
   }
 
@@ -72,18 +78,21 @@ class CascadeDeleteService {
   ): Promise<void> {
     if (referenceIds.length === 0) return;
 
-    const reviews = await this.reviewRepository.findAll({
-      filters: { reference: { $in: referenceIds }, referenceType },
-      project: ["_id"],
-    });
+    const typedReferenceIds = referenceIds.map((id) => ReferenceId.from(id));
+    const typedReferenceType = ReviewReferenceType.from(referenceType);
+
+    const reviewIds = await this.reviewRepository.findIdsByReferences(
+      typedReferenceIds,
+      typedReferenceType
+    );
     await this.deleteCommentThreads(
-      reviews.map((r) => r._id.toString()),
+      reviewIds.map((id) => id.toString()),
       "Review"
     );
-    await this.reviewRepository.deleteMany({
-      reference: { $in: referenceIds },
-      referenceType,
-    });
+    await this.reviewRepository.deleteManyByReferences(
+      typedReferenceIds,
+      typedReferenceType
+    );
   }
 
   /** Deletes the given images (DB + S3) along with their comment threads. */
@@ -133,10 +142,10 @@ class CascadeDeleteService {
     await this.deleteEvents(events.map((e) => e._id.toString()));
 
     await this.deleteReviewsOn([placeId], "Place");
-    await this.favoriteRepository.deleteMany({
-      reference: placeId,
-      referenceType: "Place",
-    });
+    await this.favoriteRepository.deleteAllByReference(
+      ReferenceId.from(placeId),
+      FavoriteReferenceType.from("Place")
+    );
     await this.notificationRepository.deleteByReferences([placeId]);
 
     const imageIds = await this.findImageIds([placeId], "Place");

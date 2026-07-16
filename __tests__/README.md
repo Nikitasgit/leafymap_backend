@@ -7,6 +7,8 @@ __tests__/
   helpers/        Mocks partagés (createMockRepository, builders, mongoTestSetup)
   actions/        Tests unitaires legacy (repos mockés) — rapides
   favorites/      Tests Clean Architecture (domain, usecases, infrastructure)
+  follows/        Tests Clean Architecture Follows (domain, usecases)
+  comments/       Tests Clean Architecture Comments (domain, usecases)
   validations/    Tests des schémas Zod — rapides
   utils/          Tests des utilitaires (errorHandler, controllerFactory…) — rapides
   controllers/    Smoke tests controllers (peu nombreux, ne pas étendre)
