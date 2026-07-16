@@ -1,8 +1,9 @@
-import { ICommentRepository } from "@/types/repositories/comment.repository.types";
+import { ICommentRepository } from "@src/domain/interfaces/ICommentRepository";
+import { IReviewRepository } from "@src/domain/interfaces/IReviewRepository";
+import { UserId } from "@src/domain/value-objects/ObjectId.vo";
 import { IEventRepository } from "@/types/repositories/event.repository.types";
 import { IImageRepository } from "@/types/repositories/image.repository.types";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
-import { IReviewRepository } from "@/types/repositories/review.repository.types";
 
 export interface IGetAdminUserContentAction {
   execute(params: { userId: string }): Promise<Record<string, unknown[]>>;
@@ -17,7 +18,12 @@ class GetAdminUserContentAction implements IGetAdminUserContentAction {
     private commentRepository: ICommentRepository
   ) {}
 
-  async execute({ userId }: { userId: string }): Promise<Record<string, unknown[]>> {
+  async execute({
+    userId,
+  }: {
+    userId: string;
+  }): Promise<Record<string, unknown[]>> {
+    const authorId = UserId.from(userId);
     const [events, places, images, reviews, comments] = await Promise.all([
       this.eventRepository.findAll({
         filters: { user: userId },
@@ -35,16 +41,8 @@ class GetAdminUserContentAction implements IGetAdminUserContentAction {
         project: ["_id", "type", "referenceType", "deleted", "createdAt"],
         limit: 50,
       }),
-      this.reviewRepository.findAll({
-        filters: { author: userId },
-        project: ["_id", "rating", "comment", "referenceType", "deleted", "createdAt"],
-        limit: 50,
-      }),
-      this.commentRepository.findAll({
-        filters: { author: userId },
-        project: ["_id", "content", "referenceType", "deleted", "createdAt"],
-        limit: 50,
-      }),
+      this.reviewRepository.findByAuthorAdmin(authorId, 50),
+      this.commentRepository.findByAuthor(authorId, 50),
     ]);
 
     return { events, places, images, reviews, comments };

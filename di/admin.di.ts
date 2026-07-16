@@ -1,9 +1,7 @@
 import {
-  CommentRepository,
   EventRepository,
   ImageRepository,
   PlaceRepository,
-  ReviewRepository,
   UserRepository,
 } from "@/repositories";
 import { AdminMiddleware, AuthMiddleware } from "@/middlewares";
@@ -19,13 +17,15 @@ import GetAdminUserContentController from "@/controllers/admin/GetAdminUserConte
 import SearchAdminUsersController from "@/controllers/admin/SearchAdminUsers.controller";
 import SoftDeleteAdminResourceController from "@/controllers/admin/SoftDeleteAdminResource.controller";
 import SoftDeleteAdminUserController from "@/controllers/admin/SoftDeleteAdminUser.controller";
+import {
+  mongooseCommentRepository,
+  mongooseReviewRepository,
+} from "@/di/container";
 
 const userRepository = new UserRepository();
 const eventRepository = new EventRepository();
 const placeRepository = new PlaceRepository();
 const imageRepository = new ImageRepository();
-const reviewRepository = new ReviewRepository();
-const commentRepository = new CommentRepository();
 
 export const authMiddleware = new AuthMiddleware(userRepository);
 export const adminMiddleware = new AdminMiddleware(userRepository);
@@ -36,16 +36,16 @@ const getAdminUserContentAction = new GetAdminUserContentAction(
   eventRepository,
   placeRepository,
   imageRepository,
-  reviewRepository,
-  commentRepository
+  mongooseReviewRepository,
+  mongooseCommentRepository
 );
 const banAdminUserAction = new BanAdminUserAction(userRepository);
 const softDeleteAdminResourceAction = new SoftDeleteAdminResourceAction(
   eventRepository,
   placeRepository,
   imageRepository,
-  reviewRepository,
-  commentRepository
+  mongooseReviewRepository,
+  mongooseCommentRepository
 );
 const softDeleteAdminUserAction = new SoftDeleteAdminUserAction(userRepository);
 
