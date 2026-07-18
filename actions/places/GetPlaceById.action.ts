@@ -4,15 +4,6 @@ import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
 import { PlaceId } from "@src/domain/value-objects/ObjectId.vo";
 import ScheduleService, { EventForSchedule } from "@/services/scheduleService";
 
-type EventPartial = {
-  _id: { toString(): string };
-  name: string;
-  schedule: import("@/types/models/event").IEventPeriod[];
-  status?: "cancelled" | "full" | "available";
-  deleted?: boolean;
-  image?: unknown;
-};
-
 interface IDayScheduleWithEvents extends IDaySchedule {
   events?: EventForSchedule[];
 }
