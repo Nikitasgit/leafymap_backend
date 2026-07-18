@@ -13,7 +13,7 @@ import {
   PlaceId,
   ReferenceId,
 } from "@src/domain/value-objects/ObjectId.vo";
-import { IEventInvitationRepository } from "@/types/repositories/eventInvitation.repository.types";
+import { IEventInvitationRepository } from "@src/domain/interfaces/IEventInvitationRepository";
 import { INotificationRepository } from "@/types/repositories/notification.repository.types";
 import { IImageRepository } from "@/types/repositories/image.repository.types";
 import { IDeleteImagesAction } from "@/actions/images/DeleteImages.action";
@@ -127,7 +127,7 @@ class CascadeDeleteService {
 
     await this.deleteReviewsOn(eventIds, "Event");
     await this.eventBookingRepository.deleteManyByEventIds(typedEventIds);
-    await this.eventInvitationRepository.deleteMany({ eventIn: eventIds });
+    await this.eventInvitationRepository.deleteManyByEventIds(typedEventIds);
     await this.notificationRepository.deleteByReferences(eventIds);
 
     const imageIds = await this.findImageIds(eventIds, "Event");

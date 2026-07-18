@@ -6,6 +6,10 @@ export type CommentId = string & { readonly __brand: "CommentId" };
 export type ReviewId = string & { readonly __brand: "ReviewId" };
 export type EventId = string & { readonly __brand: "EventId" };
 export type EventBookingId = string & { readonly __brand: "EventBookingId" };
+export type EventInvitationId = string & {
+  readonly __brand: "EventInvitationId";
+};
+export type PartnershipId = string & { readonly __brand: "PartnershipId" };
 export type PlaceId = string & { readonly __brand: "PlaceId" };
 export type EventCategoryId = string & { readonly __brand: "EventCategoryId" };
 export type ImageId = string & { readonly __brand: "ImageId" };
@@ -55,6 +59,18 @@ export const EventId = {
 export const EventBookingId = {
   from(value: string): EventBookingId {
     return value as EventBookingId;
+  },
+};
+
+export const EventInvitationId = {
+  from(value: string): EventInvitationId {
+    return value as EventInvitationId;
+  },
+};
+
+export const PartnershipId = {
+  from(value: string): PartnershipId {
+    return value as PartnershipId;
   },
 };
 

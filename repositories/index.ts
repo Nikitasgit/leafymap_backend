@@ -4,7 +4,5 @@ export { default as PlaceRepository } from "./place.repository";
 export { default as MessageRepository } from "./message.repository";
 export { default as ConversationRepository } from "./conversation.repository";
 export { default as ImageRepository } from "./image.repository";
-export { default as PartnershipRepository } from "./partnership.repository";
-export { default as EventInvitationRepository } from "./eventInvitation.repository";
 export { default as NotificationRepository } from "./notification.repository";
 export { default as ProductRepository } from "./product.repository";

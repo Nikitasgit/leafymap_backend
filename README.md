@@ -88,7 +88,7 @@ leafymap_backend/
 └── validations/
 ```
 
-### Modules migrés : Favorites, Follows, Comments, Reviews, Events, EventBookings
+### Modules migrés : Favorites, Follows, Comments, Reviews, Events, EventBookings, EventInvitations, Partnerships
 
 Flux :
 
@@ -100,20 +100,21 @@ Route → Controller → UseCase → Domain Entity / Port → Mongoose Repositor
 | --- | --- | --- |
 | API | `src/api/` | Validation Zod, mapping HTTP, routes, composition |
 | Application | `src/application/usecases/` | Orchestration métier (ex-`actions/`) |
-| Domain | `src/domain/` | Entités, value objects, ports (`IFavoriteRepository`, `IFollowRepository`, `ICommentRepository`, `IReviewRepository`, `IEventRepository`, `IEventBookingRepository`, …) |
+| Domain | `src/domain/` | Entités, value objects, ports (`IFavoriteRepository`, `IFollowRepository`, `ICommentRepository`, `IReviewRepository`, `IEventRepository`, `IEventBookingRepository`, `IEventInvitationRepository`, `IPartnershipRepository`, …) |
 | Infrastructure | `src/infrastructure/` | Mongoose, mappers, adapters de side-effects |
 
 Points d’attention :
 
 - Validation ObjectId via `utils/objectId.ts` (mongoose) aux frontières API ; les VOs domain ne font que le branding.
-- `CascadeDeleteService` / `DeleteAccount` / admin consomment directement les ports domain (Favorite, Follow, Comment, Review, Event, EventBooking).
+- `CascadeDeleteService` / `DeleteAccount` / admin consomment directement les ports domain (Favorite, Follow, Comment, Review, Event, EventBooking, EventInvitation, Partnership).
 - Follows ajoute des ports `IFollowCounter` / `IFollowNotifier` (adapters autour des services legacy) et `deleteAllInvolvingUser` à la suppression de compte.
 - Comments réutilise le pattern polymorphe `reference` / `referenceType` (comme Favorites) et expose `findIdsByReferences` / `softDelete` pour cascade et moderation.
 - Reviews : même forme polymorphe (`Place` / `Event`), unicité `(author, reference, referenceType)`, ports `IReviewTargetChecker` / `IReviewRatingUpdater` (adapters Place/Event), soft-delete admin + cascade.
 - Events : entité riche (schedule, lifecycle, capacity), ports `IPlaceOwnershipChecker` ; lifecycle dérivé du schedule (domain + filet de sécurité schéma) ; cron via `UpdateEventLifecycleStatusUseCase`.
 - EventBookings : règles de capacité / unicité / fenêtres `upcoming` dans les use cases ; port `IEventNotifier` pour les notifications organisateur.
-- EventInvitations restent en legacy et consomment le port domain `IEventRepository`.
-- Ownership des mutations (delete/update) : règle métier via `entity.belongsTo(actorId)` dans le use case — pas via middleware HTTP (sauf invitations qui réutilisent encore `EventsMiddleware`).
+- EventInvitations : transitions de statut (accept/refuse/cancel), ownership create via `event.belongsTo`, port `IEventInvitationNotifier`, retrait collaborateur du schedule à la suppression.
+- Partnerships : invitation user↔user (`pending` → `accepted`), unicité bidirectionnelle, accept réservé au collaborateur, soft-delete via `cancel`, port `IPartnershipNotifier`.
+- Ownership des mutations (delete/update) : règle métier via `entity.belongsTo(actorId)` / `isParticipant` dans le use case — pas via middleware HTTP.
 - Existence de la référence à la création d’un comment : port `ICommentReferenceChecker` (+ adapter legacy Image/Review), appelé depuis `CreateCommentUseCase`.
 
 ### Template de migration (prochaines entités)
@@ -127,7 +128,7 @@ Points d’attention :
 7. Écrire tests dans `__tests__/{entity}/`
 8. Supprimer le code legacy correspondant
 
-Ordre suggéré : **EventInvitations** → Categories / Products / Images (variante légère) → Places / Users
+Ordre suggéré : **Categories / Products / Images** (variante légère) → Places / Users
 
 
 ## Fonctionnalités principales

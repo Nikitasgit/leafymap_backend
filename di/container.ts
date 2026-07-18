@@ -5,8 +5,6 @@ import {
   MessageRepository,
   ConversationRepository,
   ImageRepository,
-  PartnershipRepository,
-  EventInvitationRepository,
   NotificationRepository,
   ProductRepository,
 } from "@/repositories";
@@ -16,6 +14,8 @@ import MongooseFollowRepository from "@src/infrastructure/repositories/MongooseF
 import MongooseReviewRepository from "@src/infrastructure/repositories/MongooseReviewRepository";
 import MongooseEventRepository from "@src/infrastructure/repositories/MongooseEventRepository";
 import MongooseEventBookingRepository from "@src/infrastructure/repositories/MongooseEventBookingRepository";
+import MongooseEventInvitationRepository from "@src/infrastructure/repositories/MongooseEventInvitationRepository";
+import MongoosePartnershipRepository from "@src/infrastructure/repositories/MongoosePartnershipRepository";
 import { DeleteImagesAction } from "@/actions/images";
 import CascadeDeleteService from "@/services/cascadeDeleteService";
 import { AuthMiddleware, RateLimiterMiddleware } from "@/middlewares";
@@ -28,8 +28,9 @@ export const mongooseEventRepository = new MongooseEventRepository();
 export const messageRepository = new MessageRepository();
 export const conversationRepository = new ConversationRepository();
 export const imageRepository = new ImageRepository();
-export const partnershipRepository = new PartnershipRepository();
-export const eventInvitationRepository = new EventInvitationRepository();
+export const mongoosePartnershipRepository = new MongoosePartnershipRepository();
+export const mongooseEventInvitationRepository =
+  new MongooseEventInvitationRepository();
 export const mongooseEventBookingRepository =
   new MongooseEventBookingRepository();
 export const notificationRepository = new NotificationRepository();
@@ -53,7 +54,7 @@ export const cascadeDeleteService = new CascadeDeleteService(
   mongooseCommentRepository,
   mongooseFavoriteRepository,
   mongooseEventBookingRepository,
-  eventInvitationRepository,
+  mongooseEventInvitationRepository,
   notificationRepository,
   imageRepository,
   deleteImagesAction

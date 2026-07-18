@@ -1,6 +1,7 @@
 import cron from "node-cron";
-import { IEventInvitationRepository } from "@/types/repositories/eventInvitation.repository.types";
+import { IEventInvitationRepository } from "@src/domain/interfaces/IEventInvitationRepository";
 import { IUpdateEventLifecycleStatusUseCase } from "@src/application/usecases/events/UpdateEventLifecycleStatus.usecase";
+import { EventId } from "@src/domain/value-objects/ObjectId.vo";
 import logger from "@/utils/logger";
 
 class EventsCronService {
@@ -17,13 +18,10 @@ class EventsCronService {
           await this.updateEventLifecycleStatusUseCase.execute();
 
         if (transitionedEventIds.length > 0) {
-          const cancelledCount = await this.eventInvitationRepo.updateMany(
-            {
-              eventIn: transitionedEventIds,
-              status: "pending",
-            },
-            { status: "cancelled", deleted: true }
-          );
+          const cancelledCount =
+            await this.eventInvitationRepo.cancelPendingByEventIds(
+              transitionedEventIds.map((id) => EventId.from(id))
+            );
           if (cancelledCount > 0) {
             logger.info(
               `Cancelled ${cancelledCount} pending event invitations for ended events.`

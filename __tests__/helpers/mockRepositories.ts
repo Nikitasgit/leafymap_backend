@@ -1,7 +1,6 @@
 import { Types } from "mongoose";
 import { IUser } from "@/types/models/user";
 import { IEvent, IEventPeriod } from "@/types/models/event";
-import { IPartnership } from "@/types/models/partnership";
 
 type CreateEventDTO = {
   name: string;
@@ -134,15 +133,3 @@ export const buildEventValidationPayload = (
     ...overrides,
   };
 };
-
-/** Minimal partnership for action tests. */
-export const buildPartnership = (
-  overrides: Partial<IPartnership> = {}
-): Partial<IPartnership> => ({
-  _id: new Types.ObjectId(),
-  initiator: new Types.ObjectId(),
-  collaborator: new Types.ObjectId(),
-  status: "pending",
-  deleted: false,
-  ...overrides,
-});

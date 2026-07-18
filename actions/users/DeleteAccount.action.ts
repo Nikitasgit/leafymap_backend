@@ -2,8 +2,8 @@ import { IUserRepository } from "@/types/repositories/user.repository.types";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
 import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
 import { IEventBookingRepository } from "@src/domain/interfaces/IEventBookingRepository";
-import { IPartnershipRepository } from "@/types/repositories/partnership.repository.types";
-import { IEventInvitationRepository } from "@/types/repositories/eventInvitation.repository.types";
+import { IPartnershipRepository } from "@src/domain/interfaces/IPartnershipRepository";
+import { IEventInvitationRepository } from "@src/domain/interfaces/IEventInvitationRepository";
 import { IFavoriteRepository } from "@src/domain/interfaces/IFavoriteRepository";
 import { IFollowRepository } from "@src/domain/interfaces/IFollowRepository";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
@@ -60,12 +60,8 @@ class DeleteAccountAction implements IDeleteAccountAction {
     await this.eventRepository.removeCollaborator(typedUserId);
 
     // Data linking the user to other entities
-    await this.partnershipRepository.deleteMany({
-      $or: [{ initiator: userId }, { collaborator: userId }],
-    });
-    await this.eventInvitationRepository.deleteMany({
-      $or: [{ initiator: userId }, { collaborator: userId }],
-    });
+    await this.partnershipRepository.deleteManyByUserId(typedUserId);
+    await this.eventInvitationRepository.deleteManyByUserId(typedUserId);
     await this.eventBookingRepository.deleteManyByUserId(typedUserId);
     await this.favoriteRepository.deleteAllByUserId(typedUserId);
     await this.followRepository.deleteAllInvolvingUser(typedUserId);

@@ -1,6 +1,5 @@
 import { IEventBookingRepository } from "@src/domain/interfaces/IEventBookingRepository";
 import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
-import { IEventNotifier } from "@src/domain/interfaces/IEventNotifier";
 import {
   EventBookingId,
   UserId,
@@ -24,8 +23,7 @@ export interface IUpdateEventBookingUseCase {
 class UpdateEventBookingUseCase implements IUpdateEventBookingUseCase {
   constructor(
     private readonly eventBookingRepository: IEventBookingRepository,
-    private readonly eventRepository: IEventRepository,
-    private readonly eventNotifier: IEventNotifier
+    private readonly eventRepository: IEventRepository
   ) {}
 
   async execute(params: {
@@ -88,14 +86,6 @@ class UpdateEventBookingUseCase implements IUpdateEventBookingUseCase {
 
     const updated = booking.updateSeats(params.seats);
     await this.eventBookingRepository.update(updated);
-
-    if (isEventOwner && !isBookingOwner) {
-      await this.eventNotifier.notifyBookingCancelled({
-        senderId: requesterId,
-        receiverId: booking.userId,
-        eventId: booking.eventId,
-      });
-    }
   }
 }
 

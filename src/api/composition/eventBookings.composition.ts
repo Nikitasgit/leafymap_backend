@@ -26,8 +26,7 @@ const createEventBookingUseCase = new CreateEventBookingUseCase(
 );
 const updateEventBookingUseCase = new UpdateEventBookingUseCase(
   mongooseEventBookingRepository,
-  mongooseEventRepository,
-  eventNotifier
+  mongooseEventRepository
 );
 const cancelEventBookingUseCase = new CancelEventBookingUseCase(
   mongooseEventBookingRepository,
