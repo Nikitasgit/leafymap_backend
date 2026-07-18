@@ -4,9 +4,10 @@ import { CustomRequest } from "@/types/custom";
 import { ImageReferenceType } from "@/types/repositories/image.repository.types";
 import { IImageRepository } from "@/types/repositories/image.repository.types";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
-import { IEventRepository } from "@/types/repositories/event.repository.types";
-import { IEvent, IPlace } from "@/types/models";
-import { resolveOwnerId, toId } from "@/utils/mongoose";
+import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
+import { EventId } from "@src/domain/value-objects/ObjectId.vo";
+import { IPlace } from "@/types/models";
+import { toId } from "@/utils/mongoose";
 
 class ImagesMiddleware {
   constructor(
@@ -104,7 +105,7 @@ class ImagesMiddleware {
         }
 
         let isOwner = false;
-        let foundReference: IPlace | IEvent | null = null;
+        let foundReference: IPlace | Record<string, unknown> | null = null;
 
         switch (referenceType as ImageReferenceType) {
           case "Place": {
@@ -126,11 +127,9 @@ class ImagesMiddleware {
           }
 
           case "Event": {
-            const event = await this.eventRepository.findById(reference, [
-              "user",
-              "place",
-              "place.user",
-            ]);
+            const event = await this.eventRepository.findById(
+              EventId.from(reference)
+            );
             if (!event) {
               APIResponse(
                 res,
@@ -141,19 +140,8 @@ class ImagesMiddleware {
               return;
             }
 
-            const ownerId = resolveOwnerId(event);
-            if (!ownerId) {
-              APIResponse(
-                res,
-                null,
-                "Erreur lors de la vérification de propriété",
-                500
-              );
-              return;
-            }
-
-            isOwner = ownerId === userId;
-            foundReference = event;
+            isOwner = event.ownerId === userId;
+            foundReference = { _id: event.id, user: event.ownerId };
             break;
           }
 
@@ -180,7 +168,7 @@ class ImagesMiddleware {
         }
 
         req.imageReferenceIsOwner = isOwner;
-        req.imageReference = foundReference;
+        req.imageReference = foundReference as never;
 
         next();
       } catch {

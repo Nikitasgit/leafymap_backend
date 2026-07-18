@@ -1,9 +1,9 @@
 import {
   userRepository,
   placeRepository,
-  eventRepository,
+  mongooseEventRepository,
   partnershipRepository,
-  eventBookingRepository,
+  mongooseEventBookingRepository,
   eventInvitationRepository,
   mongooseFavoriteRepository,
   mongooseFollowRepository,
@@ -37,7 +37,7 @@ export const rateLimiterMiddleware = sharedRateLimiterMiddleware;
 const getUserByIdAction = new GetUserByIdAction(userRepository);
 const getPlaceByIdAction = new GetPlaceByIdAction(
   placeRepository,
-  eventRepository
+  mongooseEventRepository
 );
 const getUserProfileAction = new GetUserProfileAction(
   userRepository,
@@ -48,9 +48,9 @@ const updateUserAction = new UpdateUserAction(userRepository);
 const deleteAccountAction = new DeleteAccountAction(
   userRepository,
   placeRepository,
-  eventRepository,
+  mongooseEventRepository,
   partnershipRepository,
-  eventBookingRepository,
+  mongooseEventBookingRepository,
   eventInvitationRepository,
   mongooseFavoriteRepository,
   mongooseFollowRepository,

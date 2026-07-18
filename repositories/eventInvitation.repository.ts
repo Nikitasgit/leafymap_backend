@@ -1,5 +1,5 @@
 import { EventInvitation } from "../models/EventInvitation";
-import Event from "../models/Event";
+import EventModel from "@src/infrastructure/persistence/schemas/Event.schema";
 import { IEventInvitation } from "@/types/models/eventInvitation";
 import { IEvent } from "@/types/models/event";
 import {
@@ -134,7 +134,7 @@ class EventInvitationRepository implements IEventInvitationRepository {
       ];
     }
 
-    const events = await Event.find(eventQuery).select("_id").lean();
+    const events = await EventModel.find(eventQuery).select("_id").lean();
     return events.map((event) => event._id);
   }
 

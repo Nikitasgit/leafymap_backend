@@ -1,12 +1,13 @@
 import { Types } from "mongoose";
 import { ICommentRepository } from "@src/domain/interfaces/ICommentRepository";
 import { IReviewRepository } from "@src/domain/interfaces/IReviewRepository";
+import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
 import {
   CommentId,
+  EventId,
   ReviewId,
   UserId,
 } from "@src/domain/value-objects/ObjectId.vo";
-import { IEventRepository } from "@/types/repositories/event.repository.types";
 import { IImageRepository } from "@/types/repositories/image.repository.types";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
 import { ERROR_CODES, NotFoundError } from "@/utils/errors";
@@ -80,6 +81,24 @@ class SoftDeleteAdminResourceAction implements ISoftDeleteAdminResourceAction {
       return;
     }
 
+    if (params.resource === "events") {
+      const eventId = EventId.from(params.resourceId);
+      const event = await this.eventRepository.findById(eventId);
+      if (!event) {
+        throw new NotFoundError(
+          ERROR_CODES.ADMIN_RESOURCE_NOT_FOUND,
+          "Resource not found"
+        );
+      }
+
+      await this.eventRepository.softDelete(eventId, {
+        deleted: params.deleted,
+        adminId: UserId.from(params.adminId),
+        reason: params.reason,
+      });
+      return;
+    }
+
     const update = params.deleted
       ? {
           deleted: true,
@@ -94,7 +113,10 @@ class SoftDeleteAdminResourceAction implements ISoftDeleteAdminResourceAction {
           deleteReason: undefined,
         };
 
-    const repo = this.getRepository(params.resource);
+    const repo =
+      params.resource === "places"
+        ? this.placeRepository
+        : this.imageRepository;
     const item = await repo.findById(params.resourceId, ["_id"]);
     if (!item) {
       throw new NotFoundError(
@@ -104,18 +126,6 @@ class SoftDeleteAdminResourceAction implements ISoftDeleteAdminResourceAction {
     }
 
     await repo.updateOne(params.resourceId, update as never);
-  }
-
-  private getRepository(
-    resource: Exclude<AdminResource, "comments" | "reviews">
-  ) {
-    const repositories = {
-      events: this.eventRepository,
-      places: this.placeRepository,
-      images: this.imageRepository,
-    };
-
-    return repositories[resource];
   }
 }
 

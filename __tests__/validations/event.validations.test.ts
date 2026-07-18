@@ -1,7 +1,7 @@
 import {
   getEventsQuerySchema,
   newEventSchema,
-} from "@/validations/event.validations";
+} from "@src/api/dto/events/event.dto";
 import { buildEventValidationPayload } from "../helpers/mockRepositories";
 
 const location = {

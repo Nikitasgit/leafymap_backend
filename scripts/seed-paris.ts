@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import User from "../models/User";
 import Place from "../models/Place";
-import Event from "../models/Event";
+import Event from "../src/infrastructure/persistence/schemas/Event.schema";
 import { EventInvitation } from "../models/EventInvitation";
 import { Partnership } from "../models/Partnership";
 import PlaceCategory from "../models/PlaceCategory";

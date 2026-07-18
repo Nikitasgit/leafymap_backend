@@ -1,6 +1,6 @@
 import "dotenv/config";
 import mongoose from "mongoose";
-import Event from "../models/Event";
+import Event from "../src/infrastructure/persistence/schemas/Event.schema";
 import Place from "../models/Place";
 
 async function migrateEventsUser() {

@@ -2,7 +2,22 @@ import { Types } from "mongoose";
 import { IUser } from "@/types/models/user";
 import { IEvent, IEventPeriod } from "@/types/models/event";
 import { IPartnership } from "@/types/models/partnership";
-import { CreateEventDTO } from "@/actions/events/CreateEvent.action";
+
+type CreateEventDTO = {
+  name: string;
+  description: string;
+  eventCategory: string;
+  schedule: IEventPeriod[];
+  user: string;
+  place?: string | null;
+  location?: unknown;
+  online?: boolean;
+  image?: string;
+  status?: "cancelled" | "full" | "available";
+  isBookable?: boolean;
+  capacity?: number | null;
+  maxSeatsPerBooking?: number;
+};
 
 const defaultEventSchedule: IEventPeriod[] = [
   {

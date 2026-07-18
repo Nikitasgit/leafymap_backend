@@ -1,13 +1,13 @@
-import { Types } from "mongoose";
 import { IEventInvitationRepository } from "@/types/repositories/eventInvitation.repository.types";
-import { IEventRepository } from "@/types/repositories/event.repository.types";
-import { IEventPeriod } from "@/types/models/event";
+import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
+import { EventId } from "@src/domain/value-objects/ObjectId.vo";
 
 class EventInvitationService {
   constructor(
     private eventInvitationRepository: IEventInvitationRepository,
     private eventRepository: IEventRepository
   ) {}
+
   async deleteEventInvitation(invitationId: string): Promise<void> {
     const invitation = await this.eventInvitationRepository.findById(
       invitationId
@@ -15,26 +15,26 @@ class EventInvitationService {
     if (!invitation) {
       throw new Error(`Event invitation ${invitationId} not found`);
     }
-    const eventId = invitation.event.toString();
+    const eventId = EventId.from(invitation.event.toString());
     const collaboratorId = invitation.collaborator.toString();
     await this.eventInvitationRepository.deleteOne(invitationId);
-    const event = await this.eventRepository.findById(eventId, ["schedule"]);
-    if (!event || !event.schedule || event.schedule.length === 0) {
+
+    const schedule = await this.eventRepository.findScheduleById(eventId);
+    if (!schedule || schedule.length === 0) {
       return;
     }
-    const collaboratorObjectId = new Types.ObjectId(collaboratorId);
-    const updatedSchedule: IEventPeriod[] = event.schedule.map((period) => ({
+
+    const updatedSchedule = schedule.map((period) => ({
       ...period,
       timeSlots: (period.timeSlots ?? []).map((slot) => ({
         ...slot,
-        collaborators: (slot.collaborators ?? []).filter(
-          (id) => !new Types.ObjectId(id).equals(collaboratorObjectId)
+        collaboratorIds: (slot.collaboratorIds ?? []).filter(
+          (id) => id !== collaboratorId
         ),
       })),
     }));
-    await this.eventRepository.updateOne(eventId, {
-      schedule: updatedSchedule,
-    });
+
+    await this.eventRepository.updateSchedule(eventId, updatedSchedule);
   }
 }
 

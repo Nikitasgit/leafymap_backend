@@ -1,7 +1,7 @@
 import { ICommentRepository } from "@src/domain/interfaces/ICommentRepository";
 import { IReviewRepository } from "@src/domain/interfaces/IReviewRepository";
+import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
-import { IEventRepository } from "@/types/repositories/event.repository.types";
 import { IImageRepository } from "@/types/repositories/image.repository.types";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
 
@@ -25,11 +25,7 @@ class GetAdminUserContentAction implements IGetAdminUserContentAction {
   }): Promise<Record<string, unknown[]>> {
     const authorId = UserId.from(userId);
     const [events, places, images, reviews, comments] = await Promise.all([
-      this.eventRepository.findAll({
-        filters: { user: userId },
-        project: ["_id", "name", "status", "deleted", "createdAt", "updatedAt"],
-        limit: 50,
-      }),
+      this.eventRepository.findByAuthorAdmin(authorId, 50),
       this.placeRepository.findAll({
         filters: { user: userId },
         project: ["_id", "location", "deleted", "createdAt", "updatedAt"],

@@ -1,8 +1,4 @@
-import {
-  EventInvitationRepository,
-  EventRepository,
-  UserRepository,
-} from "@/repositories";
+import { EventInvitationRepository, UserRepository } from "@/repositories";
 import {
   CreateEventInvitationsAction,
   UpdateEventInvitationAction,
@@ -17,15 +13,15 @@ import {
 } from "@/controllers/eventInvitations";
 import { AuthMiddleware } from "@/middlewares";
 import { notificationService } from "@/di/notification.di";
+import { mongooseEventRepository } from "@/di/container";
 import EventInvitationService from "@/services/eventInvitationService";
 
 const eventInvitationRepository = new EventInvitationRepository();
-const eventRepository = new EventRepository();
 const userRepository = new UserRepository();
 
 export const eventInvitationService = new EventInvitationService(
   eventInvitationRepository,
-  eventRepository
+  mongooseEventRepository
 );
 
 export const authMiddleware = new AuthMiddleware(userRepository);

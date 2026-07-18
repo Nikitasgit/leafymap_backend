@@ -1,28 +1,20 @@
 import cron from "node-cron";
-import { IEventRepository } from "@/types/repositories/event.repository.types";
 import { IEventInvitationRepository } from "@/types/repositories/eventInvitation.repository.types";
-import { UpdateEventLifecycleStatusAction } from "@/actions/events";
+import { IUpdateEventLifecycleStatusUseCase } from "@src/application/usecases/events/UpdateEventLifecycleStatus.usecase";
 import logger from "@/utils/logger";
 
 class EventsCronService {
-  private updateEventLifecycleStatusAction: UpdateEventLifecycleStatusAction;
-  private eventInvitationRepo: IEventInvitationRepository;
-
   constructor(
-    eventRepository: IEventRepository,
-    eventInvitationRepo: IEventInvitationRepository
-  ) {
-    this.updateEventLifecycleStatusAction =
-      new UpdateEventLifecycleStatusAction(eventRepository);
-    this.eventInvitationRepo = eventInvitationRepo;
-  }
+    private updateEventLifecycleStatusUseCase: IUpdateEventLifecycleStatusUseCase,
+    private eventInvitationRepo: IEventInvitationRepository
+  ) {}
 
   start(): void {
     cron.schedule("*/10 * * * *", async () => {
       try {
         logger.info("Starting scheduled event lifecycle status update...");
         const transitionedEventIds =
-          await this.updateEventLifecycleStatusAction.execute();
+          await this.updateEventLifecycleStatusUseCase.execute();
 
         if (transitionedEventIds.length > 0) {
           const cancelledCount = await this.eventInvitationRepo.updateMany(
@@ -47,7 +39,7 @@ class EventsCronService {
     });
 
     logger.info(
-      "Cron jobs started: Event lifecycle status update (every 2 minutes)"
+      "Cron jobs started: Event lifecycle status update (every 10 minutes)"
     );
   }
 }

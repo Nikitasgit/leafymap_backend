@@ -1,13 +1,18 @@
-import { IEventRepository } from "@/types/repositories/event.repository.types";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
 import { IReviewRepository } from "@src/domain/interfaces/IReviewRepository";
 import { ICommentRepository } from "@src/domain/interfaces/ICommentRepository";
 import { IFavoriteRepository } from "@src/domain/interfaces/IFavoriteRepository";
+import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
+import { IEventBookingRepository } from "@src/domain/interfaces/IEventBookingRepository";
 import { FavoriteReferenceType } from "@src/domain/value-objects/FavoriteReferenceType.vo";
 import { CommentReferenceType } from "@src/domain/value-objects/CommentReferenceType.vo";
 import { ReviewReferenceType } from "@src/domain/value-objects/ReviewReferenceType.vo";
-import { CommentId, ReferenceId } from "@src/domain/value-objects/ObjectId.vo";
-import { IEventBookingRepository } from "@/types/repositories/eventBooking.repository.types";
+import {
+  CommentId,
+  EventId,
+  PlaceId,
+  ReferenceId,
+} from "@src/domain/value-objects/ObjectId.vo";
 import { IEventInvitationRepository } from "@/types/repositories/eventInvitation.repository.types";
 import { INotificationRepository } from "@/types/repositories/notification.repository.types";
 import { IImageRepository } from "@/types/repositories/image.repository.types";
@@ -118,28 +123,27 @@ class CascadeDeleteService {
   async deleteEvents(eventIds: string[]): Promise<void> {
     if (eventIds.length === 0) return;
 
+    const typedEventIds = eventIds.map((id) => EventId.from(id));
+
     await this.deleteReviewsOn(eventIds, "Event");
-    await this.eventBookingRepository.deleteMany({
-      event: { $in: eventIds },
-    });
+    await this.eventBookingRepository.deleteManyByEventIds(typedEventIds);
     await this.eventInvitationRepository.deleteMany({ eventIn: eventIds });
     await this.notificationRepository.deleteByReferences(eventIds);
 
     const imageIds = await this.findImageIds(eventIds, "Event");
     await this.deleteImagesWithComments(imageIds);
 
-    await this.eventRepository.deleteMany({ _id: { $in: eventIds } });
+    await this.eventRepository.deleteManyByIds(typedEventIds);
 
     logger.info(`Cascade-deleted ${eventIds.length} event(s)`);
   }
 
   /** Deletes the place, its events, and everything depending on them. */
   async deletePlace(placeId: string): Promise<void> {
-    const events = await this.eventRepository.findAll({
-      filters: { place: placeId },
-      project: ["_id"],
-    });
-    await this.deleteEvents(events.map((e) => e._id.toString()));
+    const eventIds = await this.eventRepository.findIdsByPlace(
+      PlaceId.from(placeId)
+    );
+    await this.deleteEvents(eventIds.map((id) => id.toString()));
 
     await this.deleteReviewsOn([placeId], "Place");
     await this.favoriteRepository.deleteAllByReference(

@@ -1,13 +1,17 @@
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
 import { IPlace, IDaySchedule } from "@/types/models/place";
-import { IEventRepository } from "@/types/repositories/event.repository.types";
-import { IEvent } from "@/types/models/event";
+import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
+import { PlaceId } from "@src/domain/value-objects/ObjectId.vo";
 import ScheduleService, { EventForSchedule } from "@/services/scheduleService";
 
-type EventPartial = Pick<
-  IEvent,
-  "_id" | "name" | "schedule" | "status" | "deleted" | "image"
->;
+type EventPartial = {
+  _id: { toString(): string };
+  name: string;
+  schedule: import("@/types/models/event").IEventPeriod[];
+  status?: "cancelled" | "full" | "available";
+  deleted?: boolean;
+  image?: unknown;
+};
 
 interface IDayScheduleWithEvents extends IDaySchedule {
   events?: EventForSchedule[];
@@ -93,22 +97,15 @@ class GetPlaceByIdAction implements IGetPlaceByIdAction {
 
     const weekRange = this.scheduleService.getCurrentWeekRange();
 
-    const events = await this.eventRepository.findAll<
-      "_id" | "name" | "schedule" | "status" | "deleted" | "image"
-    >({
-      filters: {
-        place: placeId,
-        deleted: false,
-        dateRange: {
-          start: weekRange.start,
-          end: weekRange.end,
-        },
-      },
-      project: ["_id", "name", "schedule", "status", "deleted", "image.urls"],
-    });
+    const events = await this.eventRepository.findByPlaceInDateRange(
+      PlaceId.from(placeId),
+      weekRange.start,
+      weekRange.end
+    );
 
     const eventsByDay = this.scheduleService.groupEventsByDay(
-      events as EventPartial[]
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      events as any
     );
 
     const enrichedSchedule: IDefaultScheduleWithEvents = {

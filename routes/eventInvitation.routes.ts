@@ -6,7 +6,7 @@ import {
   getEventInvitationsByUserId,
   authMiddleware,
 } from "../di/eventInvitation.di";
-import { eventsMiddleware } from "../di/event.di";
+import { eventsMiddleware } from "@src/api/composition/events.composition";
 
 const router: Router = express.Router();
 
