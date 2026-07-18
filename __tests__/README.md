@@ -102,8 +102,7 @@ Utils :
 
 Actions :
 
-- [ ] `actions/eventInvitations/CreateEventInvitations.action.ts`,
-      `UpdateEventInvitation.action.ts`
+- [x] EventInvitations (domain + Create/Update use cases + validations)
 - [ ] `actions/auth/RequestPasswordReset.action.ts`
 
 Validations :

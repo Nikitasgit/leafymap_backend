@@ -1,9 +1,9 @@
 import { IReviewRatingUpdater } from "@src/domain/interfaces/IReviewRatingUpdater";
 import { IReviewRepository } from "@src/domain/interfaces/IReviewRepository";
+import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
 import { ReviewReferenceType } from "@src/domain/value-objects/ReviewReferenceType.vo";
-import { ReferenceId } from "@src/domain/value-objects/ObjectId.vo";
+import { EventId, ReferenceId } from "@src/domain/value-objects/ObjectId.vo";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
-import { IEventRepository } from "@/types/repositories/event.repository.types";
 
 class LegacyReviewRatingUpdaterAdapter implements IReviewRatingUpdater {
   constructor(
@@ -34,9 +34,10 @@ class LegacyReviewRatingUpdaterAdapter implements IReviewRatingUpdater {
         });
         break;
       case "Event":
-        await this.eventRepository.updateOne(referenceId, {
-          rating: averageRating,
-        });
+        await this.eventRepository.updateRating(
+          EventId.from(referenceId),
+          averageRating
+        );
         break;
     }
   }

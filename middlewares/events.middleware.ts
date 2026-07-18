@@ -2,8 +2,8 @@ import { Response, NextFunction, RequestHandler } from "express";
 import { APIResponse } from "@/utils/response";
 import { getParam } from "@/utils/request";
 import { CustomRequest } from "@/types/custom";
-import { IEventRepository } from "@/types/repositories/event.repository.types";
-import { isEventOwner } from "@/utils/mongoose";
+import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
+import { EventId, UserId } from "@src/domain/value-objects/ObjectId.vo";
 
 class EventsMiddleware {
   constructor(private eventRepository: IEventRepository) {}
@@ -16,24 +16,22 @@ class EventsMiddleware {
     ): Promise<void> => {
       try {
         const decoded = req.decoded!;
-        const eventId = getParam(req.params, "eventId");
+        const eventIdParam = getParam(req.params, "eventId");
 
-        if (!eventId) {
+        if (!eventIdParam) {
           APIResponse(res, null, "Event ID is required", 400);
           return;
         }
 
-        const event = await this.eventRepository.findById(eventId, [
-          "user",
-          "place",
-          "place.user",
-        ]);
-        if (!event) {
+        const event = await this.eventRepository.findById(
+          EventId.from(eventIdParam)
+        );
+        if (!event || event.deleted) {
           APIResponse(res, null, "Event not found", 404);
           return;
         }
 
-        if (!isEventOwner(event, decoded.id)) {
+        if (!event.belongsTo(UserId.from(decoded.id))) {
           APIResponse(
             res,
             null,

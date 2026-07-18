@@ -1,9 +1,13 @@
 import { IReviewTargetChecker } from "@src/domain/interfaces/IReviewTargetChecker";
 import { ReviewReferenceType } from "@src/domain/value-objects/ReviewReferenceType.vo";
-import { ReferenceId, UserId } from "@src/domain/value-objects/ObjectId.vo";
+import {
+  EventId,
+  ReferenceId,
+  UserId,
+} from "@src/domain/value-objects/ObjectId.vo";
+import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
-import { IEventRepository } from "@/types/repositories/event.repository.types";
-import { resolveOwnerId, toId } from "@/utils/mongoose";
+import { toId } from "@/utils/mongoose";
 
 class LegacyReviewTargetCheckerAdapter implements IReviewTargetChecker {
   constructor(
@@ -23,9 +27,9 @@ class LegacyReviewTargetCheckerAdapter implements IReviewTargetChecker {
         return place !== null;
       }
       case "Event": {
-        const event = await this.eventRepository.findById(referenceId, [
-          "_id",
-        ]);
+        const event = await this.eventRepository.findById(
+          EventId.from(referenceId)
+        );
         return event !== null;
       }
     }
@@ -47,16 +51,7 @@ class LegacyReviewTargetCheckerAdapter implements IReviewTargetChecker {
         return ownerId ? UserId.from(ownerId) : null;
       }
       case "Event": {
-        const event = await this.eventRepository.findById(referenceId, [
-          "user",
-          "place",
-          "place.user",
-        ]);
-        if (!event) {
-          return null;
-        }
-        const ownerId = resolveOwnerId(event);
-        return ownerId ? UserId.from(ownerId) : null;
+        return this.eventRepository.findOwnerId(EventId.from(referenceId));
       }
     }
   }

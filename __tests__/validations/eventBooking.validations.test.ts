@@ -1,4 +1,4 @@
-import { createEventBookingSchema } from "@/validations/eventBooking.validations";
+import { createEventBookingSchema } from "@src/api/dto/eventBookings/eventBooking.dto";
 
 describe("eventBooking validations", () => {
   describe("createEventBookingSchema", () => {

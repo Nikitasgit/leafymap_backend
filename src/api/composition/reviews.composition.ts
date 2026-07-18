@@ -14,7 +14,7 @@ import LegacyReviewTargetCheckerAdapter from "@src/infrastructure/adapters/Legac
 import LegacyReviewRatingUpdaterAdapter from "@src/infrastructure/adapters/LegacyReviewRatingUpdater.adapter";
 import {
   authMiddleware,
-  eventRepository,
+  mongooseEventRepository,
   mongooseReviewRepository,
   placeRepository,
   rateLimiterMiddleware,
@@ -23,12 +23,12 @@ import {
 
 const reviewTargetChecker = new LegacyReviewTargetCheckerAdapter(
   placeRepository,
-  eventRepository
+  mongooseEventRepository
 );
 const reviewRatingUpdater = new LegacyReviewRatingUpdaterAdapter(
   mongooseReviewRepository,
   placeRepository,
-  eventRepository
+  mongooseEventRepository
 );
 
 const createReviewUseCase = new CreateReviewUseCase(

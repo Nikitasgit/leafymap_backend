@@ -5,8 +5,6 @@ export * from "./categoryType";
 export * from "./userCategory";
 export * from "./placeCategory";
 export * from "./eventCategory";
-export * from "./partnership";
-export * from "./eventInvitation";
 export * from "./eventBooking";
 export * from "./message";
 export * from "./conversation";

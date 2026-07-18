@@ -1,7 +1,7 @@
 import {
   placeRepository,
   userRepository,
-  eventRepository,
+  mongooseEventRepository,
   cascadeDeleteService,
   authMiddleware as sharedAuthMiddleware,
   rateLimiterMiddleware as sharedRateLimiterMiddleware,
@@ -42,7 +42,7 @@ const deletePlaceAction = new DeletePlaceAction(
 );
 const getPlaceByIdAction = new GetPlaceByIdAction(
   placeRepository,
-  eventRepository
+  mongooseEventRepository
 );
 const getPlacesAction = new GetPlacesAction(placeRepository);
 const getPlacesInViewAction = new GetPlacesInViewAction(placeRepository);

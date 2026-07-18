@@ -1,9 +1,9 @@
 import { IUserRepository } from "@/types/repositories/user.repository.types";
 import { IPlaceRepository } from "@/types/repositories/place.repository.types";
-import { IEventRepository } from "@/types/repositories/event.repository.types";
-import { IPartnershipRepository } from "@/types/repositories/partnership.repository.types";
-import { IEventBookingRepository } from "@/types/repositories/eventBooking.repository.types";
-import { IEventInvitationRepository } from "@/types/repositories/eventInvitation.repository.types";
+import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
+import { IEventBookingRepository } from "@src/domain/interfaces/IEventBookingRepository";
+import { IPartnershipRepository } from "@src/domain/interfaces/IPartnershipRepository";
+import { IEventInvitationRepository } from "@src/domain/interfaces/IEventInvitationRepository";
 import { IFavoriteRepository } from "@src/domain/interfaces/IFavoriteRepository";
 import { IFollowRepository } from "@src/domain/interfaces/IFollowRepository";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
@@ -37,6 +37,8 @@ class DeleteAccountAction implements IDeleteAccountAction {
       throw new Error("User not found");
     }
 
+    const typedUserId = UserId.from(userId);
+
     // Places owned by the user (cascades to their events, reviews, bookings, images...)
     const userPlaces = await this.placeRepository.findAll({
       filters: { user: userId },
@@ -48,31 +50,21 @@ class DeleteAccountAction implements IDeleteAccountAction {
     logger.info(`Deleted ${userPlaces.length} places for user ${userId}`);
 
     // Events owned directly by the user
-    const ownedEvents = await this.eventRepository.findAll({
-      filters: { user: userId },
-      project: ["_id"],
-    });
+    const ownedEvents = await this.eventRepository.findIdsByOwner(typedUserId);
     await this.cascadeDeleteService.deleteEvents(
-      ownedEvents.map((event) => event._id.toString())
+      ownedEvents.map((eventId) => eventId.toString())
     );
     logger.info(`Deleted ${ownedEvents.length} owned events for user ${userId}`);
 
     // Remove user from event collaborators
-    await this.eventRepository.updateMany(
-      { "schedule.timeSlots.collaborators": userId },
-      { $pull: { "schedule.$[].timeSlots.$[].collaborators": userId } } as any
-    );
+    await this.eventRepository.removeCollaborator(typedUserId);
 
     // Data linking the user to other entities
-    await this.partnershipRepository.deleteMany({
-      $or: [{ initiator: userId }, { collaborator: userId }],
-    });
-    await this.eventInvitationRepository.deleteMany({
-      $or: [{ initiator: userId }, { collaborator: userId }],
-    });
-    await this.eventBookingRepository.deleteMany({ user: userId });
-    await this.favoriteRepository.deleteAllByUserId(UserId.from(userId));
-    await this.followRepository.deleteAllInvolvingUser(UserId.from(userId));
+    await this.partnershipRepository.deleteManyByUserId(typedUserId);
+    await this.eventInvitationRepository.deleteManyByUserId(typedUserId);
+    await this.eventBookingRepository.deleteManyByUserId(typedUserId);
+    await this.favoriteRepository.deleteAllByUserId(typedUserId);
+    await this.followRepository.deleteAllInvolvingUser(typedUserId);
     await this.notificationRepository.deleteByUser(userId);
 
     // Images owned by the user or attached to their profile

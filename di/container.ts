@@ -2,13 +2,9 @@ import {
   CategoryRepository,
   UserRepository,
   PlaceRepository,
-  EventRepository,
   MessageRepository,
   ConversationRepository,
   ImageRepository,
-  PartnershipRepository,
-  EventInvitationRepository,
-  EventBookingRepository,
   NotificationRepository,
   ProductRepository,
 } from "@/repositories";
@@ -16,6 +12,10 @@ import MongooseCommentRepository from "@src/infrastructure/repositories/Mongoose
 import MongooseFavoriteRepository from "@src/infrastructure/repositories/MongooseFavoriteRepository";
 import MongooseFollowRepository from "@src/infrastructure/repositories/MongooseFollowRepository";
 import MongooseReviewRepository from "@src/infrastructure/repositories/MongooseReviewRepository";
+import MongooseEventRepository from "@src/infrastructure/repositories/MongooseEventRepository";
+import MongooseEventBookingRepository from "@src/infrastructure/repositories/MongooseEventBookingRepository";
+import MongooseEventInvitationRepository from "@src/infrastructure/repositories/MongooseEventInvitationRepository";
+import MongoosePartnershipRepository from "@src/infrastructure/repositories/MongoosePartnershipRepository";
 import { DeleteImagesAction } from "@/actions/images";
 import CascadeDeleteService from "@/services/cascadeDeleteService";
 import { AuthMiddleware, RateLimiterMiddleware } from "@/middlewares";
@@ -24,13 +24,15 @@ import { AuthMiddleware, RateLimiterMiddleware } from "@/middlewares";
 export const categoryRepository = new CategoryRepository();
 export const userRepository = new UserRepository();
 export const placeRepository = new PlaceRepository();
-export const eventRepository = new EventRepository();
+export const mongooseEventRepository = new MongooseEventRepository();
 export const messageRepository = new MessageRepository();
 export const conversationRepository = new ConversationRepository();
 export const imageRepository = new ImageRepository();
-export const partnershipRepository = new PartnershipRepository();
-export const eventInvitationRepository = new EventInvitationRepository();
-export const eventBookingRepository = new EventBookingRepository();
+export const mongoosePartnershipRepository = new MongoosePartnershipRepository();
+export const mongooseEventInvitationRepository =
+  new MongooseEventInvitationRepository();
+export const mongooseEventBookingRepository =
+  new MongooseEventBookingRepository();
 export const notificationRepository = new NotificationRepository();
 export const mongooseCommentRepository = new MongooseCommentRepository();
 export const mongooseFavoriteRepository = new MongooseFavoriteRepository();
@@ -46,13 +48,13 @@ export const rateLimiterMiddleware = new RateLimiterMiddleware();
 export const deleteImagesAction = new DeleteImagesAction(imageRepository);
 
 export const cascadeDeleteService = new CascadeDeleteService(
-  eventRepository,
+  mongooseEventRepository,
   placeRepository,
   mongooseReviewRepository,
   mongooseCommentRepository,
   mongooseFavoriteRepository,
-  eventBookingRepository,
-  eventInvitationRepository,
+  mongooseEventBookingRepository,
+  mongooseEventInvitationRepository,
   notificationRepository,
   imageRepository,
   deleteImagesAction

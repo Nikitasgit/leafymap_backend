@@ -4,12 +4,9 @@ import dns from "node:dns";
 import app from "./app";
 import connectDB from "./config/db";
 import { createServer } from "http";
-import {
-  EventRepository,
-  UserRepository,
-  MessageRepository,
-  EventInvitationRepository,
-} from "@/repositories";
+import { UserRepository, MessageRepository } from "@/repositories";
+import { updateEventLifecycleStatusUseCase } from "@src/api/composition/events.composition";
+import { mongooseEventInvitationRepository } from "@/di/container";
 import EventsCronService from "@/services/cron/EventsCronService";
 import SocketService from "@/services/socket/socketService";
 import { setSocketService } from "@/services/socket/socketInstance";
@@ -29,11 +26,9 @@ const socketService = new SocketService(
 );
 setSocketService(socketService);
 
-const eventRepository = new EventRepository();
-const eventInvitationRepo = new EventInvitationRepository();
 const eventsCronService = new EventsCronService(
-  eventRepository,
-  eventInvitationRepo
+  updateEventLifecycleStatusUseCase,
+  mongooseEventInvitationRepository
 );
 eventsCronService.start();
 
