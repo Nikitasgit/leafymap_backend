@@ -2,20 +2,15 @@ import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
 import { IEventBookingRepository } from "@src/domain/interfaces/IEventBookingRepository";
 import { EventId } from "@src/domain/value-objects/ObjectId.vo";
 import { ERROR_CODES, NotFoundError } from "@src/shared/errors";
+import { GetEventByIdInput } from "@src/application/dtos/events/getEventById.dto";
 
-export interface IGetEventByIdUseCase {
-  execute(params: { eventId: string }): Promise<Record<string, unknown>>;
-}
-
-class GetEventByIdUseCase implements IGetEventByIdUseCase {
+class GetEventByIdUseCase {
   constructor(
     private readonly eventRepository: IEventRepository,
     private readonly eventBookingRepository: IEventBookingRepository
   ) {}
 
-  async execute(params: {
-    eventId: string;
-  }): Promise<Record<string, unknown>> {
+  async execute(params: GetEventByIdInput): Promise<Record<string, unknown>> {
     const eventId = EventId.from(params.eventId);
     const event = await this.eventRepository.findDetailById(eventId);
 

@@ -1,7 +1,7 @@
 import express, { Router } from "express";
 import {
   createPartnership,
-  updatePartnership,
+  updatePartnerships,
   getPartnershipsByUserId,
   deletePartnership,
   authMiddleware,
@@ -14,7 +14,7 @@ router.get(
   authMiddleware.verifyOptional(),
   getPartnershipsByUserId.handle()
 );
-router.put("/update", authMiddleware.verify(), updatePartnership.handle());
+router.put("/update", authMiddleware.verify(), updatePartnerships.handle());
 router.post("/", authMiddleware.verify(), createPartnership.handle());
 router.delete(
   "/:partnershipId",

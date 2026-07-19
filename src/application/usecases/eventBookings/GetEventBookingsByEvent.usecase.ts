@@ -6,26 +6,17 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "@src/shared/errors";
+import { GetEventBookingsByEventInput } from "@src/application/dtos/eventBookings/getEventBookingsByEvent.dto";
 
-export interface IGetEventBookingsByEventUseCase {
-  execute(params: {
-    eventId: string;
-    actorId: string;
-  }): Promise<Record<string, unknown>[]>;
-}
-
-class GetEventBookingsByEventUseCase
-  implements IGetEventBookingsByEventUseCase
-{
+class GetEventBookingsByEventUseCase {
   constructor(
     private readonly eventBookingRepository: IEventBookingRepository,
     private readonly eventRepository: IEventRepository
   ) {}
 
-  async execute(params: {
-    eventId: string;
-    actorId: string;
-  }): Promise<Record<string, unknown>[]> {
+  async execute(
+    params: GetEventBookingsByEventInput
+  ): Promise<Record<string, unknown>[]> {
     const eventId = EventId.from(params.eventId);
     const actorId = UserId.from(params.actorId);
 

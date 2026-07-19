@@ -1,18 +1,15 @@
 import { IEventBookingRepository } from "@src/domain/interfaces/IEventBookingRepository";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
+import { GetMyEventBookingsInput } from "@src/application/dtos/eventBookings/getMyEventBookings.dto";
 
-export interface IGetMyEventBookingsUseCase {
-  execute(params: { userId: string }): Promise<Record<string, unknown>[]>;
-}
-
-class GetMyEventBookingsUseCase implements IGetMyEventBookingsUseCase {
+class GetMyEventBookingsUseCase {
   constructor(
     private readonly eventBookingRepository: IEventBookingRepository
   ) {}
 
-  async execute(params: {
-    userId: string;
-  }): Promise<Record<string, unknown>[]> {
+  async execute(
+    params: GetMyEventBookingsInput
+  ): Promise<Record<string, unknown>[]> {
     return this.eventBookingRepository.findConfirmedByUser(
       UserId.from(params.userId)
     );

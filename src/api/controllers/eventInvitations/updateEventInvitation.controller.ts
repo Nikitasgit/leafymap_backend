@@ -1,14 +1,14 @@
 import { updateEventInvitationsSchema } from "@src/api/dto/eventInvitations/eventInvitation.dto";
-import { IUpdateEventInvitationUseCase } from "@src/application/usecases/eventInvitations/UpdateEventInvitation.usecase";
+import type UpdateEventInvitationUseCase from "@src/application/usecases/eventInvitations/UpdateEventInvitation.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   validateOrThrow,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const UpdateEventInvitationController = (
-  updateEventInvitationUseCase: IUpdateEventInvitationUseCase
+  updateEventInvitationUseCase: UpdateEventInvitationUseCase
 ): Controller =>
   createController({
     execute: async (req) => {

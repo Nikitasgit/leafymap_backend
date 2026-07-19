@@ -1,5 +1,6 @@
 import { IEventInvitationRepository } from "@src/domain/interfaces/IEventInvitationRepository";
 import { EventId, UserId } from "@src/domain/value-objects/ObjectId.vo";
+import { GetEventInvitationsInput } from "@src/application/dtos/eventInvitations/getEventInvitations.dto";
 
 const getParticipantId = (
   participant: unknown
@@ -26,24 +27,14 @@ const getParticipantId = (
   return undefined;
 };
 
-export interface IGetEventInvitationsUseCase {
-  execute(params: {
-    eventId: string;
-    currentUserId?: string;
-    onlyAccepted?: boolean;
-  }): Promise<Record<string, unknown>[]>;
-}
-
-class GetEventInvitationsUseCase implements IGetEventInvitationsUseCase {
+class GetEventInvitationsUseCase {
   constructor(
     private readonly eventInvitationRepository: IEventInvitationRepository
   ) {}
 
-  async execute(params: {
-    eventId: string;
-    currentUserId?: string;
-    onlyAccepted?: boolean;
-  }): Promise<Record<string, unknown>[]> {
+  async execute(
+    params: GetEventInvitationsInput
+  ): Promise<Record<string, unknown>[]> {
     const eventId = EventId.from(params.eventId);
     const invitations =
       await this.eventInvitationRepository.findListByEvent(eventId);

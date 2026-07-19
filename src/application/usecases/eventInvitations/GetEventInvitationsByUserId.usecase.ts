@@ -1,34 +1,15 @@
 import { IEventInvitationRepository } from "@src/domain/interfaces/IEventInvitationRepository";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
+import { GetEventInvitationsByUserIdInput } from "@src/application/dtos/eventInvitations/getEventInvitationsByUserId.dto";
 
-export interface IGetEventInvitationsByUserIdUseCase {
-  execute(params: {
-    userId: string;
-    asCollaborator?: boolean;
-    includeCancelledEvents?: boolean;
-    includePastEvents?: boolean;
-    currentUserId?: string;
-    onlyAccepted?: boolean;
-    onlyPending?: boolean;
-  }): Promise<Record<string, unknown>[]>;
-}
-
-class GetEventInvitationsByUserIdUseCase
-  implements IGetEventInvitationsByUserIdUseCase
-{
+class GetEventInvitationsByUserIdUseCase {
   constructor(
     private readonly eventInvitationRepository: IEventInvitationRepository
   ) {}
 
-  async execute(params: {
-    userId: string;
-    asCollaborator?: boolean;
-    includeCancelledEvents?: boolean;
-    includePastEvents?: boolean;
-    currentUserId?: string;
-    onlyAccepted?: boolean;
-    onlyPending?: boolean;
-  }): Promise<Record<string, unknown>[]> {
+  async execute(
+    params: GetEventInvitationsByUserIdInput
+  ): Promise<Record<string, unknown>[]> {
     return this.eventInvitationRepository.findListForUser({
       userId: UserId.from(params.userId),
       asCollaborator: params.asCollaborator,

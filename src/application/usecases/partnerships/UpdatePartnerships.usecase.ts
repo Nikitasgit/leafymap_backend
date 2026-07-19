@@ -1,5 +1,4 @@
 import { IPartnershipRepository } from "@src/domain/interfaces/IPartnershipRepository";
-import { PartnershipStatus } from "@src/domain/value-objects/PartnershipStatus.vo";
 import {
   PartnershipId,
   UserId,
@@ -9,28 +8,17 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "@src/shared/errors";
+import {
+  UpdatePartnershipsInput,
+  UpdatePartnershipItem,
+} from "@src/application/dtos/partnerships/updatePartnerships.dto";
 
-export interface UpdatePartnershipItem {
-  id: string;
-  status?: Extract<PartnershipStatus, "pending" | "accepted">;
-}
-
-export interface IUpdatePartnershipsUseCase {
-  execute(params: {
-    partnerships: UpdatePartnershipItem[];
-    userId: string;
-  }): Promise<void>;
-}
-
-class UpdatePartnershipsUseCase implements IUpdatePartnershipsUseCase {
+class UpdatePartnershipsUseCase {
   constructor(
     private readonly partnershipRepository: IPartnershipRepository
   ) {}
 
-  async execute(params: {
-    partnerships: UpdatePartnershipItem[];
-    userId: string;
-  }): Promise<void> {
+  async execute(params: UpdatePartnershipsInput): Promise<void> {
     const userId = UserId.from(params.userId);
 
     await Promise.all(

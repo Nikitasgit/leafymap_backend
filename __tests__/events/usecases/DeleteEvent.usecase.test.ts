@@ -1,4 +1,4 @@
-jest.mock("@/utils/logger", () => ({
+jest.mock("@src/shared/logger", () => ({
   __esModule: true,
   default: { info: jest.fn(), error: jest.fn(), warn: jest.fn() },
 }));
@@ -14,13 +14,13 @@ import {
   UserId,
 } from "@src/domain/value-objects/ObjectId.vo";
 import { ERROR_CODES } from "@src/shared/errors";
-import CascadeDeleteService from "@/services/cascadeDeleteService";
+import { ICascadeDeleter } from "@src/domain/interfaces/ICascadeDeleter";
 
 const mockObjectId = (): string => new Types.ObjectId().toString();
 
 describe("DeleteEventUseCase", () => {
   let eventRepository: jest.Mocked<IEventRepository>;
-  let cascadeDeleteService: jest.Mocked<CascadeDeleteService>;
+  let cascadeDeleter: jest.Mocked<ICascadeDeleter>;
   let useCase: DeleteEventUseCase;
 
   const futureStart = new Date();
@@ -55,10 +55,12 @@ describe("DeleteEventUseCase", () => {
     eventRepository = {
       findById: jest.fn(),
     } as unknown as jest.Mocked<IEventRepository>;
-    cascadeDeleteService = {
+    cascadeDeleter = {
       deleteEvents: jest.fn(),
-    } as unknown as jest.Mocked<CascadeDeleteService>;
-    useCase = new DeleteEventUseCase(eventRepository, cascadeDeleteService);
+      deletePlace: jest.fn(),
+      deleteImagesWithComments: jest.fn(),
+    };
+    useCase = new DeleteEventUseCase(eventRepository, cascadeDeleter);
   });
 
   it("deletes an owned event via cascade", async () => {
@@ -71,7 +73,7 @@ describe("DeleteEventUseCase", () => {
       actorId: ownerId,
     });
 
-    expect(cascadeDeleteService.deleteEvents).toHaveBeenCalledWith([
+    expect(cascadeDeleter.deleteEvents).toHaveBeenCalledWith([
       event.id!.toString(),
     ]);
   });
@@ -90,6 +92,6 @@ describe("DeleteEventUseCase", () => {
       statusCode: 403,
     });
 
-    expect(cascadeDeleteService.deleteEvents).not.toHaveBeenCalled();
+    expect(cascadeDeleter.deleteEvents).not.toHaveBeenCalled();
   });
 });

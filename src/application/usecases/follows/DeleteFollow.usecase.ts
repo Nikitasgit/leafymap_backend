@@ -6,17 +6,9 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "@src/shared/errors";
+import { DeleteFollowInput } from "@src/application/dtos/follows/deleteFollow.dto";
 
-export interface DeleteFollowInput {
-  followId: string;
-  followerId: string;
-}
-
-export interface IDeleteFollowUseCase {
-  execute(input: DeleteFollowInput): Promise<void>;
-}
-
-class DeleteFollowUseCase implements IDeleteFollowUseCase {
+class DeleteFollowUseCase {
   constructor(
     private readonly followRepository: IFollowRepository,
     private readonly followCounter: IFollowCounter

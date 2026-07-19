@@ -1,15 +1,15 @@
 import { updateEventSchema } from "@src/api/dto/events/event.dto";
-import { IUpdateEventUseCase } from "@src/application/usecases/events/UpdateEvent.usecase";
+import type UpdateEventUseCase from "@src/application/usecases/events/UpdateEvent.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   requireObjectIdParam,
   validateOrThrow,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const UpdateEventController = (
-  updateEventUseCase: IUpdateEventUseCase
+  updateEventUseCase: UpdateEventUseCase
 ): Controller =>
   createController({
     execute: async (req) => {

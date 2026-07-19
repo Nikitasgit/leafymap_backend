@@ -2,7 +2,6 @@ import { EventInvitation } from "@src/domain/entities/EventInvitation.entity";
 import { IEventInvitationNotifier } from "@src/domain/interfaces/IEventInvitationNotifier";
 import { IEventInvitationRepository } from "@src/domain/interfaces/IEventInvitationRepository";
 import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
-import { EventInvitationStatus } from "@src/domain/value-objects/EventInvitationStatus.vo";
 import {
   EventInvitationId,
   UserId,
@@ -12,31 +11,19 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "@src/shared/errors";
+import {
+  UpdateEventInvitationInput,
+  UpdateEventInvitationItem,
+} from "@src/application/dtos/eventInvitations/updateEventInvitation.dto";
 
-export interface UpdateEventInvitationItem {
-  id: string;
-  deleted?: boolean;
-  status?: EventInvitationStatus;
-}
-
-export interface IUpdateEventInvitationUseCase {
-  execute(params: {
-    invitations: UpdateEventInvitationItem[];
-    userId: string;
-  }): Promise<void>;
-}
-
-class UpdateEventInvitationUseCase implements IUpdateEventInvitationUseCase {
+class UpdateEventInvitationUseCase {
   constructor(
     private readonly eventInvitationRepository: IEventInvitationRepository,
     private readonly eventRepository: IEventRepository,
     private readonly eventInvitationNotifier: IEventInvitationNotifier
   ) {}
 
-  async execute(params: {
-    invitations: UpdateEventInvitationItem[];
-    userId: string;
-  }): Promise<void> {
+  async execute(params: UpdateEventInvitationInput): Promise<void> {
     const userId = UserId.from(params.userId);
 
     await Promise.all(

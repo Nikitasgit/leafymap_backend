@@ -1,23 +1,19 @@
 import { newEventSchema } from "@src/api/dto/events/event.dto";
-import { ICreateEventUseCase } from "@src/application/usecases/events/CreateEvent.usecase";
+import type CreateEventUseCase from "@src/application/usecases/events/CreateEvent.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   validateOrThrow,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const CreateEventController = (
-  createEventUseCase: ICreateEventUseCase
+  createEventUseCase: CreateEventUseCase
 ): Controller =>
   createController({
     execute: (req) => {
       const decoded = requireAuth(req);
-      const body = { ...req.body };
-      if (req.placeId) {
-        body.place = req.placeId;
-      }
-      const eventData = validateOrThrow(newEventSchema, body);
+      const eventData = validateOrThrow(newEventSchema, req.body);
       return createEventUseCase.execute({
         name: eventData.name,
         description: eventData.description,

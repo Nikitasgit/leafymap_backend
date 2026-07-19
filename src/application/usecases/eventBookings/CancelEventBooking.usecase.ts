@@ -10,25 +10,16 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "@src/shared/errors";
+import { CancelEventBookingInput } from "@src/application/dtos/eventBookings/cancelEventBooking.dto";
 
-export interface ICancelEventBookingUseCase {
-  execute(params: {
-    bookingId: string;
-    requesterId: string;
-  }): Promise<void>;
-}
-
-class CancelEventBookingUseCase implements ICancelEventBookingUseCase {
+class CancelEventBookingUseCase {
   constructor(
     private readonly eventBookingRepository: IEventBookingRepository,
     private readonly eventRepository: IEventRepository,
     private readonly eventNotifier: IEventNotifier
   ) {}
 
-  async execute(params: {
-    bookingId: string;
-    requesterId: string;
-  }): Promise<void> {
+  async execute(params: CancelEventBookingInput): Promise<void> {
     const bookingId = EventBookingId.from(params.bookingId);
     const requesterId = UserId.from(params.requesterId);
 

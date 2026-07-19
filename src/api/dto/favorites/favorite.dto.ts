@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { FAVORITE_REFERENCE_TYPES } from "@src/domain/value-objects/FavoriteReferenceType.vo";
-import { isValidObjectId } from "@/utils/objectId";
+import { isValidObjectId } from "@src/api/http/objectId";
 
 export const favoriteReferenceTypeEnum = z.enum(FAVORITE_REFERENCE_TYPES);
 
@@ -19,6 +19,6 @@ export const deleteFavoriteSchema = z.object({
   referenceType: favoriteReferenceTypeEnum,
 });
 
-export const findFavoritesByTypeQuerySchema = z.object({
+export const getFavoritesByTypeQuerySchema = z.object({
   referenceType: favoriteReferenceTypeEnum,
 });

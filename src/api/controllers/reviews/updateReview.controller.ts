@@ -1,15 +1,15 @@
 import { updateReviewSchema } from "@src/api/dto/reviews/review.dto";
-import { IUpdateReviewUseCase } from "@src/application/usecases/reviews/UpdateReview.usecase";
+import type UpdateReviewUseCase from "@src/application/usecases/reviews/UpdateReview.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   requireObjectIdParam,
   validateOrThrow,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const UpdateReviewController = (
-  updateReviewUseCase: IUpdateReviewUseCase
+  updateReviewUseCase: UpdateReviewUseCase
 ): Controller =>
   createController({
     execute: async (req) => {

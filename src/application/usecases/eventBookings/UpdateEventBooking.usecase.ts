@@ -11,26 +11,15 @@ import {
   NotFoundError,
   ValidationError,
 } from "@src/shared/errors";
+import { UpdateEventBookingInput } from "@src/application/dtos/eventBookings/updateEventBooking.dto";
 
-export interface IUpdateEventBookingUseCase {
-  execute(params: {
-    bookingId: string;
-    requesterId: string;
-    seats: number;
-  }): Promise<void>;
-}
-
-class UpdateEventBookingUseCase implements IUpdateEventBookingUseCase {
+class UpdateEventBookingUseCase {
   constructor(
     private readonly eventBookingRepository: IEventBookingRepository,
     private readonly eventRepository: IEventRepository
   ) {}
 
-  async execute(params: {
-    bookingId: string;
-    requesterId: string;
-    seats: number;
-  }): Promise<void> {
+  async execute(params: UpdateEventBookingInput): Promise<void> {
     const bookingId = EventBookingId.from(params.bookingId);
     const requesterId = UserId.from(params.requesterId);
 

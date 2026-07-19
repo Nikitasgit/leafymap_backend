@@ -8,20 +8,14 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "@src/shared/errors";
+import { DeletePartnershipInput } from "@src/application/dtos/partnerships/deletePartnership.dto";
 
-export interface IDeletePartnershipUseCase {
-  execute(params: { partnershipId: string; userId: string }): Promise<void>;
-}
-
-class DeletePartnershipUseCase implements IDeletePartnershipUseCase {
+class DeletePartnershipUseCase {
   constructor(
     private readonly partnershipRepository: IPartnershipRepository
   ) {}
 
-  async execute(params: {
-    partnershipId: string;
-    userId: string;
-  }): Promise<void> {
+  async execute(params: DeletePartnershipInput): Promise<void> {
     const partnershipId = PartnershipId.from(params.partnershipId);
     const userId = UserId.from(params.userId);
 

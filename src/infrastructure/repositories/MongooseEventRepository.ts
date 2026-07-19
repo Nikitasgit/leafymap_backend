@@ -21,7 +21,7 @@ import { EventMapper } from "@src/infrastructure/mappers/Event.mapper";
 import EventModel, {
   EventDocumentProps,
 } from "@src/infrastructure/persistence/schemas/Event.schema";
-import { PopulateParser } from "@/repositories/utils/PopulateParser";
+import { PopulateParser } from "@src/infrastructure/persistence/utils/PopulateParser";
 import { FilterQuery, Types } from "mongoose";
 
 type EventDocumentWithId = EventDocumentProps & { _id: Types.ObjectId };

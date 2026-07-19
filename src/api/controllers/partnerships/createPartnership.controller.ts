@@ -1,14 +1,14 @@
 import { createPartnershipSchema } from "@src/api/dto/partnerships/partnership.dto";
-import { ICreatePartnershipUseCase } from "@src/application/usecases/partnerships/CreatePartnership.usecase";
+import type CreatePartnershipUseCase from "@src/application/usecases/partnerships/CreatePartnership.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   validateOrThrow,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const CreatePartnershipController = (
-  createPartnershipUseCase: ICreatePartnershipUseCase
+  createPartnershipUseCase: CreatePartnershipUseCase
 ): Controller =>
   createController({
     execute: async (req) => {

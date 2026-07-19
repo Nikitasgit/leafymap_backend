@@ -1,4 +1,5 @@
 import { FollowId, UserId } from "@src/domain/value-objects/ObjectId.vo";
+import { ERROR_CODES, ValidationError } from "@src/shared/errors";
 
 export interface CreateFollowParams {
   followerId: UserId;
@@ -20,7 +21,11 @@ export class Follow {
 
   static create(params: CreateFollowParams): Follow {
     if (Follow.isSelfFollow(params.followerId, params.followingId)) {
-      throw new Error("Cannot follow yourself");
+      throw new ValidationError(
+        { followingId: "Cannot follow yourself" },
+        ERROR_CODES.FOLLOW_SELF_NOT_ALLOWED,
+        "Cannot follow yourself"
+      );
     }
 
     return new Follow(

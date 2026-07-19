@@ -1,13 +1,13 @@
-import { IDeleteReviewUseCase } from "@src/application/usecases/reviews/DeleteReview.usecase";
+import type DeleteReviewUseCase from "@src/application/usecases/reviews/DeleteReview.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   requireObjectIdParam,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const DeleteReviewController = (
-  deleteReviewUseCase: IDeleteReviewUseCase
+  deleteReviewUseCase: DeleteReviewUseCase
 ): Controller =>
   createController({
     execute: async (req) => {

@@ -11,31 +11,16 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "@src/shared/errors";
+import { CreateEventInvitationsInput } from "@src/application/dtos/eventInvitations/createEventInvitations.dto";
 
-export interface CreateEventInvitationItem {
-  collaboratorId: string;
-}
-
-export interface ICreateEventInvitationsUseCase {
-  execute(params: {
-    eventId: string;
-    initiatorId: string;
-    invitations: CreateEventInvitationItem[];
-  }): Promise<void>;
-}
-
-class CreateEventInvitationsUseCase implements ICreateEventInvitationsUseCase {
+class CreateEventInvitationsUseCase {
   constructor(
     private readonly eventInvitationRepository: IEventInvitationRepository,
     private readonly eventRepository: IEventRepository,
     private readonly eventInvitationNotifier: IEventInvitationNotifier
   ) {}
 
-  async execute(params: {
-    eventId: string;
-    initiatorId: string;
-    invitations: CreateEventInvitationItem[];
-  }): Promise<void> {
+  async execute(params: CreateEventInvitationsInput): Promise<void> {
     const eventId = EventId.from(params.eventId);
     const initiatorId = UserId.from(params.initiatorId);
 

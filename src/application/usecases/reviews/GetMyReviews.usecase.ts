@@ -5,11 +5,7 @@ import {
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
 import { GetMyReviewsInput } from "@src/application/dtos/reviews/getMyReviews.dto";
 
-export interface IGetMyReviewsUseCase {
-  execute(input: GetMyReviewsInput): Promise<ReviewListItem[]>;
-}
-
-class GetMyReviewsUseCase implements IGetMyReviewsUseCase {
+class GetMyReviewsUseCase {
   constructor(private readonly reviewRepository: IReviewRepository) {}
 
   async execute(input: GetMyReviewsInput): Promise<ReviewListItem[]> {

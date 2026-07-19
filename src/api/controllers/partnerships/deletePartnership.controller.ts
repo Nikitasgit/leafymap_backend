@@ -1,13 +1,13 @@
-import { IDeletePartnershipUseCase } from "@src/application/usecases/partnerships/DeletePartnership.usecase";
+import type DeletePartnershipUseCase from "@src/application/usecases/partnerships/DeletePartnership.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   requireObjectIdParam,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const DeletePartnershipController = (
-  deletePartnershipUseCase: IDeletePartnershipUseCase
+  deletePartnershipUseCase: DeletePartnershipUseCase
 ): Controller =>
   createController({
     execute: async (req) => {

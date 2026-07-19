@@ -1,14 +1,14 @@
 import { createReviewSchema } from "@src/api/dto/reviews/review.dto";
-import { ICreateReviewUseCase } from "@src/application/usecases/reviews/CreateReview.usecase";
+import type CreateReviewUseCase from "@src/application/usecases/reviews/CreateReview.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   validateOrThrow,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const CreateReviewController = (
-  createReviewUseCase: ICreateReviewUseCase
+  createReviewUseCase: CreateReviewUseCase
 ): Controller =>
   createController({
     execute: (req) => {

@@ -8,24 +8,15 @@ import {
   ERROR_CODES,
   ValidationError,
 } from "@src/shared/errors";
+import { CreatePartnershipInput } from "@src/application/dtos/partnerships/createPartnership.dto";
 
-export interface ICreatePartnershipUseCase {
-  execute(params: {
-    collaboratorId: string;
-    initiatorId: string;
-  }): Promise<Partnership>;
-}
-
-class CreatePartnershipUseCase implements ICreatePartnershipUseCase {
+class CreatePartnershipUseCase {
   constructor(
     private readonly partnershipRepository: IPartnershipRepository,
     private readonly partnershipNotifier: IPartnershipNotifier
   ) {}
 
-  async execute(params: {
-    collaboratorId: string;
-    initiatorId: string;
-  }): Promise<Partnership> {
+  async execute(params: CreatePartnershipInput): Promise<Partnership> {
     if (!params.collaboratorId) {
       throw new ValidationError(
         { collaborator: "Collaborator ID is required" },

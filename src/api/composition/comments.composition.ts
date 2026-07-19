@@ -6,17 +6,17 @@ import CreateCommentController from "@src/api/controllers/comments/createComment
 import GetCommentsController from "@src/api/controllers/comments/getComments.controller";
 import UpdateCommentController from "@src/api/controllers/comments/updateComment.controller";
 import DeleteCommentController from "@src/api/controllers/comments/deleteComment.controller";
-import LegacyCommentReferenceCheckerAdapter from "@src/infrastructure/adapters/LegacyCommentReferenceChecker.adapter";
+import CommentReferenceCheckerAdapter from "@src/infrastructure/adapters/CommentReferenceChecker.adapter";
 import {
   authMiddleware,
-  imageRepository,
   mongooseCommentRepository,
+  mongooseImageRepository,
   mongooseReviewRepository,
   rateLimiterMiddleware,
-} from "@/di/container";
+} from "@src/di/container";
 
-const commentReferenceChecker = new LegacyCommentReferenceCheckerAdapter(
-  imageRepository,
+const commentReferenceChecker = new CommentReferenceCheckerAdapter(
+  mongooseImageRepository,
   mongooseReviewRepository
 );
 

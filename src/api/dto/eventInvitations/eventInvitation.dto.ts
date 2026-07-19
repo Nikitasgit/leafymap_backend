@@ -1,11 +1,6 @@
 import { z } from "zod";
 import { EVENT_INVITATION_STATUSES } from "@src/domain/value-objects/EventInvitationStatus.vo";
-import { isValidObjectId } from "@/utils/objectId";
-
-const objectIdString = z
-  .string()
-  .min(1)
-  .refine(isValidObjectId, { message: "Invalid ObjectId" });
+import { objectIdString } from "@src/api/dto/common.dto";
 
 const booleanQuery = z
   .enum(["true", "false"])

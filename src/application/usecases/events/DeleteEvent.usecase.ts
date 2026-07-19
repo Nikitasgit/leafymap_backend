@@ -1,27 +1,21 @@
 import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
+import { ICascadeDeleter } from "@src/domain/interfaces/ICascadeDeleter";
 import { EventId, UserId } from "@src/domain/value-objects/ObjectId.vo";
 import {
   ERROR_CODES,
   ForbiddenError,
   NotFoundError,
 } from "@src/shared/errors";
-import CascadeDeleteService from "@/services/cascadeDeleteService";
-import logger from "@/utils/logger";
+import logger from "@src/shared/logger";
+import { DeleteEventInput } from "@src/application/dtos/events/deleteEvent.dto";
 
-export interface IDeleteEventUseCase {
-  execute(params: { eventId: string; actorId: string }): Promise<void>;
-}
-
-class DeleteEventUseCase implements IDeleteEventUseCase {
+class DeleteEventUseCase {
   constructor(
     private readonly eventRepository: IEventRepository,
-    private readonly cascadeDeleteService: CascadeDeleteService
+    private readonly cascadeDeleter: ICascadeDeleter
   ) {}
 
-  async execute(params: {
-    eventId: string;
-    actorId: string;
-  }): Promise<void> {
+  async execute(params: DeleteEventInput): Promise<void> {
     const eventId = EventId.from(params.eventId);
     const actorId = UserId.from(params.actorId);
 
@@ -37,7 +31,7 @@ class DeleteEventUseCase implements IDeleteEventUseCase {
       );
     }
 
-    await this.cascadeDeleteService.deleteEvents([params.eventId]);
+    await this.cascadeDeleter.deleteEvents([params.eventId]);
     logger.info(
       `Event ${params.eventId} and associated data deleted successfully`
     );

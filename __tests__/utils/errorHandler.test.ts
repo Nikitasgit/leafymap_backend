@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import errorHandler from "@/utils/errorHandler";
-import { ERROR_CODES, NotFoundError } from "@/utils/errors";
+import errorHandler from "@src/api/http/errorHandler";
+import { ERROR_CODES, NotFoundError } from "@src/shared/errors";
 
-jest.mock("@/utils/logger", () => ({
+jest.mock("@src/shared/logger", () => ({
   warn: jest.fn(),
   error: jest.fn(),
   info: jest.fn(),

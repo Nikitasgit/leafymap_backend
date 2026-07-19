@@ -1,13 +1,13 @@
-import { IDeleteFollowUseCase } from "@src/application/usecases/follows/DeleteFollow.usecase";
+import type DeleteFollowUseCase from "@src/application/usecases/follows/DeleteFollow.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   requireObjectIdParam,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const DeleteFollowController = (
-  deleteFollowUseCase: IDeleteFollowUseCase
+  deleteFollowUseCase: DeleteFollowUseCase
 ): Controller =>
   createController({
     execute: async (req) => {

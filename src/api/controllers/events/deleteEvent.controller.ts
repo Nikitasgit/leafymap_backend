@@ -1,13 +1,13 @@
-import { IDeleteEventUseCase } from "@src/application/usecases/events/DeleteEvent.usecase";
+import type DeleteEventUseCase from "@src/application/usecases/events/DeleteEvent.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   requireObjectIdParam,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const DeleteEventController = (
-  deleteEventUseCase: IDeleteEventUseCase
+  deleteEventUseCase: DeleteEventUseCase
 ): Controller =>
   createController({
     execute: (req) =>

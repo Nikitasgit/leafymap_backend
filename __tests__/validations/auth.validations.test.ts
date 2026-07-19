@@ -1,4 +1,4 @@
-import { loginSchema, registerSchema } from "@/validations/auth.validations";
+import { loginSchema, registerSchema } from "@src/api/dto/auth/auth.dto";
 
 describe("auth validations", () => {
   describe("registerSchema", () => {

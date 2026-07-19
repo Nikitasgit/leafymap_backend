@@ -9,11 +9,7 @@ import {
 import { ReviewReferenceType } from "@src/domain/value-objects/ReviewReferenceType.vo";
 import { GetReviewsInput } from "@src/application/dtos/reviews/getReviews.dto";
 
-export interface IGetReviewsUseCase {
-  execute(input: GetReviewsInput): Promise<ReviewListItem[]>;
-}
-
-class GetReviewsUseCase implements IGetReviewsUseCase {
+class GetReviewsUseCase {
   constructor(private readonly reviewRepository: IReviewRepository) {}
 
   async execute(input: GetReviewsInput): Promise<ReviewListItem[]> {

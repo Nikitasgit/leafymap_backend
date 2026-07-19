@@ -1,13 +1,13 @@
 import { getReviewsQuerySchema } from "@src/api/dto/reviews/review.dto";
-import { IGetReviewsUseCase } from "@src/application/usecases/reviews/GetReviews.usecase";
+import type GetReviewsUseCase from "@src/application/usecases/reviews/GetReviews.usecase";
 import {
   Controller,
   createController,
   validateOrThrow,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const GetReviewsController = (
-  getReviewsUseCase: IGetReviewsUseCase
+  getReviewsUseCase: GetReviewsUseCase
 ): Controller =>
   createController({
     execute: async (req) => {

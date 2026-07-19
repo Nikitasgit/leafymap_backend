@@ -1,18 +1,10 @@
 import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
-import { EventListFilters } from "@src/domain/interfaces/IEventRepository";
+import { GetEventsInput } from "@src/application/dtos/events/getEvents.dto";
 
-export interface IGetEventsUseCase {
-  execute(params: {
-    filters?: EventListFilters;
-  }): Promise<Record<string, unknown>[]>;
-}
-
-class GetEventsUseCase implements IGetEventsUseCase {
+class GetEventsUseCase {
   constructor(private readonly eventRepository: IEventRepository) {}
 
-  async execute(params: {
-    filters?: EventListFilters;
-  }): Promise<Record<string, unknown>[]> {
+  async execute(params: GetEventsInput): Promise<Record<string, unknown>[]> {
     return this.eventRepository.findList(params.filters ?? {});
   }
 }

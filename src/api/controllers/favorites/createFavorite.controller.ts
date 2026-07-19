@@ -1,14 +1,14 @@
 import { createFavoriteSchema } from "@src/api/dto/favorites/favorite.dto";
-import { ICreateFavoriteUseCase } from "@src/application/usecases/favorites/CreateFavorite.usecase";
+import type CreateFavoriteUseCase from "@src/application/usecases/favorites/CreateFavorite.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   validateOrThrow,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const CreateFavoriteController = (
-  createFavoriteUseCase: ICreateFavoriteUseCase
+  createFavoriteUseCase: CreateFavoriteUseCase
 ): Controller =>
   createController({
     execute: (req) => {

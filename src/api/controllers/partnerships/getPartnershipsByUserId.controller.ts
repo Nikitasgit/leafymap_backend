@@ -1,14 +1,14 @@
 import { getPartnershipsByUserIdQuerySchema } from "@src/api/dto/partnerships/partnership.dto";
-import { IGetPartnershipsByUserIdUseCase } from "@src/application/usecases/partnerships/GetPartnershipsByUserId.usecase";
+import type GetPartnershipsByUserIdUseCase from "@src/application/usecases/partnerships/GetPartnershipsByUserId.usecase";
 import {
   Controller,
   createController,
   requireObjectIdParam,
   validateOrThrow,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const GetPartnershipsByUserIdController = (
-  getPartnershipsByUserIdUseCase: IGetPartnershipsByUserIdUseCase
+  getPartnershipsByUserIdUseCase: GetPartnershipsByUserIdUseCase
 ): Controller =>
   createController({
     execute: (req) => {

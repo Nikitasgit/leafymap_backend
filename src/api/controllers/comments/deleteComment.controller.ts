@@ -1,13 +1,13 @@
-import { IDeleteCommentUseCase } from "@src/application/usecases/comments/DeleteComment.usecase";
+import type DeleteCommentUseCase from "@src/application/usecases/comments/DeleteComment.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   requireObjectIdParam,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const DeleteCommentController = (
-  deleteCommentUseCase: IDeleteCommentUseCase
+  deleteCommentUseCase: DeleteCommentUseCase
 ): Controller =>
   createController({
     execute: async (req) => {

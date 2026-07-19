@@ -1,13 +1,8 @@
 import { z } from "zod";
 import { REVIEW_REFERENCE_TYPES } from "@src/domain/value-objects/ReviewReferenceType.vo";
-import { isValidObjectId } from "@/utils/objectId";
+import { objectIdString } from "@src/api/dto/common.dto";
 
 export const reviewReferenceTypeEnum = z.enum(REVIEW_REFERENCE_TYPES);
-
-const objectIdString = z
-  .string()
-  .min(1)
-  .refine(isValidObjectId, { message: "Invalid ObjectId" });
 
 export const createReviewSchema = z.object({
   rating: z

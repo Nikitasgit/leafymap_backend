@@ -1,7 +1,7 @@
 import "dotenv/config";
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
-import User from "../models/User";
+import User from "../src/infrastructure/persistence/schemas/User.schema";
 
 async function createAdmin() {
   const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;

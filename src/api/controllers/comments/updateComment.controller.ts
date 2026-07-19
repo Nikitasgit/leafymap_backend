@@ -1,15 +1,15 @@
 import { updateCommentSchema } from "@src/api/dto/comments/comment.dto";
-import { IUpdateCommentUseCase } from "@src/application/usecases/comments/UpdateComment.usecase";
+import type UpdateCommentUseCase from "@src/application/usecases/comments/UpdateComment.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   requireObjectIdParam,
   validateOrThrow,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const UpdateCommentController = (
-  updateCommentUseCase: IUpdateCommentUseCase
+  updateCommentUseCase: UpdateCommentUseCase
 ): Controller =>
   createController({
     execute: async (req) => {

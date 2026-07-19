@@ -1,11 +1,7 @@
 import { EventBooking } from "@src/domain/entities/EventBooking.entity";
 import { IEventBookingRepository } from "@src/domain/interfaces/IEventBookingRepository";
 import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
-import {
-  EventBookingId,
-  EventId,
-  UserId,
-} from "@src/domain/value-objects/ObjectId.vo";
+import { EventId, UserId } from "@src/domain/value-objects/ObjectId.vo";
 import {
   ConflictError,
   ERROR_CODES,
@@ -13,26 +9,20 @@ import {
   NotFoundError,
   ValidationError,
 } from "@src/shared/errors";
+import {
+  CreateEventBookingInput,
+  CreateEventBookingOutput,
+} from "@src/application/dtos/eventBookings/createEventBooking.dto";
 
-export interface ICreateEventBookingUseCase {
-  execute(params: {
-    eventId: string;
-    userId: string;
-    seats: number;
-  }): Promise<{ id: EventBookingId }>;
-}
-
-class CreateEventBookingUseCase implements ICreateEventBookingUseCase {
+class CreateEventBookingUseCase {
   constructor(
     private readonly eventBookingRepository: IEventBookingRepository,
     private readonly eventRepository: IEventRepository
   ) {}
 
-  async execute(params: {
-    eventId: string;
-    userId: string;
-    seats: number;
-  }): Promise<{ id: EventBookingId }> {
+  async execute(
+    params: CreateEventBookingInput
+  ): Promise<CreateEventBookingOutput> {
     const eventId = EventId.from(params.eventId);
     const userId = UserId.from(params.userId);
 

@@ -1,10 +1,10 @@
 import "dotenv/config";
 import mongoose from "mongoose";
-import CategoryType from "../models/CategoryType";
-import UserCategory from "../models/UserCategory";
-import PlaceCategory from "../models/PlaceCategory";
-import ProductCategory from "../models/ProductCategory";
-import EventCategory from "../models/EventCategory";
+import CategoryType from "../src/infrastructure/persistence/schemas/CategoryType.schema";
+import UserCategory from "../src/infrastructure/persistence/schemas/UserCategory.schema";
+import PlaceCategory from "../src/infrastructure/persistence/schemas/PlaceCategory.schema";
+import ProductCategory from "../src/infrastructure/persistence/schemas/ProductCategory.schema";
+import EventCategory from "../src/infrastructure/persistence/schemas/EventCategory.schema";
 
 const categoryTypes = [
   { name: "art" },

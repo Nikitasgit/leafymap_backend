@@ -2,7 +2,7 @@ import {
   getEventsQuerySchema,
   newEventSchema,
 } from "@src/api/dto/events/event.dto";
-import { buildEventValidationPayload } from "../helpers/mockRepositories";
+import { Types } from "mongoose";
 
 const location = {
   type: "Point" as const,
@@ -10,6 +10,23 @@ const location = {
   label: "Paris",
   id: "mapbox-place-id",
 };
+
+const buildEventValidationPayload = (
+  overrides: Record<string, unknown> = {}
+) => ({
+  name: "Marché local",
+  description: "Un événement de quartier pour découvrir les créateurs locaux.",
+  eventCategory: new Types.ObjectId().toString(),
+  schedule: [
+    {
+      startDate: "2026-07-01T10:00:00.000Z",
+      endDate: "2026-07-01T18:00:00.000Z",
+      timeSlots: [],
+    },
+  ],
+  online: false,
+  ...overrides,
+});
 
 describe("event validations", () => {
   describe("newEventSchema", () => {

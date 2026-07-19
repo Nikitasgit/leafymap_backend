@@ -1,12 +1,12 @@
-import { IGetEventByIdUseCase } from "@src/application/usecases/events/GetEventById.usecase";
+import type GetEventByIdUseCase from "@src/application/usecases/events/GetEventById.usecase";
 import {
   Controller,
   createController,
   requireObjectIdParam,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const GetEventByIdController = (
-  getEventByIdUseCase: IGetEventByIdUseCase
+  getEventByIdUseCase: GetEventByIdUseCase
 ): Controller =>
   createController({
     execute: (req) =>

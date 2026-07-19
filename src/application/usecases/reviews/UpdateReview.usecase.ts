@@ -8,11 +8,7 @@ import {
   NotFoundError,
 } from "@src/shared/errors";
 
-export interface IUpdateReviewUseCase {
-  execute(input: UpdateReviewInput): Promise<void>;
-}
-
-class UpdateReviewUseCase implements IUpdateReviewUseCase {
+class UpdateReviewUseCase {
   constructor(
     private readonly reviewRepository: IReviewRepository,
     private readonly ratingUpdater: IReviewRatingUpdater

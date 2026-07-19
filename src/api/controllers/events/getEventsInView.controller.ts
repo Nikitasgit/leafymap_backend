@@ -1,13 +1,13 @@
 import { getEventsInViewQuerySchema } from "@src/api/dto/events/event.dto";
-import { IGetEventsInViewUseCase } from "@src/application/usecases/events/GetEventsInView.usecase";
+import type GetEventsInViewUseCase from "@src/application/usecases/events/GetEventsInView.usecase";
 import {
   Controller,
   createController,
   validateOrThrow,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const GetEventsInViewController = (
-  getEventsInViewUseCase: IGetEventsInViewUseCase
+  getEventsInViewUseCase: GetEventsInViewUseCase
 ): Controller =>
   createController({
     execute: (req) => {
@@ -16,7 +16,9 @@ const GetEventsInViewController = (
         filters: {
           ne: query.ne,
           sw: query.sw,
-          clientFilters: query.filters,
+          eventCategories: query.filters.eventCategories,
+          startDate: query.filters.startDate,
+          endDate: query.filters.endDate,
           limit: query.limit,
         },
       });

@@ -3,7 +3,7 @@
     "target": "es2018",
     "module": "commonjs",
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -13,13 +13,10 @@
     "typeRoots": ["./node_modules/@types"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@src/*": ["./src/*"],
-      "types/*": ["./types/*"],
-      "*": ["node_modules/*"]
+      "@src/*": ["./src/*"]
     }
   },
-  "include": ["**/*", "types/**/*"],
+  "include": ["src/**/*"],
   "exclude": [
     "node_modules",
     "dist",

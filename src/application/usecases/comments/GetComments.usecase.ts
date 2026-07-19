@@ -9,11 +9,7 @@ import {
   GetCommentsOutput,
 } from "@src/application/dtos/comments/getComments.dto";
 
-export interface IGetCommentsUseCase {
-  execute(input: GetCommentsInput): Promise<GetCommentsOutput>;
-}
-
-class GetCommentsUseCase implements IGetCommentsUseCase {
+class GetCommentsUseCase {
   constructor(private readonly commentRepository: ICommentRepository) {}
 
   async execute(input: GetCommentsInput): Promise<GetCommentsOutput> {

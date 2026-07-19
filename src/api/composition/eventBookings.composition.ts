@@ -10,15 +10,15 @@ import CancelEventBookingController from "@src/api/controllers/eventBookings/can
 import GetMyEventBookingsController from "@src/api/controllers/eventBookings/getMyEventBookings.controller";
 import GetMyEventBookingForEventController from "@src/api/controllers/eventBookings/getMyEventBookingForEvent.controller";
 import GetEventBookingsByEventController from "@src/api/controllers/eventBookings/getEventBookingsByEvent.controller";
-import LegacyEventNotifierAdapter from "@src/infrastructure/adapters/LegacyEventNotifier.adapter";
+import EventNotifierAdapter from "@src/infrastructure/adapters/EventNotifier.adapter";
 import {
   authMiddleware,
+  createNotificationUseCase,
   mongooseEventBookingRepository,
   mongooseEventRepository,
-} from "@/di/container";
-import { notificationService } from "@/di/notification.di";
+} from "@src/di/container";
 
-const eventNotifier = new LegacyEventNotifierAdapter(notificationService);
+const eventNotifier = new EventNotifierAdapter(createNotificationUseCase);
 
 const createEventBookingUseCase = new CreateEventBookingUseCase(
   mongooseEventBookingRepository,

@@ -11,11 +11,7 @@ import {
   NotFoundError,
 } from "@src/shared/errors";
 
-export interface IDeleteFavoriteUseCase {
-  execute(input: DeleteFavoriteInput): Promise<void>;
-}
-
-class DeleteFavoriteUseCase implements IDeleteFavoriteUseCase {
+class DeleteFavoriteUseCase {
   constructor(private readonly favoriteRepository: IFavoriteRepository) {}
 
   async execute(input: DeleteFavoriteInput): Promise<void> {
