@@ -1,14 +1,14 @@
 import { deleteFavoriteSchema } from "@src/api/dto/favorites/favorite.dto";
-import { IDeleteFavoriteUseCase } from "@src/application/usecases/favorites/DeleteFavorite.usecase";
+import type DeleteFavoriteUseCase from "@src/application/usecases/favorites/DeleteFavorite.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   validateOrThrow,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const DeleteFavoriteController = (
-  deleteFavoriteUseCase: IDeleteFavoriteUseCase
+  deleteFavoriteUseCase: DeleteFavoriteUseCase
 ): Controller =>
   createController({
     execute: async (req) => {

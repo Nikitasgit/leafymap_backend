@@ -1,14 +1,14 @@
 import { createFollowSchema } from "@src/api/dto/follows/follow.dto";
-import { ICreateFollowUseCase } from "@src/application/usecases/follows/CreateFollow.usecase";
+import type CreateFollowUseCase from "@src/application/usecases/follows/CreateFollow.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   validateOrThrow,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const CreateFollowController = (
-  createFollowUseCase: ICreateFollowUseCase
+  createFollowUseCase: CreateFollowUseCase
 ): Controller =>
   createController({
     execute: (req) => {

@@ -1,31 +1,15 @@
 import { IPartnershipRepository } from "@src/domain/interfaces/IPartnershipRepository";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
-import { PartnershipStatus } from "@src/domain/value-objects/PartnershipStatus.vo";
+import { GetPartnershipsByUserIdInput } from "@src/application/dtos/partnerships/getPartnershipsByUserId.dto";
 
-export interface IGetPartnershipsByUserIdUseCase {
-  execute(params: {
-    userId: string;
-    asCollaborator?: boolean;
-    asInitiator?: boolean;
-    status?: PartnershipStatus;
-    currentUserId?: string;
-  }): Promise<Record<string, unknown>[]>;
-}
-
-class GetPartnershipsByUserIdUseCase
-  implements IGetPartnershipsByUserIdUseCase
-{
+class GetPartnershipsByUserIdUseCase {
   constructor(
     private readonly partnershipRepository: IPartnershipRepository
   ) {}
 
-  async execute(params: {
-    userId: string;
-    asCollaborator?: boolean;
-    asInitiator?: boolean;
-    status?: PartnershipStatus;
-    currentUserId?: string;
-  }): Promise<Record<string, unknown>[]> {
+  async execute(
+    params: GetPartnershipsByUserIdInput
+  ): Promise<Record<string, unknown>[]> {
     return this.partnershipRepository.findListForUser({
       userId: UserId.from(params.userId),
       asCollaborator: params.asCollaborator,

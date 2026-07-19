@@ -6,15 +6,15 @@ import CreatePartnershipController from "@src/api/controllers/partnerships/creat
 import UpdatePartnershipsController from "@src/api/controllers/partnerships/updatePartnerships.controller";
 import DeletePartnershipController from "@src/api/controllers/partnerships/deletePartnership.controller";
 import GetPartnershipsByUserIdController from "@src/api/controllers/partnerships/getPartnershipsByUserId.controller";
-import LegacyPartnershipNotifierAdapter from "@src/infrastructure/adapters/LegacyPartnershipNotifier.adapter";
+import PartnershipNotifierAdapter from "@src/infrastructure/adapters/PartnershipNotifier.adapter";
 import {
   authMiddleware,
+  createNotificationUseCase,
   mongoosePartnershipRepository,
-} from "@/di/container";
-import { notificationService } from "@/di/notification.di";
+} from "@src/di/container";
 
-const partnershipNotifier = new LegacyPartnershipNotifierAdapter(
-  notificationService
+const partnershipNotifier = new PartnershipNotifierAdapter(
+  createNotificationUseCase
 );
 
 const createPartnershipUseCase = new CreatePartnershipUseCase(
@@ -36,7 +36,7 @@ export { authMiddleware };
 export const createPartnership = CreatePartnershipController(
   createPartnershipUseCase
 );
-export const updatePartnership = UpdatePartnershipsController(
+export const updatePartnerships = UpdatePartnershipsController(
   updatePartnershipsUseCase
 );
 export const deletePartnership = DeletePartnershipController(

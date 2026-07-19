@@ -1,13 +1,8 @@
 import { z } from "zod";
 import { COMMENT_REFERENCE_TYPES } from "@src/domain/value-objects/CommentReferenceType.vo";
-import { isValidObjectId } from "@/utils/objectId";
+import { objectIdString } from "@src/api/dto/common.dto";
 
 export const commentReferenceTypeEnum = z.enum(COMMENT_REFERENCE_TYPES);
-
-const objectIdString = z
-  .string()
-  .min(1)
-  .refine(isValidObjectId, { message: "Invalid ObjectId" });
 
 export const createCommentSchema = z.object({
   content: z

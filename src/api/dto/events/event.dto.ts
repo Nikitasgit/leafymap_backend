@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { descriptionSchema } from "@/validations/common.validations";
-import { locationSchema } from "@/validations/place.validations";
+import { descriptionSchema } from "@src/api/dto/common.validations";
+import { locationSchema } from "@src/api/dto/places/place.dto";
+import { parseJson } from "@src/shared/jsonHandlers";
 
 export const eventNameSchema = z
   .string()
@@ -151,9 +152,31 @@ const jsonNumberArraySchema = z.string().transform((value, ctx) => {
   }
 });
 
+export interface EventClientFilters {
+  eventCategories?: string[];
+  startDate?: string | null;
+  endDate?: string | null;
+}
+
+const CLIENT_FILTERS_DEFAULTS: EventClientFilters = {
+  eventCategories: [],
+  startDate: null,
+  endDate: null,
+};
+
+// Lenient by design: an unparseable `filters` query param falls back to the
+// defaults instead of rejecting the request (legacy behavior).
+const clientFiltersSchema = z
+  .string()
+  .optional()
+  .transform(
+    (value): EventClientFilters =>
+      parseJson<EventClientFilters>(value, CLIENT_FILTERS_DEFAULTS)
+  );
+
 export const getEventsInViewQuerySchema = z.object({
   ne: jsonNumberArraySchema,
   sw: jsonNumberArraySchema,
-  filters: z.string().optional(),
+  filters: clientFiltersSchema,
   limit: z.coerce.number().optional(),
 });

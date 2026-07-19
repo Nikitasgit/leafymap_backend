@@ -1,14 +1,14 @@
 import { createCommentSchema } from "@src/api/dto/comments/comment.dto";
-import { ICreateCommentUseCase } from "@src/application/usecases/comments/CreateComment.usecase";
+import type CreateCommentUseCase from "@src/application/usecases/comments/CreateComment.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   validateOrThrow,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const CreateCommentController = (
-  createCommentUseCase: ICreateCommentUseCase
+  createCommentUseCase: CreateCommentUseCase
 ): Controller =>
   createController({
     execute: (req) => {

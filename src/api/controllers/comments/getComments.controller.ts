@@ -1,13 +1,13 @@
 import { getCommentsQuerySchema } from "@src/api/dto/comments/comment.dto";
-import { IGetCommentsUseCase } from "@src/application/usecases/comments/GetComments.usecase";
+import type GetCommentsUseCase from "@src/application/usecases/comments/GetComments.usecase";
 import {
   Controller,
   createController,
   validateOrThrow,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const GetCommentsController = (
-  getCommentsUseCase: IGetCommentsUseCase
+  getCommentsUseCase: GetCommentsUseCase
 ): Controller =>
   createController({
     execute: async (req) => {

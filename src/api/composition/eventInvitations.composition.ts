@@ -6,16 +6,16 @@ import CreateEventInvitationsController from "@src/api/controllers/eventInvitati
 import UpdateEventInvitationController from "@src/api/controllers/eventInvitations/updateEventInvitation.controller";
 import GetEventInvitationsController from "@src/api/controllers/eventInvitations/getEventInvitations.controller";
 import GetEventInvitationsByUserIdController from "@src/api/controllers/eventInvitations/getEventInvitationsByUserId.controller";
-import LegacyEventInvitationNotifierAdapter from "@src/infrastructure/adapters/LegacyEventInvitationNotifier.adapter";
+import EventInvitationNotifierAdapter from "@src/infrastructure/adapters/EventInvitationNotifier.adapter";
 import {
   authMiddleware,
+  createNotificationUseCase,
   mongooseEventInvitationRepository,
   mongooseEventRepository,
-} from "@/di/container";
-import { notificationService } from "@/di/notification.di";
+} from "@src/di/container";
 
-const eventInvitationNotifier = new LegacyEventInvitationNotifierAdapter(
-  notificationService
+const eventInvitationNotifier = new EventInvitationNotifierAdapter(
+  createNotificationUseCase
 );
 
 const createEventInvitationsUseCase = new CreateEventInvitationsUseCase(

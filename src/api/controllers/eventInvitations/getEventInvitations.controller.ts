@@ -1,14 +1,14 @@
 import { getEventInvitationsQuerySchema } from "@src/api/dto/eventInvitations/eventInvitation.dto";
-import { IGetEventInvitationsUseCase } from "@src/application/usecases/eventInvitations/GetEventInvitations.usecase";
+import type GetEventInvitationsUseCase from "@src/application/usecases/eventInvitations/GetEventInvitations.usecase";
 import {
   Controller,
   createController,
   requireObjectIdParam,
   validateOrThrow,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const GetEventInvitationsController = (
-  getEventInvitationsUseCase: IGetEventInvitationsUseCase
+  getEventInvitationsUseCase: GetEventInvitationsUseCase
 ): Controller =>
   createController({
     execute: (req) => {

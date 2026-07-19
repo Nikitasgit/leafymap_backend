@@ -1,16 +1,16 @@
 import { Response, NextFunction } from "express";
 import { z } from "zod";
-import { CustomRequest } from "@/types/custom";
+import { CustomRequest } from "@src/api/types/custom";
 import {
   createController,
   requireAuth,
   requireObjectIdParam,
   validateOrThrow,
-} from "@/utils/controllerFactory";
-import { ERROR_CODES, NotFoundError } from "@/utils/errors";
-import { APIResponse } from "@/utils/response";
+} from "@src/api/http/controllerFactory";
+import { ERROR_CODES, NotFoundError } from "@src/shared/errors";
+import { APIResponse } from "@src/api/http/response";
 
-jest.mock("@/utils/response", () => ({
+jest.mock("@src/api/http/response", () => ({
   APIResponse: jest.fn(),
 }));
 

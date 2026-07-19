@@ -3,15 +3,9 @@ import {
   getEventDateRange,
   getLifecycleStatus,
 } from "@src/domain/value-objects/EventSchedule.vo";
-import logger from "@/utils/logger";
+import logger from "@src/shared/logger";
 
-export interface IUpdateEventLifecycleStatusUseCase {
-  execute(): Promise<string[]>;
-}
-
-class UpdateEventLifecycleStatusUseCase
-  implements IUpdateEventLifecycleStatusUseCase
-{
+class UpdateEventLifecycleStatusUseCase {
   constructor(private readonly eventRepository: IEventRepository) {}
 
   async execute(): Promise<string[]> {

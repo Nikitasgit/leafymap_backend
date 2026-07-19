@@ -1,13 +1,13 @@
-import { IGetEventBookingsByEventUseCase } from "@src/application/usecases/eventBookings/GetEventBookingsByEvent.usecase";
+import type GetEventBookingsByEventUseCase from "@src/application/usecases/eventBookings/GetEventBookingsByEvent.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   requireObjectIdParam,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const GetEventBookingsByEventController = (
-  getEventBookingsByEventUseCase: IGetEventBookingsByEventUseCase
+  getEventBookingsByEventUseCase: GetEventBookingsByEventUseCase
 ): Controller =>
   createController({
     execute: (req) =>

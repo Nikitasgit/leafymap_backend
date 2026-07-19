@@ -2,18 +2,18 @@ import express, { Router } from "express";
 import {
   createFollow,
   deleteFollow,
-  findFollowers,
-  findFollowing,
-  findOneFollow,
+  getFollowers,
+  getFollowing,
+  getOneFollow,
   authMiddleware,
 } from "@src/api/composition/follows.composition";
 
 const router: Router = express.Router();
 
 router.post("/", authMiddleware.verify(), createFollow.handle());
-router.get("/check", authMiddleware.verify(), findOneFollow.handle());
-router.get("/followers/:userId", findFollowers.handle());
-router.get("/following/:userId", findFollowing.handle());
+router.get("/check", authMiddleware.verify(), getOneFollow.handle());
+router.get("/followers/:userId", getFollowers.handle());
+router.get("/following/:userId", getFollowing.handle());
 router.delete("/:followId", authMiddleware.verify(), deleteFollow.handle());
 
 export default router;

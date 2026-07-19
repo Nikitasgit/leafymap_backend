@@ -10,11 +10,7 @@ import {
   UserId,
 } from "@src/domain/value-objects/ObjectId.vo";
 
-export interface ICreateEventUseCase {
-  execute(input: CreateEventInput): Promise<{ id: EventId }>;
-}
-
-class CreateEventUseCase implements ICreateEventUseCase {
+class CreateEventUseCase {
   constructor(
     private readonly eventRepository: IEventRepository,
     private readonly placeOwnershipChecker: IPlaceOwnershipChecker

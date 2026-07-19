@@ -1,12 +1,12 @@
-import { IGetReceivedReviewsUseCase } from "@src/application/usecases/reviews/GetReceivedReviews.usecase";
+import type GetReceivedReviewsUseCase from "@src/application/usecases/reviews/GetReceivedReviews.usecase";
 import {
   Controller,
   createController,
   requireAuth,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const GetReceivedReviewsController = (
-  getReceivedReviewsUseCase: IGetReceivedReviewsUseCase
+  getReceivedReviewsUseCase: GetReceivedReviewsUseCase
 ): Controller =>
   createController({
     execute: async (req) => {

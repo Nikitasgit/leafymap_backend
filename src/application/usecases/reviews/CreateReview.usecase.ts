@@ -18,11 +18,7 @@ import {
   NotFoundError,
 } from "@src/shared/errors";
 
-export interface ICreateReviewUseCase {
-  execute(input: CreateReviewInput): Promise<CreateReviewOutput>;
-}
-
-class CreateReviewUseCase implements ICreateReviewUseCase {
+class CreateReviewUseCase {
   constructor(
     private readonly reviewRepository: IReviewRepository,
     private readonly targetChecker: IReviewTargetChecker,

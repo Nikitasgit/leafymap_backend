@@ -1,93 +1,49 @@
-export type FavoriteId = string & { readonly __brand: "FavoriteId" };
-export type UserId = string & { readonly __brand: "UserId" };
-export type ReferenceId = string & { readonly __brand: "ReferenceId" };
-export type FollowId = string & { readonly __brand: "FollowId" };
-export type CommentId = string & { readonly __brand: "CommentId" };
-export type ReviewId = string & { readonly __brand: "ReviewId" };
-export type EventId = string & { readonly __brand: "EventId" };
-export type EventBookingId = string & { readonly __brand: "EventBookingId" };
-export type EventInvitationId = string & {
-  readonly __brand: "EventInvitationId";
-};
-export type PartnershipId = string & { readonly __brand: "PartnershipId" };
-export type PlaceId = string & { readonly __brand: "PlaceId" };
-export type EventCategoryId = string & { readonly __brand: "EventCategoryId" };
-export type ImageId = string & { readonly __brand: "ImageId" };
+type Branded<Brand extends string> = string & { readonly __brand: Brand };
 
-export const FavoriteId = {
-  from(value: string): FavoriteId {
-    return value as FavoriteId;
+const brandedId = <Id extends string>() => ({
+  from(value: string): Id {
+    return value as Id;
   },
-};
+});
 
-export const UserId = {
-  from(value: string): UserId {
-    return value as UserId;
-  },
-};
+export type FavoriteId = Branded<"FavoriteId">;
+export type UserId = Branded<"UserId">;
+export type ReferenceId = Branded<"ReferenceId">;
+export type FollowId = Branded<"FollowId">;
+export type CommentId = Branded<"CommentId">;
+export type ReviewId = Branded<"ReviewId">;
+export type EventId = Branded<"EventId">;
+export type EventBookingId = Branded<"EventBookingId">;
+export type EventInvitationId = Branded<"EventInvitationId">;
+export type PartnershipId = Branded<"PartnershipId">;
+export type PlaceId = Branded<"PlaceId">;
+export type EventCategoryId = Branded<"EventCategoryId">;
+export type ImageId = Branded<"ImageId">;
+export type ProductId = Branded<"ProductId">;
+export type ProductCategoryId = Branded<"ProductCategoryId">;
+export type PlaceCategoryId = Branded<"PlaceCategoryId">;
+export type UserCategoryId = Branded<"UserCategoryId">;
+export type NotificationId = Branded<"NotificationId">;
+export type MessageId = Branded<"MessageId">;
+export type ConversationId = Branded<"ConversationId">;
 
-export const ReferenceId = {
-  from(value: string): ReferenceId {
-    return value as ReferenceId;
-  },
-};
-
-export const FollowId = {
-  from(value: string): FollowId {
-    return value as FollowId;
-  },
-};
-
-export const CommentId = {
-  from(value: string): CommentId {
-    return value as CommentId;
-  },
-};
-
-export const ReviewId = {
-  from(value: string): ReviewId {
-    return value as ReviewId;
-  },
-};
-
-export const EventId = {
-  from(value: string): EventId {
-    return value as EventId;
-  },
-};
-
-export const EventBookingId = {
-  from(value: string): EventBookingId {
-    return value as EventBookingId;
-  },
-};
-
-export const EventInvitationId = {
-  from(value: string): EventInvitationId {
-    return value as EventInvitationId;
-  },
-};
-
-export const PartnershipId = {
-  from(value: string): PartnershipId {
-    return value as PartnershipId;
-  },
-};
-
-export const PlaceId = {
-  from(value: string): PlaceId {
-    return value as PlaceId;
-  },
-};
-
-export const EventCategoryId = {
-  from(value: string): EventCategoryId {
-    return value as EventCategoryId;
-  },
-};
-
-export const ImageId = {
-  from(value: string): ImageId {
-    return value as ImageId;
-  },
-};
+export const FavoriteId = brandedId<FavoriteId>();
+export const UserId = brandedId<UserId>();
+export const ReferenceId = brandedId<ReferenceId>();
+export const FollowId = brandedId<FollowId>();
+export const CommentId = brandedId<CommentId>();
+export const ReviewId = brandedId<ReviewId>();
+export const EventId = brandedId<EventId>();
+export const EventBookingId = brandedId<EventBookingId>();
+export const EventInvitationId = brandedId<EventInvitationId>();
+export const PartnershipId = brandedId<PartnershipId>();
+export const PlaceId = brandedId<PlaceId>();
+export const EventCategoryId = brandedId<EventCategoryId>();
+export const ImageId = brandedId<ImageId>();
+export const ProductId = brandedId<ProductId>();
+export const ProductCategoryId = brandedId<ProductCategoryId>();
+export const PlaceCategoryId = brandedId<PlaceCategoryId>();
+export const UserCategoryId = brandedId<UserCategoryId>();
+export const NotificationId = brandedId<NotificationId>();
+export const MessageId = brandedId<MessageId>();
+export const ConversationId = brandedId<ConversationId>();

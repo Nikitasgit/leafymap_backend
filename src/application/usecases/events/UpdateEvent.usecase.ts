@@ -14,11 +14,7 @@ import {
   NotFoundError,
 } from "@src/shared/errors";
 
-export interface IUpdateEventUseCase {
-  execute(input: UpdateEventInput): Promise<void>;
-}
-
-class UpdateEventUseCase implements IUpdateEventUseCase {
+class UpdateEventUseCase {
   constructor(
     private readonly eventRepository: IEventRepository,
     private readonly placeOwnershipChecker: IPlaceOwnershipChecker

@@ -1,6 +1,6 @@
 import { Schema, model, Types, UpdateQuery } from "mongoose";
-import { locationSchema } from "@/models/Place";
-import "@/models/EventCategory";
+import { locationSchema } from "@src/infrastructure/persistence/schemas/Place.schema";
+import "./EventCategory.schema";
 import { EventStatus } from "@src/domain/value-objects/EventStatus.vo";
 import { LifecycleStatus } from "@src/domain/value-objects/LifecycleStatus.vo";
 import {

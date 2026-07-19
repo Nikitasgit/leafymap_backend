@@ -7,11 +7,7 @@ import {
   NotFoundError,
 } from "@src/shared/errors";
 
-export interface IDeleteCommentUseCase {
-  execute(input: DeleteCommentInput): Promise<void>;
-}
-
-class DeleteCommentUseCase implements IDeleteCommentUseCase {
+class DeleteCommentUseCase {
   constructor(private readonly commentRepository: ICommentRepository) {}
 
   async execute(input: DeleteCommentInput): Promise<void> {

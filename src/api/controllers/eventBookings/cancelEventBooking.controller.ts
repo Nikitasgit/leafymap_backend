@@ -1,13 +1,13 @@
-import { ICancelEventBookingUseCase } from "@src/application/usecases/eventBookings/CancelEventBooking.usecase";
+import type CancelEventBookingUseCase from "@src/application/usecases/eventBookings/CancelEventBooking.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   requireObjectIdParam,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const CancelEventBookingController = (
-  cancelEventBookingUseCase: ICancelEventBookingUseCase
+  cancelEventBookingUseCase: CancelEventBookingUseCase
 ): Controller =>
   createController({
     execute: (req) =>

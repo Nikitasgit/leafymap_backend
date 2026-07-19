@@ -1,12 +1,12 @@
-import { IGetMyEventBookingsUseCase } from "@src/application/usecases/eventBookings/GetMyEventBookings.usecase";
+import type GetMyEventBookingsUseCase from "@src/application/usecases/eventBookings/GetMyEventBookings.usecase";
 import {
   Controller,
   createController,
   requireAuth,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const GetMyEventBookingsController = (
-  getMyEventBookingsUseCase: IGetMyEventBookingsUseCase
+  getMyEventBookingsUseCase: GetMyEventBookingsUseCase
 ): Controller =>
   createController({
     execute: (req) =>

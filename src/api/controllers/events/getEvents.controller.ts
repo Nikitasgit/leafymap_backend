@@ -1,13 +1,13 @@
 import { getEventsQuerySchema } from "@src/api/dto/events/event.dto";
-import { IGetEventsUseCase } from "@src/application/usecases/events/GetEvents.usecase";
+import type GetEventsUseCase from "@src/application/usecases/events/GetEvents.usecase";
 import {
   Controller,
   createController,
   validateOrThrow,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const GetEventsController = (
-  getEventsUseCase: IGetEventsUseCase
+  getEventsUseCase: GetEventsUseCase
 ): Controller =>
   createController({
     execute: (req) =>

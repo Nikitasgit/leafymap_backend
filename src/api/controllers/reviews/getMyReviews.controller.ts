@@ -1,12 +1,12 @@
-import { IGetMyReviewsUseCase } from "@src/application/usecases/reviews/GetMyReviews.usecase";
+import type GetMyReviewsUseCase from "@src/application/usecases/reviews/GetMyReviews.usecase";
 import {
   Controller,
   createController,
   requireAuth,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const GetMyReviewsController = (
-  getMyReviewsUseCase: IGetMyReviewsUseCase
+  getMyReviewsUseCase: GetMyReviewsUseCase
 ): Controller =>
   createController({
     execute: async (req) => {

@@ -11,19 +11,18 @@ import DeleteEventController from "@src/api/controllers/events/deleteEvent.contr
 import GetEventByIdController from "@src/api/controllers/events/getEventById.controller";
 import GetEventsController from "@src/api/controllers/events/getEvents.controller";
 import GetEventsInViewController from "@src/api/controllers/events/getEventsInView.controller";
-import LegacyPlaceOwnershipCheckerAdapter from "@src/infrastructure/adapters/LegacyPlaceOwnershipChecker.adapter";
+import PlaceOwnershipCheckerAdapter from "@src/infrastructure/adapters/PlaceOwnershipChecker.adapter";
 import {
   authMiddleware,
-  cascadeDeleteService,
+  cascadeDeleteUseCase,
   mongooseEventBookingRepository,
   mongooseEventRepository,
-  placeRepository,
+  mongoosePlaceRepository,
   rateLimiterMiddleware,
-} from "@/di/container";
-import { EventsMiddleware, PlacesMiddleware } from "@/middlewares";
+} from "@src/di/container";
 
-const placeOwnershipChecker = new LegacyPlaceOwnershipCheckerAdapter(
-  placeRepository
+const placeOwnershipChecker = new PlaceOwnershipCheckerAdapter(
+  mongoosePlaceRepository
 );
 
 const createEventUseCase = new CreateEventUseCase(
@@ -36,7 +35,7 @@ const updateEventUseCase = new UpdateEventUseCase(
 );
 const deleteEventUseCase = new DeleteEventUseCase(
   mongooseEventRepository,
-  cascadeDeleteService
+  cascadeDeleteUseCase
 );
 const getEventByIdUseCase = new GetEventByIdUseCase(
   mongooseEventRepository,
@@ -50,8 +49,6 @@ export const updateEventLifecycleStatusUseCase =
   new UpdateEventLifecycleStatusUseCase(mongooseEventRepository);
 
 export { authMiddleware, rateLimiterMiddleware };
-export const placesMiddleware = new PlacesMiddleware(placeRepository);
-export const eventsMiddleware = new EventsMiddleware(mongooseEventRepository);
 
 export const createEvent = CreateEventController(createEventUseCase);
 export const updateEvent = UpdateEventController(updateEventUseCase);

@@ -16,11 +16,7 @@ import {
   ValidationError,
 } from "@src/shared/errors";
 
-export interface ICreateCommentUseCase {
-  execute(input: CreateCommentInput): Promise<CreateCommentOutput>;
-}
-
-class CreateCommentUseCase implements ICreateCommentUseCase {
+class CreateCommentUseCase {
   constructor(
     private readonly commentRepository: ICommentRepository,
     private readonly referenceChecker: ICommentReferenceChecker

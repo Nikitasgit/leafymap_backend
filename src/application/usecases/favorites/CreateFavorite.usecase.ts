@@ -11,11 +11,7 @@ import {
 } from "@src/application/dtos/favorites/createFavorite.dto";
 import { ConflictError, ERROR_CODES } from "@src/shared/errors";
 
-export interface ICreateFavoriteUseCase {
-  execute(input: CreateFavoriteInput): Promise<CreateFavoriteOutput>;
-}
-
-class CreateFavoriteUseCase implements ICreateFavoriteUseCase {
+class CreateFavoriteUseCase {
   constructor(private readonly favoriteRepository: IFavoriteRepository) {}
 
   async execute(input: CreateFavoriteInput): Promise<CreateFavoriteOutput> {

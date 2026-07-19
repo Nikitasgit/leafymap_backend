@@ -7,11 +7,7 @@ import {
   NotFoundError,
 } from "@src/shared/errors";
 
-export interface IUpdateCommentUseCase {
-  execute(input: UpdateCommentInput): Promise<void>;
-}
-
-class UpdateCommentUseCase implements IUpdateCommentUseCase {
+class UpdateCommentUseCase {
   constructor(private readonly commentRepository: ICommentRepository) {}
 
   async execute(input: UpdateCommentInput): Promise<void> {

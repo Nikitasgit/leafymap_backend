@@ -8,11 +8,7 @@ import {
   NotFoundError,
 } from "@src/shared/errors";
 
-export interface IDeleteReviewUseCase {
-  execute(input: DeleteReviewInput): Promise<void>;
-}
-
-class DeleteReviewUseCase implements IDeleteReviewUseCase {
+class DeleteReviewUseCase {
   constructor(
     private readonly reviewRepository: IReviewRepository,
     private readonly ratingUpdater: IReviewRatingUpdater

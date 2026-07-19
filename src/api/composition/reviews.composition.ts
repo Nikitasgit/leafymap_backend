@@ -10,26 +10,28 @@ import GetMyReviewsController from "@src/api/controllers/reviews/getMyReviews.co
 import GetReceivedReviewsController from "@src/api/controllers/reviews/getReceivedReviews.controller";
 import UpdateReviewController from "@src/api/controllers/reviews/updateReview.controller";
 import DeleteReviewController from "@src/api/controllers/reviews/deleteReview.controller";
-import LegacyReviewTargetCheckerAdapter from "@src/infrastructure/adapters/LegacyReviewTargetChecker.adapter";
-import LegacyReviewRatingUpdaterAdapter from "@src/infrastructure/adapters/LegacyReviewRatingUpdater.adapter";
+import ReviewTargetCheckerAdapter from "@src/infrastructure/adapters/ReviewTargetChecker.adapter";
+import ReviewRatingUpdaterAdapter from "@src/infrastructure/adapters/ReviewRatingUpdater.adapter";
+import UserPlaceResolverAdapter from "@src/infrastructure/adapters/UserPlaceResolver.adapter";
 import {
   authMiddleware,
   mongooseEventRepository,
   mongooseReviewRepository,
-  placeRepository,
+  mongoosePlaceRepository,
+  mongooseUserRepository,
   rateLimiterMiddleware,
-  userRepository,
-} from "@/di/container";
+} from "@src/di/container";
 
-const reviewTargetChecker = new LegacyReviewTargetCheckerAdapter(
-  placeRepository,
+const reviewTargetChecker = new ReviewTargetCheckerAdapter(
+  mongoosePlaceRepository,
   mongooseEventRepository
 );
-const reviewRatingUpdater = new LegacyReviewRatingUpdaterAdapter(
+const reviewRatingUpdater = new ReviewRatingUpdaterAdapter(
   mongooseReviewRepository,
-  placeRepository,
+  mongoosePlaceRepository,
   mongooseEventRepository
 );
+const userPlaceResolver = new UserPlaceResolverAdapter(mongooseUserRepository);
 
 const createReviewUseCase = new CreateReviewUseCase(
   mongooseReviewRepository,
@@ -40,7 +42,7 @@ const getReviewsUseCase = new GetReviewsUseCase(mongooseReviewRepository);
 const getMyReviewsUseCase = new GetMyReviewsUseCase(mongooseReviewRepository);
 const getReceivedReviewsUseCase = new GetReceivedReviewsUseCase(
   mongooseReviewRepository,
-  userRepository
+  userPlaceResolver
 );
 const updateReviewUseCase = new UpdateReviewUseCase(
   mongooseReviewRepository,

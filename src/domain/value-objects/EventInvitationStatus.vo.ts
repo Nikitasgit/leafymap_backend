@@ -1,3 +1,5 @@
+import { ERROR_CODES, ValidationError } from "@src/shared/errors";
+
 export const EVENT_INVITATION_STATUSES = [
   "pending",
   "accepted",
@@ -12,7 +14,12 @@ export type EventInvitationStatus =
 export const EventInvitationStatus = {
   from(value: string): EventInvitationStatus {
     if (!EVENT_INVITATION_STATUSES.includes(value as EventInvitationStatus)) {
-      throw new Error(`Invalid event invitation status: ${value}`);
+      const message = `Invalid event invitation status: ${value}`;
+      throw new ValidationError(
+        { value: message },
+        ERROR_CODES.VALIDATION_ERROR,
+        message
+      );
     }
     return value as EventInvitationStatus;
   },

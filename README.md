@@ -57,78 +57,84 @@ npm run lint:fix
 npm start
 ```
 
-La CI exécute `npm run lint:ci` avec une baseline de 79 warnings. Lorsqu'une
-correction réduit leur nombre, diminuez aussi `--max-warnings` dans
-`package.json` afin d'empêcher leur réintroduction.
+La CI exécute `npm run lint:ci` avec un plafond `--max-warnings 79`. Lorsqu'une
+correction réduit leur nombre, diminuez aussi cette valeur dans `package.json`
+afin d'empêcher leur réintroduction.
 
 ## Architecture du projet
 
-Le backend est en **migration progressive** vers une Clean Architecture. Le code legacy coexiste avec le nouveau dossier `src/`.
+Le backend suit une **Clean Architecture** stricte : tout le code runtime vit sous `src/`. Hors `src/` : tooling, scripts ops, tests et docs.
 
 ```
 leafymap_backend/
-├── src/                          # Nouvelle architecture (Clean Architecture)
-│   ├── api/                      # Présentation HTTP (controllers, dto, routes, composition)
+├── src/
+│   ├── main/                     # Entry : server.ts + app.ts (Express)
+│   ├── api/                      # Delivery HTTP
+│   │   ├── controllers/
+│   │   ├── dto/
+│   │   ├── routes/
+│   │   ├── composition/
+│   │   ├── middlewares/
+│   │   ├── http/                 # controllerFactory, response, errorHandler…
+│   │   └── types/
 │   ├── application/              # Use cases + DTOs application
-│   ├── domain/                   # Entités, value objects, ports (interfaces)
-│   ├── infrastructure/           # Repositories Mongoose, mappers, schémas
-│   └── shared/                   # Re-exports transverses (errors, etc.)
-├── app.ts                        # Configuration Express
-├── server.ts                     # Point d'entrée
-├── actions/                      # Legacy — use cases (à migrer vers src/application/usecases)
-├── controllers/                  # Legacy — adapters HTTP
-├── repositories/                 # Legacy — accès données
-├── models/                       # Legacy — schémas Mongoose
-├── routes/                       # Legacy — routes API
-├── di/                           # Composition root partagé (container.ts)
-├── middlewares/
-├── services/
-├── types/
-├── utils/
-└── validations/
+│   ├── domain/                   # Entités, VOs, ports — zéro dépendance externe
+│   ├── infrastructure/           # Repos, adapters, auth helpers, services, realtime, cron
+│   ├── shared/                   # errors, logger, constants, delay
+│   └── di/                       # Composition root partagé (container.ts)
+├── scripts/                      # CLI ops (seed, admin, migrate)
+├── __tests__/
+└── (configs : package.json, tsconfig, jest, eslint…)
 ```
 
-### Modules migrés : Favorites, Follows, Comments, Reviews, Events, EventBookings, EventInvitations, Partnerships
+### Domaines : Favorites, Follows, Comments, Reviews, Events, EventBookings, EventInvitations, Partnerships, Products, Categories, Images, Places, Users, Auth, Admin, Notifications, Messages
 
 Flux :
 
 ```
-Route → Controller → UseCase → Domain Entity / Port → Mongoose Repository
+Route → Controller → UseCase → Domain Entity / Port → Mongoose Repository / Adapter
 ```
 
 | Couche | Emplacement | Rôle |
 | --- | --- | --- |
-| API | `src/api/` | Validation Zod, mapping HTTP, routes, composition |
-| Application | `src/application/usecases/` | Orchestration métier (ex-`actions/`) |
-| Domain | `src/domain/` | Entités, value objects, ports (`IFavoriteRepository`, `IFollowRepository`, `ICommentRepository`, `IReviewRepository`, `IEventRepository`, `IEventBookingRepository`, `IEventInvitationRepository`, `IPartnershipRepository`, …) |
-| Infrastructure | `src/infrastructure/` | Mongoose, mappers, adapters de side-effects |
+| Main | `src/main/` | Bootstrap HTTP + Socket.IO + cron |
+| API | `src/api/` | Validation Zod, mapping HTTP, routes, middlewares, composition |
+| Application | `src/application/usecases/` | Orchestration métier |
+| Domain | `src/domain/` | Entités, value objects, ports (`IFavoriteRepository`, `IFollowRepository`, `ICommentRepository`, `IReviewRepository`, `IEventRepository`, `IEventBookingRepository`, `IEventInvitationRepository`, `IPartnershipRepository`, `IProductRepository`, `ICategoryRepository`, `IImageRepository`, `IPlaceRepository`, `IUserRepository`, `INotificationRepository`, `IMessageRepository`, `IConversationRepository`, …) |
+| Infrastructure | `src/infrastructure/` | Mongoose, mappers, adapters, services (email/S3), auth helpers, realtime (Socket.IO), cron |
+| Shared | `src/shared/` | errors, logger, constants |
+| DI | `src/di/` | Singletons partagés (repos, middlewares, cascade) |
+
+Alias unique : `@src/*` → `src/*`. Entry prod : `dist/main/server.js`.
+
+Règles de dépendance : `domain` → (shared/errors uniquement) ; `application` → domain + shared ; `api` → application + http ; `infrastructure` → domain + shared ; `main` / `di` → composition.
 
 Points d’attention :
 
-- Validation ObjectId via `utils/objectId.ts` (mongoose) aux frontières API ; les VOs domain ne font que le branding.
-- `CascadeDeleteService` / `DeleteAccount` / admin consomment directement les ports domain (Favorite, Follow, Comment, Review, Event, EventBooking, EventInvitation, Partnership).
-- Follows ajoute des ports `IFollowCounter` / `IFollowNotifier` (adapters autour des services legacy) et `deleteAllInvolvingUser` à la suppression de compte.
+- Validation ObjectId via `src/api/http/objectId.ts` aux frontières API ; les VOs domain ne font que le branding.
+- `CascadeDeleteUseCase` (port `ICascadeDeleter`) / `DeleteAccount` / admin consomment directement les ports domain (Favorite, Follow, Comment, Review, Event, EventBooking, EventInvitation, Partnership, Product, Place, User, Notification).
+- Follows : ports `IFollowCounter` / `IFollowNotifier` ; `IFollowCounter` via `MongooseFollowCounterAdapter` → `IUserRepository.incrementFollowers` ; `deleteAllInvolvingUser` à la suppression de compte.
 - Comments réutilise le pattern polymorphe `reference` / `referenceType` (comme Favorites) et expose `findIdsByReferences` / `softDelete` pour cascade et moderation.
 - Reviews : même forme polymorphe (`Place` / `Event`), unicité `(author, reference, referenceType)`, ports `IReviewTargetChecker` / `IReviewRatingUpdater` (adapters Place/Event), soft-delete admin + cascade.
 - Events : entité riche (schedule, lifecycle, capacity), ports `IPlaceOwnershipChecker` ; lifecycle dérivé du schedule (domain + filet de sécurité schéma) ; cron via `UpdateEventLifecycleStatusUseCase`.
 - EventBookings : règles de capacité / unicité / fenêtres `upcoming` dans les use cases ; port `IEventNotifier` pour les notifications organisateur.
 - EventInvitations : transitions de statut (accept/refuse/cancel), ownership create via `event.belongsTo`, port `IEventInvitationNotifier`, retrait collaborateur du schedule à la suppression.
 - Partnerships : invitation user↔user (`pending` → `accepted`), unicité bidirectionnelle, accept réservé au collaborateur, soft-delete via `cancel`, port `IPartnershipNotifier`.
+- Products : CRUD léger (catégorie + user), limite `MAX_PRODUCTS_PER_USER` (10) à la création, ownership via `belongsTo`, hard-delete, `deleteManyByUserId` à la suppression de compte.
+- Categories : lecture seule (`GET /api/categories`), agrège CategoryType + User/Place/Product/EventCategory via `ICategoryRepository.findAll()` ; pas d’entité riche ni de writes HTTP (seeds uniquement).
+- Images : polymorphe `reference` / `referenceType` (Place/User/Event ; Comment/Review non uploadables), ports `IImageStorage` (S3) et `IImageReferenceOwnershipChecker` ; signing explicite (pas de post-hooks schéma) ; hard-delete HTTP/cascade (DB + S3) ; soft-delete admin ; ownership delete/upload dans les use cases.
+- Places : entité avec location GeoJSON + schedules ; port `IUserPlaceLinker` (back-ref `User.place`, rule 1 place/user) ; ownership update/delete dans les use cases ; `GET /in-view` via aggregation geo/`ids`/filters dans le repository ; `scheduleWithEvents` via helper application `placeScheduleWithEvents` (pas de service infra) ; delete user = cascade hard + unlink ; soft-delete admin.
+- Users : entité profil/compte ; port `IUserRepository` ; reads populés via `findDetailsById` / `findList` ; `UpdateUser` strip champs protégés + JWT si `userType` change ; `DeleteAccount` cascade (places/events/follows/images…) ; `AuthMiddleware` / `AdminMiddleware` / Socket.IO / `CreateNotificationUseCase` consomment le même port domain (`MongooseUserRepository`) ; `IUserPlaceLinker` / `IUserPlaceResolver` branchés sur le port domain.
+- Auth : credentials sur l’entité `User` ; use cases Register / SignIn / GoogleAuth / VerifyEmail / ResendVerification / RequestPasswordReset / ResetPassword / AcceptCgu ; ports `IPasswordHasher`, `IAuthEmailSender`, `IJwtTokenIssuer`, `IGoogleIdentityVerifier`, `IOpaqueTokenFactory` ; `GET /me` réutilise `GetUserByIdUseCase` ; SignOut = clear cookies HTTP.
+- Admin : modération via use cases Search/Get/Ban/Unban/SoftDelete/Restore (users + resources) ; méthodes domain `User.ban` / `unban` / `softDelete` / `restore` ; `findAdminByEmail` + `findDetailsById({ includeDeleted })` ; soft-delete contenu via ports Event/Place/Image/Review/Comment ; middlewares auth/admin sur `IUserRepository` domain.
+- Notifications : entité + port `INotificationRepository` ; HTTP list / mark-by-action / mark-all ; `IUnreadConversationCounter` pour le compteur conversations non lues (messaging) ; writes + email via `CreateNotificationUseCase` + port `INotificationEmailSender` ; adapters `FollowNotifier` / `EventNotifier` / `EventInvitationNotifier` / `PartnershipNotifier` consomment le use case ; cascade/DeleteAccount sur le port domain.
+- Messages : entités `Message` / `Conversation` + ports `IMessageRepository` / `IConversationRepository` ; HTTP create / inbox / thread / mark-read / update / delete ; ownership via `belongsTo` / `isParticipant` dans les use cases ; realtime via port `IMessageRealtimePublisher` (Socket.IO) ; `join_conversation` appelle `MarkMessagesAsReadUseCase` ; unread counter Notifications branché sur les repos domain.
 - Ownership des mutations (delete/update) : règle métier via `entity.belongsTo(actorId)` / `isParticipant` dans le use case — pas via middleware HTTP.
-- Existence de la référence à la création d’un comment : port `ICommentReferenceChecker` (+ adapter legacy Image/Review), appelé depuis `CreateCommentUseCase`.
+- Existence de la référence à la création d’un comment : port `ICommentReferenceChecker` (`CommentReferenceChecker` adapter Image/Review), appelé depuis `CreateCommentUseCase`.
 
-### Template de migration (prochaines entités)
+### Couches consolidées
 
-1. Créer entité + value objects dans `src/domain/`
-2. Définir le port repository (et ports side-effects si besoin) dans `src/domain/interfaces/`
-3. Implémenter use cases dans `src/application/usecases/{entity}/` (DTOs application co-localisés si simples)
-4. Migrer schéma, mapper et repository dans `src/infrastructure/`
-5. Ajouter DTOs HTTP, controllers, routes et composition dans `src/api/`
-6. Brancher dans `app.ts` / `di/container.ts`
-7. Écrire tests dans `__tests__/{entity}/`
-8. Supprimer le code legacy correspondant
-
-Ordre suggéré : **Categories / Products / Images** (variante légère) → Places / Users
+Shell legacy (`middlewares/`, `utils/`, `types/`, `validations/`, `di/`, `config/`, `app.ts`, `server.ts` à la racine) absorbé sous `src/`. Plus de code runtime hors `src/`.
 
 
 ## Fonctionnalités principales
@@ -154,7 +160,7 @@ Ordre suggéré : **Categories / Products / Images** (variante légère) → Pla
 
 #### Middleware d'authentification
 
-- **Fichier** : `middlewares/auth.ts`
+- **Fichier** : `src/api/middlewares/auth.middleware.ts`
 - **Vérification** : Token depuis cookies ou header `Authorization`
 - **Décodage JWT** : Extraction des informations utilisateur
 - **Validation** : Vérification que l'utilisateur existe toujours
@@ -273,23 +279,11 @@ Ordre suggéré : **Categories / Products / Images** (variante légère) → Pla
 
 Les images stockées sur S3 ne sont pas accessibles publiquement. À chaque récupération d'une image depuis la base de données, un **URL signé** temporaire est généré automatiquement.
 
-#### Implémentation dans `models/Image.ts`
+#### Implémentation (`IImageStorage` / `AwsImageStorageAdapter`)
 
-**Middleware Mongoose post-hook** :
+Le signing est **explicite** dans les use cases / repository (pas de post-hooks Mongoose). `AwsImageStorageAdapter.signUrls` délègue à `AwsService.generateSignedUrlFromFullUrl`.
 
-```typescript
-imageSchema.post(
-  ["find", "findOne", "findOneAndUpdate"],
-  async function (docs) {
-    // Génère automatiquement des URLs signés après chaque requête
-    doc.urls.original = await generateSignedUrlFromFullUrl(doc.urls.original);
-    doc.urls.thumbnail = await generateSignedUrlFromFullUrl(doc.urls.thumbnail);
-    doc.urls.medium = await generateSignedUrlFromFullUrl(doc.urls.medium);
-  }
-);
-```
-
-#### Processus de génération (`utils/s3.ts`)
+#### Processus de génération
 
 1. **URL stockée** : `https://bucket.s3.region.amazonaws.com/path/to/image.jpg`
 2. **Extraction de la clé** : Suppression du préfixe bucket
@@ -336,17 +330,14 @@ imageSchema.post(
 ### TypeScript
 
 - **Mode strict activé** : Typage rigoureux
-- **Interfaces pour les modèles** : Types partagés dans `/types/models/`
-- **Path aliases** : `types/*` pour les imports
-- **ObjectId Mongoose** : Utilise `Types.ObjectId` pour les références
-- **Populate** : Les données sont populées dans les controllers selon les besoins, mais pas de types `Populated` spécifiques (côté frontend uniquement)
+- **Path alias** : `@src/*` → `src/*`
+- **ObjectId Mongoose** : `Types.ObjectId` en persistence ; VOs brandés en domain
+- **Populate** : côté repositories / mappers, pas de types `Populated` dédiés backend
 
 ### Architecture
 
-- **Code legacy** : Routes → Controllers → Actions → Repositories → Models
-- **Code migré (`src/`)** : Routes → Controllers → UseCases → Domain → Infrastructure
-- **Alias TypeScript** : `@/*` (legacy), `@src/*` (nouvelle architecture)
-- **Renommage** : `actions/` devient `application/usecases/` dans `src/`
+- Flux : Route → Controller → UseCase → Domain → Infrastructure
+- Couches sous `src/` uniquement (voir [Architecture du projet](#-architecture-du-projet))
 
 ### Nommage
 
@@ -473,7 +464,7 @@ nano .env
 npm run build
 
 # Démarrage avec PM2
-pm2 start dist/server.js --name backend-app
+pm2 start dist/main/server.js --name backend-app
 pm2 save
 pm2 startup
 ```

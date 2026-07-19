@@ -1,15 +1,15 @@
 import { createEventInvitationsSchema } from "@src/api/dto/eventInvitations/eventInvitation.dto";
-import { ICreateEventInvitationsUseCase } from "@src/application/usecases/eventInvitations/CreateEventInvitations.usecase";
+import type CreateEventInvitationsUseCase from "@src/application/usecases/eventInvitations/CreateEventInvitations.usecase";
 import {
   Controller,
   createController,
   requireAuth,
   requireObjectIdParam,
   validateOrThrow,
-} from "@/utils/controllerFactory";
+} from "@src/api/http/controllerFactory";
 
 const CreateEventInvitationsController = (
-  createEventInvitationsUseCase: ICreateEventInvitationsUseCase
+  createEventInvitationsUseCase: CreateEventInvitationsUseCase
 ): Controller =>
   createController({
     execute: async (req) => {

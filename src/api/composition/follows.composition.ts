@@ -1,26 +1,24 @@
 import CreateFollowUseCase from "@src/application/usecases/follows/CreateFollow.usecase";
 import DeleteFollowUseCase from "@src/application/usecases/follows/DeleteFollow.usecase";
-import FindFollowersUseCase from "@src/application/usecases/follows/FindFollowers.usecase";
-import FindFollowingUseCase from "@src/application/usecases/follows/FindFollowing.usecase";
-import FindOneFollowUseCase from "@src/application/usecases/follows/FindOneFollow.usecase";
+import GetFollowersUseCase from "@src/application/usecases/follows/GetFollowers.usecase";
+import GetFollowingUseCase from "@src/application/usecases/follows/GetFollowing.usecase";
+import GetOneFollowUseCase from "@src/application/usecases/follows/GetOneFollow.usecase";
 import CreateFollowController from "@src/api/controllers/follows/createFollow.controller";
 import DeleteFollowController from "@src/api/controllers/follows/deleteFollow.controller";
-import FindFollowersController from "@src/api/controllers/follows/findFollowers.controller";
-import FindFollowingController from "@src/api/controllers/follows/findFollowing.controller";
-import FindOneFollowController from "@src/api/controllers/follows/findOneFollow.controller";
-import LegacyFollowCounterAdapter from "@src/infrastructure/adapters/LegacyFollowCounter.adapter";
-import LegacyFollowNotifierAdapter from "@src/infrastructure/adapters/LegacyFollowNotifier.adapter";
-import FollowService from "@/services/followService";
+import GetFollowersController from "@src/api/controllers/follows/getFollowers.controller";
+import GetFollowingController from "@src/api/controllers/follows/getFollowing.controller";
+import GetOneFollowController from "@src/api/controllers/follows/getOneFollow.controller";
+import MongooseFollowCounterAdapter from "@src/infrastructure/adapters/MongooseFollowCounter.adapter";
+import FollowNotifierAdapter from "@src/infrastructure/adapters/FollowNotifier.adapter";
 import {
   authMiddleware,
+  createNotificationUseCase,
   mongooseFollowRepository,
-  userRepository,
-} from "@/di/container";
-import { notificationService } from "@/di/notification.di";
+  mongooseUserRepository,
+} from "@src/di/container";
 
-const followService = new FollowService(userRepository);
-const followCounter = new LegacyFollowCounterAdapter(followService);
-const followNotifier = new LegacyFollowNotifierAdapter(notificationService);
+const followCounter = new MongooseFollowCounterAdapter(mongooseUserRepository);
+const followNotifier = new FollowNotifierAdapter(createNotificationUseCase);
 
 const createFollowUseCase = new CreateFollowUseCase(
   mongooseFollowRepository,
@@ -31,14 +29,14 @@ const deleteFollowUseCase = new DeleteFollowUseCase(
   mongooseFollowRepository,
   followCounter
 );
-const findFollowersUseCase = new FindFollowersUseCase(mongooseFollowRepository);
-const findFollowingUseCase = new FindFollowingUseCase(mongooseFollowRepository);
-const findOneFollowUseCase = new FindOneFollowUseCase(mongooseFollowRepository);
+const getFollowersUseCase = new GetFollowersUseCase(mongooseFollowRepository);
+const getFollowingUseCase = new GetFollowingUseCase(mongooseFollowRepository);
+const getOneFollowUseCase = new GetOneFollowUseCase(mongooseFollowRepository);
 
 export { authMiddleware };
 
 export const createFollow = CreateFollowController(createFollowUseCase);
 export const deleteFollow = DeleteFollowController(deleteFollowUseCase);
-export const findFollowers = FindFollowersController(findFollowersUseCase);
-export const findFollowing = FindFollowingController(findFollowingUseCase);
-export const findOneFollow = FindOneFollowController(findOneFollowUseCase);
+export const getFollowers = GetFollowersController(getFollowersUseCase);
+export const getFollowing = GetFollowingController(getFollowingUseCase);
+export const getOneFollow = GetOneFollowController(getOneFollowUseCase);

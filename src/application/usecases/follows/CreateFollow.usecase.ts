@@ -8,21 +8,12 @@ import {
   ERROR_CODES,
   ValidationError,
 } from "@src/shared/errors";
+import {
+  CreateFollowInput,
+  CreateFollowOutput,
+} from "@src/application/dtos/follows/createFollow.dto";
 
-export interface CreateFollowInput {
-  followerId: string;
-  followingId: string;
-}
-
-export interface CreateFollowOutput {
-  id: string;
-}
-
-export interface ICreateFollowUseCase {
-  execute(input: CreateFollowInput): Promise<CreateFollowOutput>;
-}
-
-class CreateFollowUseCase implements ICreateFollowUseCase {
+class CreateFollowUseCase {
   constructor(
     private readonly followRepository: IFollowRepository,
     private readonly followCounter: IFollowCounter,
