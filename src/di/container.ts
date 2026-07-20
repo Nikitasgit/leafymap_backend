@@ -23,7 +23,7 @@ export type { Cradle };
 
 export const createAppContainer = (): AwilixContainer<Cradle> => {
   const container = createContainer<Cradle>({
-    injectionMode: InjectionMode.PROXY,
+    injectionMode: InjectionMode.CLASSIC,
     strict: true,
   });
 

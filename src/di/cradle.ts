@@ -148,7 +148,7 @@ import type { IUserRepository } from "@src/domain/interfaces/IUserRepository";
 
 /**
  * Typed Awilix cradle. Registration names must match constructor param names
- * for PROXY injection (e.g. `userRepository`, `cascadeDeleter`).
+ * for CLASSIC injection (e.g. `userRepository`, `cascadeDeleter`).
  */
 export interface Cradle {
   // Repositories

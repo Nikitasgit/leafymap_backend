@@ -62,7 +62,7 @@ export const registerInfrastructureModule = (
     notificationEmailSender: asClass(NotificationEmailSenderAdapter).singleton(),
     jwtTokenIssuer: asClass(JwtTokenIssuerAdapter).singleton(),
 
-    // Avoid PROXY resolving optional `awsService` constructor param
+    // Avoid CLASSIC resolving optional `awsService` constructor param
     imageStorage: asFunction(() => new AwsImageStorageAdapter()).singleton(),
 
     createNotificationUseCase: asClass(CreateNotificationUseCase).singleton(),
