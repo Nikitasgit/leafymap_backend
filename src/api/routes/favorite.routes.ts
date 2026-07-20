@@ -1,15 +1,12 @@
 import express, { Router } from "express";
-import {
-  createFavorite,
-  deleteFavorite,
-  getFavoritesByType,
-  authMiddleware,
-} from "@src/api/composition/favorites.composition";
+import { cradle } from "@src/di/container";
+
+const { favoritesController, authMiddleware } = cradle;
 
 const router: Router = express.Router();
 
-router.get("/", authMiddleware.verify(), getFavoritesByType.handle());
-router.post("/", authMiddleware.verify(), createFavorite.handle());
-router.delete("/", authMiddleware.verify(), deleteFavorite.handle());
+router.get("/", authMiddleware.verify(), favoritesController.listByType());
+router.post("/", authMiddleware.verify(), favoritesController.create());
+router.delete("/", authMiddleware.verify(), favoritesController.delete());
 
 export default router;

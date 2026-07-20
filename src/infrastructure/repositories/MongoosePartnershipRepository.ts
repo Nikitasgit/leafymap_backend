@@ -64,10 +64,6 @@ class MongoosePartnershipRepository implements IPartnershipRepository {
     ).exec();
   }
 
-  async delete(id: PartnershipId): Promise<void> {
-    await PartnershipModel.findByIdAndDelete(id).exec();
-  }
-
   async findExistingBetweenUsers(
     userA: UserId,
     userB: UserId

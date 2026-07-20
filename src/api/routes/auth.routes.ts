@@ -1,42 +1,35 @@
 import express, { Router } from "express";
-import {
-  register,
-  signIn,
-  signOut,
-  getCurrentUser,
-  requestPasswordReset,
-  resetPassword,
-  googleAuth,
-  acceptCgu,
-  verifyEmail,
-  resendVerificationEmail,
-  authMiddleware,
-  rateLimiterMiddleware,
-} from "@src/api/composition/auth.composition";
+import { cradle } from "@src/di/container";
+
+const { authController, authMiddleware, rateLimiterMiddleware } = cradle;
 
 const router: Router = express.Router();
 
-router.post("/register", rateLimiterMiddleware.auth(), register.handle());
-router.post("/signin", rateLimiterMiddleware.auth(), signIn.handle());
-router.post("/google", rateLimiterMiddleware.auth(), googleAuth.handle());
-router.post("/signout", signOut.handle());
-router.get("/me", authMiddleware.verify(), getCurrentUser.handle());
-router.patch("/accept-cgu", authMiddleware.verify(), acceptCgu.handle());
-router.get("/verify-email", rateLimiterMiddleware.auth(), verifyEmail.handle());
+router.post("/register", rateLimiterMiddleware.auth(), authController.register());
+router.post("/signin", rateLimiterMiddleware.auth(), authController.signIn());
+router.post("/google", rateLimiterMiddleware.auth(), authController.googleAuth());
+router.post("/signout", authController.signOut());
+router.get("/me", authMiddleware.verify(), authController.getCurrentUser());
+router.patch("/accept-cgu", authMiddleware.verify(), authController.acceptCgu());
+router.get(
+  "/verify-email",
+  rateLimiterMiddleware.auth(),
+  authController.verifyEmail()
+);
 router.post(
   "/resend-verification-email",
   rateLimiterMiddleware.auth(),
-  resendVerificationEmail.handle()
+  authController.resendVerificationEmail()
 );
 router.post(
   "/forgot-password",
   rateLimiterMiddleware.auth(),
-  requestPasswordReset.handle()
+  authController.requestPasswordReset()
 );
 router.post(
   "/reset-password",
   rateLimiterMiddleware.auth(),
-  resetPassword.handle()
+  authController.resetPassword()
 );
 
 export default router;

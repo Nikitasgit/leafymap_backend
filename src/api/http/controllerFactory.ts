@@ -15,7 +15,7 @@ export interface Controller {
   handle(): RequestHandler;
 }
 
-interface ControllerOptions<TResult> {
+export interface ControllerOptions<TResult> {
   /** Runs the endpoint logic. Throw an AppError for business failures. */
   execute: (req: CustomRequest, res: Response) => Promise<TResult>;
   successMessage: string | ((result: TResult) => string);

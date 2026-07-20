@@ -1,27 +1,20 @@
 import express, { Router } from "express";
-import {
-  createEvent,
-  updateEvent,
-  deleteEvent,
-  getEventById,
-  getEvents,
-  getEventsInView,
-  authMiddleware,
-  rateLimiterMiddleware,
-} from "@src/api/composition/events.composition";
+import { cradle } from "@src/di/container";
+
+const { eventsController, authMiddleware, rateLimiterMiddleware } = cradle;
 
 const router: Router = express.Router();
 
-router.get("/", getEvents.handle());
-router.get("/in-view", getEventsInView.handle());
-router.post("/", authMiddleware.verify(), createEvent.handle());
-router.get("/:eventId", getEventById.handle());
-router.put("/:eventId", authMiddleware.verify(), updateEvent.handle());
+router.get("/", eventsController.list());
+router.get("/in-view", eventsController.getInView());
+router.post("/", authMiddleware.verify(), eventsController.create());
+router.get("/:eventId", eventsController.getById());
+router.put("/:eventId", authMiddleware.verify(), eventsController.update());
 router.delete(
   "/:eventId",
   authMiddleware.verify(),
   rateLimiterMiddleware.strict(),
-  deleteEvent.handle()
+  eventsController.delete()
 );
 
 export default router;

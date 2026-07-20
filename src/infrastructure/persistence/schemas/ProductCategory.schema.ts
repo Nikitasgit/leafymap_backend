@@ -19,9 +19,7 @@ const productCategorySchema = new Schema<ProductCategoryDocumentProps>({
   },
 });
 
-export const ProductCategoryModel = model<ProductCategoryDocumentProps>(
+export default model<ProductCategoryDocumentProps>(
   "ProductCategory",
   productCategorySchema
 );
-
-export default ProductCategoryModel;

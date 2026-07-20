@@ -7,12 +7,10 @@ autonumber
 actor "Utilisateur" as user
 participant "Frontend" as fe
 participant "auth.middleware" as authMw
-participant "eventOwnership.middleware" as ownerMw
 participant "eventInvitations.controller" as ctrl
-participant "eventInvitation.usecase" as action
+participant "CreateEventInvitations.usecase" as action
 participant "eventInvitation.repository" as invitationRepo
-participant "notification.service" as notif
-participant "eventInvitation.service" as invSvc
+participant "EventInvitationNotifier" as notif
 participant "event.repository" as eventRepo
 
 == Envoi d'une invitation ==
@@ -29,27 +27,27 @@ authMw -> authMw : verify auth
 alt Non authentifie
   authMw --> fe : 401
 else Authentifie
-  authMw -> ownerMw : next()
-  activate ownerMw
+  authMw -> ctrl : next()
+  activate ctrl
   deactivate authMw
 
-  ownerMw -> eventRepo : findById(eventId)
+  ctrl -> action : execute(eventInvitations, eventId, initiatorId)
+  activate action
+
+  action -> eventRepo : findById(eventId)
   activate eventRepo
-  eventRepo --> ownerMw : event
+  eventRepo --> action : event
   deactivate eventRepo
 
-  alt Non proprietaire
-    ownerMw --> fe : 403
+  alt Non proprietaire (event.belongsTo)
+    action --> ctrl : 403 Forbidden
+    ctrl --> fe : 403
+    deactivate action
+    deactivate ctrl
+    deactivate fe
   else Proprietaire
-    ownerMw -> ctrl : next()
-    activate ctrl
-    deactivate ownerMw
-
-    ctrl -> action : execute(eventInvitations, eventId, initiatorId)
-    activate action
-
     loop Pour chaque collaborateur
-      action -> invitationRepo : findOne(event + collaborateur)
+      action -> invitationRepo : findByEventAndCollaborator
       activate invitationRepo
 
       alt Invitation deja existante
@@ -58,10 +56,10 @@ else Authentifie
         action -> action : Ignorer ce collaborateur
       else Nouvelle invitation
         invitationRepo --> action : null
-        action -> invitationRepo : create(status=pending)
+        action -> invitationRepo : save(status=pending)
         invitationRepo --> action : OK
         deactivate invitationRepo
-        action -> notif : createNotification(event_invitation)
+        action -> notif : notifyInvitation(event_invitation)
         activate notif
         notif --> action : OK
         deactivate notif
@@ -103,26 +101,22 @@ else Authentifie
   invitationRepo --> action : invitation
 
   alt Refus ou annulation
-    action -> notif : createNotification(refused)
+    action -> notif : notifyInvitationResponse(refused)
     activate notif
     notif --> action : OK
     deactivate notif
 
-    action -> invSvc : deleteEventInvitation()
-    activate invSvc
-    invSvc -> invitationRepo : deleteOne(invitation)
-    invitationRepo --> invSvc : OK
-    invSvc -> eventRepo : updateOne(schedule)
+    action -> invitationRepo : delete(invitation)
+    invitationRepo --> action : OK
+    action -> eventRepo : update(schedule)
     activate eventRepo
-    eventRepo --> invSvc : OK
+    eventRepo --> action : OK
     deactivate eventRepo
-    invSvc --> action : OK
-    deactivate invSvc
   else Acceptation
-    action -> invitationRepo : updateOne(status=accepted)
+    action -> invitationRepo : update(status=accepted)
     invitationRepo --> action : OK
     deactivate invitationRepo
-    action -> notif : createNotification(event_accepted)
+    action -> notif : notifyInvitationResponse(accepted)
     activate notif
     notif --> action : OK
     deactivate notif

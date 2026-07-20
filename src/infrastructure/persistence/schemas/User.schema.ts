@@ -115,6 +115,4 @@ const userSchema = new Schema<UserDocumentProps>(
   { timestamps: true }
 );
 
-export const UserModel = model<UserDocumentProps>("User", userSchema);
-
-export default UserModel;
+export default model<UserDocumentProps>("User", userSchema);

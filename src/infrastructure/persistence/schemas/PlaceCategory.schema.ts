@@ -23,9 +23,7 @@ const placeCategorySchema = new Schema<PlaceCategoryDocumentProps>({
   },
 });
 
-export const PlaceCategoryModel = model<PlaceCategoryDocumentProps>(
+export default model<PlaceCategoryDocumentProps>(
   "PlaceCategory",
   placeCategorySchema
 );
-
-export default PlaceCategoryModel;

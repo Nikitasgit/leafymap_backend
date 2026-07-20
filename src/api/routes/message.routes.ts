@@ -1,49 +1,45 @@
 import express, { Router } from "express";
-import {
+import { cradle } from "@src/di/container";
+
+const {
   authMiddleware,
-  createMessage,
-  deleteMessage,
-  getConversationWithUser,
-  getConversations,
-  getMessages,
-  markMessagesAsRead,
+  messagesController,
   rateLimiterMiddleware,
-  updateMessage,
-} from "@src/api/composition/messages.composition";
+} = cradle;
 
 const router: Router = express.Router();
 
-router.post("/", authMiddleware.verify(), createMessage.handle());
+router.post("/", authMiddleware.verify(), messagesController.create());
 router.get(
   "/conversations",
   authMiddleware.verify(),
-  getConversations.handle()
+  messagesController.listConversations()
 );
 router.get(
   "/conversation/with/:otherUserId",
   authMiddleware.verify(),
-  getConversationWithUser.handle()
+  messagesController.getConversationWithUser()
 );
 router.get(
   "/conversation/:conversationId",
   authMiddleware.verify(),
-  getMessages.handle()
+  messagesController.list()
 );
 router.put(
   "/conversation/:conversationId/read",
   authMiddleware.verify(),
-  markMessagesAsRead.handle()
+  messagesController.markAsRead()
 );
 router.put(
   "/:messageId",
   authMiddleware.verify(),
-  updateMessage.handle()
+  messagesController.update()
 );
 router.delete(
   "/:messageId",
   authMiddleware.verify(),
   rateLimiterMiddleware.strict(),
-  deleteMessage.handle()
+  messagesController.delete()
 );
 
 export default router;

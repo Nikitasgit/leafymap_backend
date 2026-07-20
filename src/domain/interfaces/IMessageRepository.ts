@@ -50,10 +50,6 @@ export interface IMessageRepository {
     conversationId: ConversationId,
     userId: UserId
   ): Promise<number>;
-  countUnreadInConversation(
-    conversationId: ConversationId,
-    userId: UserId
-  ): Promise<number>;
   hasUnreadInConversation(
     conversationId: ConversationId,
     userId: UserId

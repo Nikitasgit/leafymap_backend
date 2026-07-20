@@ -65,6 +65,4 @@ reviewSchema.index(
   { unique: true }
 );
 
-export const ReviewModel = model<ReviewDocumentProps>("Review", reviewSchema);
-
-export default ReviewModel;
+export default model<ReviewDocumentProps>("Review", reviewSchema);

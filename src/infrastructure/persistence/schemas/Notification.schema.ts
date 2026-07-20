@@ -68,9 +68,7 @@ const notificationSchema = new Schema<NotificationDocumentProps>(
 notificationSchema.index({ receiver: 1, createdAt: -1 });
 notificationSchema.index({ reference: 1, referenceType: 1 });
 
-export const NotificationModel = model<NotificationDocumentProps>(
+export default model<NotificationDocumentProps>(
   "Notification",
   notificationSchema
 );
-
-export default NotificationModel;

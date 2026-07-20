@@ -1,7 +1,13 @@
 {
-  "$schema": "https://unpkg.com/knip@5/schema.json",
-  "entry": ["src/main/server.ts", "scripts/*.ts"],
-  "project": ["src/**/*.{ts,tsx}", "scripts/**/*.ts"],
-  "ignoreDependencies": ["@types/helmet", "@types/mongoose", "@types/multer-s3"],
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "scripts/*.ts",
+    "__tests__/**/*.ts"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx}",
+    "scripts/**/*.ts",
+    "__tests__/**/*.ts"
+  ],
   "ignoreExportsUsedInFile": true
 }

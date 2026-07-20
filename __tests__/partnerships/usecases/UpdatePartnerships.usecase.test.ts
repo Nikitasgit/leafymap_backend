@@ -34,7 +34,6 @@ describe("UpdatePartnershipsUseCase", () => {
       save: jest.fn(),
       findById: jest.fn(),
       update: jest.fn(),
-      delete: jest.fn(),
       findExistingBetweenUsers: jest.fn(),
       findListForUser: jest.fn(),
       deleteManyByUserId: jest.fn(),

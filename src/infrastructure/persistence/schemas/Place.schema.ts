@@ -141,6 +141,4 @@ const placeSchema = new Schema<PlaceDocumentProps>(
 
 placeSchema.index({ "location.coordinates": "2dsphere" });
 
-export const PlaceModel = model<PlaceDocumentProps>("Place", placeSchema);
-
-export default PlaceModel;
+export default model<PlaceDocumentProps>("Place", placeSchema);

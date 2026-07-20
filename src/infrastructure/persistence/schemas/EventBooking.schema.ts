@@ -1,5 +1,8 @@
 import { Schema, model, Types } from "mongoose";
-import { EventBookingStatus } from "@src/domain/value-objects/EventBookingStatus.vo";
+import {
+  EVENT_BOOKING_STATUSES,
+  EventBookingStatus,
+} from "@src/domain/value-objects/EventBookingStatus.vo";
 
 export interface EventBookingDocumentProps {
   _id?: Types.ObjectId;
@@ -31,7 +34,7 @@ const eventBookingSchema = new Schema<EventBookingDocumentProps>(
     },
     status: {
       type: String,
-      enum: ["confirmed", "cancelled"],
+      enum: [...EVENT_BOOKING_STATUSES],
       required: true,
       default: "confirmed",
     },

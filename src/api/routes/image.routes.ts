@@ -1,12 +1,12 @@
 import express, { Router } from "express";
-import {
-  uploadImages,
-  deleteImages,
-  getImages,
+import { cradle } from "@src/di/container";
+
+const {
+  imagesController,
   authMiddleware,
   uploadMiddleware,
   rateLimiterMiddleware,
-} from "@src/api/composition/images.composition";
+} = cradle;
 
 const router: Router = express.Router();
 
@@ -15,16 +15,16 @@ router.post(
   authMiddleware.verify(),
   uploadMiddleware.array("images", 10),
   uploadMiddleware.handleError(),
-  uploadImages.handle()
+  imagesController.upload()
 );
 
 router.delete(
   "/",
   authMiddleware.verify(),
   rateLimiterMiddleware.api(),
-  deleteImages.handle()
+  imagesController.delete()
 );
 
-router.get("/", getImages.handle());
+router.get("/", imagesController.list());
 
 export default router;

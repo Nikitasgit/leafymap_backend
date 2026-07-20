@@ -9,6 +9,5 @@ export const createMockMessageRepository =
     update: jest.fn(),
     delete: jest.fn(),
     markConversationAsRead: jest.fn(),
-    countUnreadInConversation: jest.fn(),
     hasUnreadInConversation: jest.fn(),
   });

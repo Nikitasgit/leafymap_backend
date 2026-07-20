@@ -19,9 +19,7 @@ const userCategorySchema = new Schema<UserCategoryDocumentProps>({
   },
 });
 
-export const UserCategoryModel = model<UserCategoryDocumentProps>(
+export default model<UserCategoryDocumentProps>(
   "UserCategory",
   userCategorySchema
 );
-
-export default UserCategoryModel;

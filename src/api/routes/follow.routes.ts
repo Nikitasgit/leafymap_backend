@@ -1,19 +1,14 @@
 import express, { Router } from "express";
-import {
-  createFollow,
-  deleteFollow,
-  getFollowers,
-  getFollowing,
-  getOneFollow,
-  authMiddleware,
-} from "@src/api/composition/follows.composition";
+import { cradle } from "@src/di/container";
+
+const { followsController, authMiddleware } = cradle;
 
 const router: Router = express.Router();
 
-router.post("/", authMiddleware.verify(), createFollow.handle());
-router.get("/check", authMiddleware.verify(), getOneFollow.handle());
-router.get("/followers/:userId", getFollowers.handle());
-router.get("/following/:userId", getFollowing.handle());
-router.delete("/:followId", authMiddleware.verify(), deleteFollow.handle());
+router.post("/", authMiddleware.verify(), followsController.create());
+router.get("/check", authMiddleware.verify(), followsController.getOne());
+router.get("/followers/:userId", followsController.listFollowers());
+router.get("/following/:userId", followsController.listFollowing());
+router.delete("/:followId", authMiddleware.verify(), followsController.delete());
 
 export default router;

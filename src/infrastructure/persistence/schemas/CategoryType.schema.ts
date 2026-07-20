@@ -13,9 +13,7 @@ const categoryTypeSchema = new Schema<CategoryTypeDocumentProps>({
   },
 });
 
-export const CategoryTypeModel = model<CategoryTypeDocumentProps>(
+export default model<CategoryTypeDocumentProps>(
   "CategoryType",
   categoryTypeSchema
 );
-
-export default CategoryTypeModel;
