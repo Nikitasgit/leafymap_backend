@@ -23,7 +23,7 @@ import type ResetPasswordUseCase from "@src/application/usecases/auth/ResetPassw
 import type SignInUseCase from "@src/application/usecases/auth/SignIn.usecase";
 import type VerifyEmailUseCase from "@src/application/usecases/auth/VerifyEmail.usecase";
 import type GetUserByIdUseCase from "@src/application/usecases/users/GetUserById.usecase";
-import { setTokenCookie } from "@src/api/http/cookies";
+import { setTokenCookie, clearTokenCookie } from "@src/api/http/cookies";
 
 class AuthController extends BaseHttpController {
   constructor(
@@ -69,17 +69,12 @@ class AuthController extends BaseHttpController {
   signOut(): RequestHandler {
     return this.handler({
       execute: async (_req, res) => {
-        res
-          .clearCookie("token", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-          })
-          .clearCookie("userType", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-          });
+        clearTokenCookie(res);
+        res.clearCookie("userType", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        });
       },
       successMessage: "Logged out",
     });
