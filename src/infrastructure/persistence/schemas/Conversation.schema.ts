@@ -29,9 +29,7 @@ const conversationSchema = new Schema<ConversationDocumentProps>(
 conversationSchema.index({ participants: 1 });
 conversationSchema.index({ updatedAt: -1 });
 
-export const ConversationModel = model<ConversationDocumentProps>(
+export default model<ConversationDocumentProps>(
   "Conversation",
   conversationSchema
 );
-
-export default ConversationModel;

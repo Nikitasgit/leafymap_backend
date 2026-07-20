@@ -20,10 +20,12 @@ import productRoutes from "@src/api/routes/product.routes";
 import adminRoutes from "@src/api/routes/admin.routes";
 import cors from "cors";
 import helmet from "helmet";
-import { rateLimiterMiddleware } from "@src/di/container";
+import { cradle } from "@src/di/container";
 import logger from "@src/shared/logger";
 import { Request, Response, NextFunction } from "express";
 import { ALLOWED_ORIGINS } from "@src/shared/constants/common";
+
+const { rateLimiterMiddleware } = cradle;
 
 const app = express();
 

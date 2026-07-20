@@ -17,7 +17,6 @@ export interface IPartnershipRepository {
   save(partnership: Partnership): Promise<PartnershipId>;
   findById(id: PartnershipId): Promise<Partnership | null>;
   update(partnership: Partnership): Promise<void>;
-  delete(id: PartnershipId): Promise<void>;
 
   findExistingBetweenUsers(
     userA: UserId,

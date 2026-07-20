@@ -53,13 +53,23 @@ npm run lint
 # Correction automatique des problèmes ESLint compatibles
 npm run lint:fix
 
+# Détection code / deps inutilisés
+npm run knip
+
 # Démarrage en production
 npm start
 ```
 
-La CI exécute `npm run lint:ci` avec un plafond `--max-warnings 79`. Lorsqu'une
-correction réduit leur nombre, diminuez aussi cette valeur dans `package.json`
-afin d'empêcher leur réintroduction.
+La CI exécute, dans l'ordre : `lint:ci`, `knip`, `build`, tests unitaires, puis
+tests d'intégration.
+
+`lint:ci` utilise un plafond `--max-warnings 79`. Lorsqu'une correction réduit
+leur nombre, diminuez aussi cette valeur dans `package.json` afin d'empêcher
+leur réintroduction.
+
+`knip` détecte fichiers, exports et dépendances inutilisés. Lancez
+`npm run knip` localement avant de pousser si vous touchez à la structure des
+modules ou aux dépendances.
 
 ## Architecture du projet
 
@@ -73,7 +83,6 @@ leafymap_backend/
 │   │   ├── controllers/
 │   │   ├── dto/
 │   │   ├── routes/
-│   │   ├── composition/
 │   │   ├── middlewares/
 │   │   ├── http/                 # controllerFactory, response, errorHandler…
 │   │   └── types/
@@ -81,7 +90,7 @@ leafymap_backend/
 │   ├── domain/                   # Entités, VOs, ports — zéro dépendance externe
 │   ├── infrastructure/           # Repos, adapters, auth helpers, services, realtime, cron
 │   ├── shared/                   # errors, logger, constants, delay
-│   └── di/                       # Composition root partagé (container.ts)
+│   └── di/                       # Awilix container (container.ts, cradle.ts, modules/)
 ├── scripts/                      # CLI ops (seed, admin, migrate)
 ├── __tests__/
 └── (configs : package.json, tsconfig, jest, eslint…)
@@ -98,16 +107,18 @@ Route → Controller → UseCase → Domain Entity / Port → Mongoose Repositor
 | Couche | Emplacement | Rôle |
 | --- | --- | --- |
 | Main | `src/main/` | Bootstrap HTTP + Socket.IO + cron |
-| API | `src/api/` | Validation Zod, mapping HTTP, routes, middlewares, composition |
+| API | `src/api/` | Validation Zod, mapping HTTP, routes, middlewares |
 | Application | `src/application/usecases/` | Orchestration métier |
 | Domain | `src/domain/` | Entités, value objects, ports (`IFavoriteRepository`, `IFollowRepository`, `ICommentRepository`, `IReviewRepository`, `IEventRepository`, `IEventBookingRepository`, `IEventInvitationRepository`, `IPartnershipRepository`, `IProductRepository`, `ICategoryRepository`, `IImageRepository`, `IPlaceRepository`, `IUserRepository`, `INotificationRepository`, `IMessageRepository`, `IConversationRepository`, …) |
 | Infrastructure | `src/infrastructure/` | Mongoose, mappers, adapters, services (email/S3), auth helpers, realtime (Socket.IO), cron |
 | Shared | `src/shared/` | errors, logger, constants |
-| DI | `src/di/` | Singletons partagés (repos, middlewares, cascade) |
+| DI | `src/di/` | Container Awilix (`container.ts` + `cradle.ts` + `modules/`) — injection PROXY par nom de paramètre |
 
 Alias unique : `@src/*` → `src/*`. Entry prod : `dist/main/server.js`.
 
-Règles de dépendance : `domain` → (shared/errors uniquement) ; `application` → domain + shared ; `api` → application + http ; `infrastructure` → domain + shared ; `main` / `di` → composition.
+Règles de dépendance : `domain` → (shared/errors uniquement) ; `application` → domain + shared ; `api` → application + http ; `infrastructure` → domain + shared ; `main` / `di` → composition root Awilix ; routes consomment `cradle`.
+
+DI : registration `asClass` / `asFunction` en `Lifetime.SINGLETON` ; les noms de constructeur (`userRepository`, `cascadeDeleter`, …) doivent matcher les clés du cradle.
 
 Points d’attention :
 
@@ -204,14 +215,14 @@ Shell legacy (`middlewares/`, `utils/`, `types/`, `validations/`, `di/`, `config
 
 - Seul le **créateur du lieu** peut le modifier
 - Seul le **créateur du lieu** peut le supprimer
-- Middleware : `placeOwnership.ts` vérifie la propriété
+- Ownership vérifiée dans les use cases via le port `IPlaceOwnershipChecker` (`PlaceOwnershipChecker` adapter)
 
 ##### Events (Événements)
 
 - Peuvent être créés par **Creator** OU **Organizer**
 - Seul le **propriétaire du lieu** associé peut modifier l'événement
 - Seul le **propriétaire du lieu** associé peut supprimer l'événement
-- Middleware : `eventOwnership.ts` vérifie la propriété
+- Ownership vérifiée dans les use cases (`PlaceOwnershipChecker` / `event.belongsTo`)
 
 ##### Partnerships (Partenariats)
 
@@ -381,7 +392,7 @@ AWS_BUCKET_NAME=...
 ### MongoDB
 
 - **ODM** : Mongoose
-- **Connexion** : Configurée dans `config/db.ts`
+- **Connexion** : Configurée dans `src/infrastructure/persistence/db.ts`
 - **Indexes** : 2dsphere pour géolocalisation
 
 ### AWS S3
@@ -405,7 +416,7 @@ AWS_BUCKET_NAME=...
 ## Notes importantes
 
 - **Logs** : Vérifier `logs/error.log` en cas de problème
-- **Types** : Toujours typer les nouvelles entités dans `/types`
+- **Types** : Typer les nouvelles entités/domain dans `src/domain/`, les DTOs HTTP dans `src/api/dto/`, les types Express dans `src/api/types/`
 - **Validation** : Créer un schéma Zod pour chaque nouveau endpoint
 - **Tests** : Utiliser Postman/Thunder Client pour tester les routes
 

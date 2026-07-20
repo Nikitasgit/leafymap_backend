@@ -160,18 +160,6 @@ class MongooseMessageRepository implements IMessageRepository {
     return result.modifiedCount;
   }
 
-  async countUnreadInConversation(
-    conversationId: ConversationId,
-    userId: UserId
-  ): Promise<number> {
-    const userObjectId = new Types.ObjectId(userId);
-    return MessageModel.countDocuments({
-      conversation: new Types.ObjectId(conversationId),
-      sender: { $ne: userObjectId },
-      readBy: { $nin: [userObjectId] },
-    });
-  }
-
   async hasUnreadInConversation(
     conversationId: ConversationId,
     userId: UserId

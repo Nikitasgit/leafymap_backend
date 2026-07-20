@@ -61,6 +61,4 @@ const imageSchema = new Schema<ImageDocumentProps>(
   { timestamps: true }
 );
 
-export const ImageModel = model<ImageDocumentProps>("Image", imageSchema);
-
-export default ImageModel;
+export default model<ImageDocumentProps>("Image", imageSchema);

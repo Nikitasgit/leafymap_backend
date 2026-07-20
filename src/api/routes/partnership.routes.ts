@@ -1,25 +1,21 @@
 import express, { Router } from "express";
-import {
-  createPartnership,
-  updatePartnerships,
-  getPartnershipsByUserId,
-  deletePartnership,
-  authMiddleware,
-} from "@src/api/composition/partnerships.composition";
+import { cradle } from "@src/di/container";
+
+const { partnershipsController, authMiddleware } = cradle;
 
 const router: Router = express.Router();
 
 router.get(
   "/user/:userId",
   authMiddleware.verifyOptional(),
-  getPartnershipsByUserId.handle()
+  partnershipsController.listByUser()
 );
-router.put("/update", authMiddleware.verify(), updatePartnerships.handle());
-router.post("/", authMiddleware.verify(), createPartnership.handle());
+router.put("/update", authMiddleware.verify(), partnershipsController.update());
+router.post("/", authMiddleware.verify(), partnershipsController.create());
 router.delete(
   "/:partnershipId",
   authMiddleware.verify(),
-  deletePartnership.handle()
+  partnershipsController.delete()
 );
 
 export default router;

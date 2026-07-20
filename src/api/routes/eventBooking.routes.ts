@@ -1,41 +1,35 @@
 import express, { Router } from "express";
-import {
-  createEventBooking,
-  updateEventBooking,
-  cancelEventBooking,
-  getEventBookingsByEvent,
-  getMyEventBookings,
-  getMyEventBookingForEvent,
-  authMiddleware,
-} from "@src/api/composition/eventBookings.composition";
+import { cradle } from "@src/di/container";
+
+const { eventBookingsController, authMiddleware } = cradle;
 
 const router: Router = express.Router();
 
-router.get("/me", authMiddleware.verify(), getMyEventBookings.handle());
+router.get("/me", authMiddleware.verify(), eventBookingsController.listMine());
 router.get(
   "/event/:eventId/me",
   authMiddleware.verify(),
-  getMyEventBookingForEvent.handle()
+  eventBookingsController.getMyForEvent()
 );
 router.get(
   "/event/:eventId",
   authMiddleware.verify(),
-  getEventBookingsByEvent.handle()
+  eventBookingsController.listByEvent()
 );
 router.post(
   "/event/:eventId",
   authMiddleware.verify(),
-  createEventBooking.handle()
+  eventBookingsController.create()
 );
 router.put(
   "/:bookingId",
   authMiddleware.verify(),
-  updateEventBooking.handle()
+  eventBookingsController.update()
 );
 router.delete(
   "/:bookingId",
   authMiddleware.verify(),
-  cancelEventBooking.handle()
+  eventBookingsController.cancel()
 );
 
 export default router;

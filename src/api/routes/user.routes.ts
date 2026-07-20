@@ -1,25 +1,23 @@
 import express, { Router } from "express";
-import {
-  getUserById,
-  getUserProfile,
-  getUsers,
-  updateUser,
-  deleteAccount,
+import { cradle } from "@src/di/container";
+
+const {
+  usersController,
   authMiddleware,
   rateLimiterMiddleware,
-} from "@src/api/composition/users.composition";
+} = cradle;
 
 const router: Router = express.Router();
 
-router.get("/", getUsers.handle());
-router.get("/:userId/profile", getUserProfile.handle());
-router.get("/:userId", getUserById.handle());
-router.put("/", authMiddleware.verify(), updateUser.handle());
+router.get("/", usersController.list());
+router.get("/:userId/profile", usersController.getProfile());
+router.get("/:userId", usersController.getById());
+router.put("/", authMiddleware.verify(), usersController.update());
 router.delete(
   "/",
   authMiddleware.verify(),
   rateLimiterMiddleware.strict(),
-  deleteAccount.handle()
+  usersController.deleteAccount()
 );
 
 export default router;

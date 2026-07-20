@@ -1,21 +1,22 @@
 import express, { Router } from "express";
-import {
-  authMiddleware,
-  getCurrentUserNotifications,
-  markAllNotificationsAsRead,
-  markNotificationsAsRead,
-} from "@src/api/composition/notifications.composition";
+import { cradle } from "@src/di/container";
+
+const { authMiddleware, notificationsController } = cradle;
 
 const router: Router = express.Router();
 
-router.get("/", authMiddleware.verify(), getCurrentUserNotifications.handle());
+router.get("/", authMiddleware.verify(), notificationsController.list());
 
-router.patch("/read", authMiddleware.verify(), markNotificationsAsRead.handle());
+router.patch(
+  "/read",
+  authMiddleware.verify(),
+  notificationsController.markAsRead()
+);
 
 router.patch(
   "/read-all",
   authMiddleware.verify(),
-  markAllNotificationsAsRead.handle()
+  notificationsController.markAllAsRead()
 );
 
 export default router;

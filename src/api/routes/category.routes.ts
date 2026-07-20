@@ -1,8 +1,10 @@
 import express, { Router } from "express";
-import { getCategories } from "@src/api/composition/categories.composition";
+import { cradle } from "@src/di/container";
+
+const { categoriesController } = cradle;
 
 const router: Router = express.Router();
 
-router.get("/", getCategories.handle());
+router.get("/", categoriesController.list());
 
 export default router;

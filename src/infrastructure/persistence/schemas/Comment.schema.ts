@@ -49,9 +49,7 @@ const commentSchema = new Schema<CommentDocumentProps>(
 
 commentSchema.index({ reference: 1, referenceType: 1 });
 
-export const CommentModel = model<CommentDocumentProps>(
+export default model<CommentDocumentProps>(
   "Comment",
   commentSchema
 );
-
-export default CommentModel;

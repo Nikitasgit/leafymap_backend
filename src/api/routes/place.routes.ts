@@ -1,27 +1,20 @@
 import express, { Router } from "express";
-import {
-  createPlace,
-  updatePlace,
-  deletePlace,
-  getPlaceById,
-  getPlaces,
-  getPlacesInView,
-  authMiddleware,
-  rateLimiterMiddleware,
-} from "@src/api/composition/places.composition";
+import { cradle } from "@src/di/container";
+
+const { placesController, authMiddleware, rateLimiterMiddleware } = cradle;
 
 const router: Router = express.Router();
 
-router.post("/", authMiddleware.verify(), createPlace.handle());
-router.put("/:placeId", authMiddleware.verify(), updatePlace.handle());
+router.post("/", authMiddleware.verify(), placesController.create());
+router.put("/:placeId", authMiddleware.verify(), placesController.update());
 router.delete(
   "/:placeId",
   authMiddleware.verify(),
   rateLimiterMiddleware.strict(),
-  deletePlace.handle()
+  placesController.delete()
 );
-router.get("/search", getPlaces.handle());
-router.get("/in-view", getPlacesInView.handle());
-router.get("/:placeId", getPlaceById.handle());
+router.get("/search", placesController.list());
+router.get("/in-view", placesController.getInView());
+router.get("/:placeId", placesController.getById());
 
 export default router;

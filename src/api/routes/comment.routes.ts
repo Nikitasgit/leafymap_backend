@@ -1,23 +1,18 @@
 import express, { Router } from "express";
-import {
-  createComment,
-  getComments,
-  updateComment,
-  deleteComment,
-  authMiddleware,
-  rateLimiterMiddleware,
-} from "@src/api/composition/comments.composition";
+import { cradle } from "@src/di/container";
+
+const { commentsController, authMiddleware, rateLimiterMiddleware } = cradle;
 
 const router: Router = express.Router();
 
-router.post("/", authMiddleware.verify(), createComment.handle());
-router.get("/", getComments.handle());
-router.put("/:commentId", authMiddleware.verify(), updateComment.handle());
+router.post("/", authMiddleware.verify(), commentsController.create());
+router.get("/", commentsController.list());
+router.put("/:commentId", authMiddleware.verify(), commentsController.update());
 router.delete(
   "/:commentId",
   authMiddleware.verify(),
   rateLimiterMiddleware.strict(),
-  deleteComment.handle()
+  commentsController.delete()
 );
 
 export default router;

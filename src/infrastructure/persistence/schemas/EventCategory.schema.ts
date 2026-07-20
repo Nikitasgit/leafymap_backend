@@ -13,9 +13,7 @@ const eventCategorySchema = new Schema<EventCategoryDocumentProps>({
   },
 });
 
-export const EventCategoryModel = model<EventCategoryDocumentProps>(
+export default model<EventCategoryDocumentProps>(
   "EventCategory",
   eventCategorySchema
 );
-
-export default EventCategoryModel;

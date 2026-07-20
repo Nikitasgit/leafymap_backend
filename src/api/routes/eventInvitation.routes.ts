@@ -1,29 +1,25 @@
 import express, { Router } from "express";
-import {
-  createEventInvitations,
-  updateEventInvitation,
-  getEventInvitations,
-  getEventInvitationsByUserId,
-  authMiddleware,
-} from "@src/api/composition/eventInvitations.composition";
+import { cradle } from "@src/di/container";
+
+const { eventInvitationsController, authMiddleware } = cradle;
 
 const router: Router = express.Router();
 
 router.get(
   "/user/:userId",
   authMiddleware.verifyOptional(),
-  getEventInvitationsByUserId.handle()
+  eventInvitationsController.listByUser()
 );
 router.get(
   "/event/:eventId",
   authMiddleware.verifyOptional(),
-  getEventInvitations.handle()
+  eventInvitationsController.list()
 );
-router.put("/", authMiddleware.verify(), updateEventInvitation.handle());
+router.put("/", authMiddleware.verify(), eventInvitationsController.update());
 router.post(
   "/event/:eventId",
   authMiddleware.verify(),
-  createEventInvitations.handle()
+  eventInvitationsController.create()
 );
 
 export default router;

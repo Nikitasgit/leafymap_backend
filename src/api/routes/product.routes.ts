@@ -1,27 +1,22 @@
 import express, { Router } from "express";
-import {
-  createProduct,
-  getProducts,
-  getProductById,
-  updateProduct,
-  deleteProduct,
-  authMiddleware,
-} from "@src/api/composition/products.composition";
+import { cradle } from "@src/di/container";
+
+const { productsController, authMiddleware } = cradle;
 
 const router: Router = express.Router();
 
-router.post("/", authMiddleware.verify(), createProduct.handle());
-router.get("/", getProducts.handle());
-router.get("/:productId", getProductById.handle());
+router.post("/", authMiddleware.verify(), productsController.create());
+router.get("/", productsController.list());
+router.get("/:productId", productsController.getById());
 router.put(
   "/:productId",
   authMiddleware.verify(),
-  updateProduct.handle()
+  productsController.update()
 );
 router.delete(
   "/:productId",
   authMiddleware.verify(),
-  deleteProduct.handle()
+  productsController.delete()
 );
 
 export default router;

@@ -28,6 +28,4 @@ followSchema.index({ follower: 1, following: 1 }, { unique: true });
 followSchema.index({ follower: 1 });
 followSchema.index({ following: 1 });
 
-export const FollowModel = model<FollowDocumentProps>("Follow", followSchema);
-
-export default FollowModel;
+export default model<FollowDocumentProps>("Follow", followSchema);

@@ -1,8 +1,14 @@
 import { Schema, model, Types, UpdateQuery } from "mongoose";
 import { locationSchema } from "@src/infrastructure/persistence/schemas/Place.schema";
 import "./EventCategory.schema";
-import { EventStatus } from "@src/domain/value-objects/EventStatus.vo";
-import { LifecycleStatus } from "@src/domain/value-objects/LifecycleStatus.vo";
+import {
+  EVENT_STATUSES,
+  EventStatus,
+} from "@src/domain/value-objects/EventStatus.vo";
+import {
+  LIFECYCLE_STATUSES,
+  LifecycleStatus,
+} from "@src/domain/value-objects/LifecycleStatus.vo";
 import {
   EventDateRange,
   EventPeriod,
@@ -112,12 +118,12 @@ const eventSchema = new Schema<EventDocumentProps>(
     },
     status: {
       type: String,
-      enum: ["cancelled", "full", "available"],
+      enum: [...EVENT_STATUSES],
       default: "available",
     },
     lifecycleStatus: {
       type: String,
-      enum: ["upcoming", "ongoing", "completed", "unvalid"],
+      enum: [...LIFECYCLE_STATUSES],
       default: "unvalid",
     },
     dateRange: {

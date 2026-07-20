@@ -40,9 +40,7 @@ favoriteSchema.index(
 );
 favoriteSchema.index({ user: 1, referenceType: 1 });
 
-export const FavoriteModel = model<FavoriteDocumentProps>(
+export default model<FavoriteDocumentProps>(
   "Favorite",
   favoriteSchema
 );
-
-export default FavoriteModel;

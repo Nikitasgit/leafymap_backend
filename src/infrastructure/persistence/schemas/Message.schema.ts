@@ -51,9 +51,7 @@ messageSchema.index({ conversation: 1, createdAt: -1 });
 messageSchema.index({ conversation: 1, readBy: 1 });
 messageSchema.index({ partnership: 1 });
 
-export const MessageModel = model<MessageDocumentProps>(
+export default model<MessageDocumentProps>(
   "Message",
   messageSchema
 );
-
-export default MessageModel;
