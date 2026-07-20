@@ -112,7 +112,7 @@ Route → Controller → UseCase → Domain Entity / Port → Mongoose Repositor
 | Domain | `src/domain/` | Entités, value objects, ports (`IFavoriteRepository`, `IFollowRepository`, `ICommentRepository`, `IReviewRepository`, `IEventRepository`, `IEventBookingRepository`, `IEventInvitationRepository`, `IPartnershipRepository`, `IProductRepository`, `ICategoryRepository`, `IImageRepository`, `IPlaceRepository`, `IUserRepository`, `INotificationRepository`, `IMessageRepository`, `IConversationRepository`, …) |
 | Infrastructure | `src/infrastructure/` | Mongoose, mappers, adapters, services (email/S3), auth helpers, realtime (Socket.IO), cron |
 | Shared | `src/shared/` | errors, logger, constants |
-| DI | `src/di/` | Container Awilix (`container.ts` + `cradle.ts` + `modules/`) — injection PROXY par nom de paramètre |
+| DI | `src/di/` | Container Awilix (`container.ts` + `cradle.ts` + `modules/`) — injection CLASSIC par nom de paramètre |
 
 Alias unique : `@src/*` → `src/*`. Entry prod : `dist/main/server.js`.
 
