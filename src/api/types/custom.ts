@@ -1,12 +1,7 @@
 import { Request } from "express";
+import { JwtTokenPayload } from "@src/domain/interfaces/IJwtTokenIssuer";
 
-export interface IDecodedToken {
-  id: string;
-  userType: string;
-  role?: string;
-  iat: number;
-  exp: number;
-}
+export type IDecodedToken = JwtTokenPayload;
 
 export interface CustomRequest extends Request {
   decoded?: IDecodedToken;

@@ -1,12 +1,19 @@
 import { Response, NextFunction, RequestHandler } from "express";
-import jwt from "jsonwebtoken";
+import { IJwtTokenIssuer } from "@src/domain/interfaces/IJwtTokenIssuer";
 import { IUserRepository } from "@src/domain/interfaces/IUserRepository";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
-import { CustomRequest, IDecodedToken } from "@src/api/types/custom";
-import { ERROR_CODES, UnauthorizedError } from "@src/shared/errors";
+import { CustomRequest } from "@src/api/types/custom";
+import {
+  AppError,
+  ERROR_CODES,
+  UnauthorizedError,
+} from "@src/shared/errors";
 
 class AuthMiddleware {
-  constructor(private userRepository: IUserRepository) {}
+  constructor(
+    private readonly jwtTokenIssuer: IJwtTokenIssuer,
+    private readonly userRepository: IUserRepository
+  ) {}
 
   verify(): RequestHandler {
     return async (
@@ -26,33 +33,30 @@ class AuthMiddleware {
           );
           return;
         }
-        const JWT_SECRET = process.env.JWT_SECRET;
-        if (!JWT_SECRET) {
-          throw new Error("JWT_SECRET is not defined");
-        }
 
-        const decoded = jwt.verify(token, JWT_SECRET) as IDecodedToken;
-
-        if (!decoded) {
-          next(new UnauthorizedError(ERROR_CODES.UNAUTHORIZED, "Invalid token"));
-          return;
-        }
+        const decoded = this.jwtTokenIssuer.verify(token);
 
         const user = await this.userRepository.findById(
           UserId.from(decoded.id)
         );
 
-        if (!user || user.deleted || user.isBanActive()) {
+        if (!user) {
           next(
             new UnauthorizedError(ERROR_CODES.USER_NOT_FOUND, "User not found")
           );
           return;
         }
 
+        user.assertCanAuthenticate();
+
         req.decoded = decoded;
 
         next();
-      } catch {
+      } catch (error) {
+        if (error instanceof AppError) {
+          next(error);
+          return;
+        }
         next(
           new UnauthorizedError(
             ERROR_CODES.UNAUTHORIZED,
@@ -76,25 +80,18 @@ class AuthMiddleware {
           next();
           return;
         }
-        const JWT_SECRET = process.env.JWT_SECRET;
-        if (!JWT_SECRET) {
-          next();
-          return;
-        }
 
         try {
-          const decoded = jwt.verify(token, JWT_SECRET) as IDecodedToken;
-
-          if (decoded) {
-            const user = await this.userRepository.findById(
-              UserId.from(decoded.id)
-            );
-            if (user && !user.deleted && !user.isBanActive()) {
-              req.decoded = decoded;
-            }
+          const decoded = this.jwtTokenIssuer.verify(token);
+          const user = await this.userRepository.findById(
+            UserId.from(decoded.id)
+          );
+          if (user) {
+            user.assertCanAuthenticate();
+            req.decoded = decoded;
           }
         } catch {
-          // Invalid token — continue without authentication
+          // Invalid token or inaccessible user — continue without authentication
         }
 
         next();

@@ -292,7 +292,7 @@ Les images stockées sur S3 ne sont pas accessibles publiquement. À chaque réc
 
 #### Implémentation (`IImageStorage` / `AwsImageStorageAdapter`)
 
-Le signing est **explicite** dans les use cases / repository (pas de post-hooks Mongoose). `AwsImageStorageAdapter.signUrls` délègue à `AwsService.generateSignedUrlFromFullUrl`.
+Le signing est appliqué automatiquement sur les payloads de réponse HTTP (`createController` → `signNestedImageUrls`) pour tout URL S3 imbriqué. Les use cases images (`GetImages` / `UploadImages`) signent aussi explicitement via `IImageStorage.signUrls`. `AwsImageStorageAdapter.signUrls` / `signUrl` délèguent à `AwsService.generateSignedUrlFromFullUrl`.
 
 #### Processus de génération
 

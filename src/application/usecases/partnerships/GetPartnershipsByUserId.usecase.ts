@@ -1,4 +1,5 @@
 import { IPartnershipRepository } from "@src/domain/interfaces/IPartnershipRepository";
+import { PartnershipListItemReadModel } from "@src/domain/read-models/partnership.read-models";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
 import { GetPartnershipsByUserIdInput } from "@src/application/dtos/partnerships/getPartnershipsByUserId.dto";
 
@@ -9,7 +10,7 @@ class GetPartnershipsByUserIdUseCase {
 
   async execute(
     params: GetPartnershipsByUserIdInput
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<PartnershipListItemReadModel[]> {
     return this.partnershipRepository.findListForUser({
       userId: UserId.from(params.userId),
       asCollaborator: params.asCollaborator,

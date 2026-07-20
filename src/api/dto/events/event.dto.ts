@@ -52,7 +52,7 @@ const eventBaseSchema = z.object({
               title: z.string(),
               collaborators: z.array(
                 z.object({
-                  _id: z.string(),
+                  id: z.string(),
                   name: z.string().optional(),
                   image: z.string().optional(),
                 })

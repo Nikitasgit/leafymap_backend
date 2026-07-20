@@ -73,7 +73,6 @@ describe("CreateFollowUseCase", () => {
       useCase.execute({ followerId: userId, followingId: userId })
     ).rejects.toMatchObject({
       code: ERROR_CODES.FOLLOW_SELF_NOT_ALLOWED,
-      statusCode: 400,
     });
 
     expect(followRepository.save).not.toHaveBeenCalled();
@@ -96,7 +95,6 @@ describe("CreateFollowUseCase", () => {
       useCase.execute({ followerId, followingId })
     ).rejects.toMatchObject({
       code: ERROR_CODES.FOLLOW_ALREADY_EXISTS,
-      statusCode: 409,
     });
 
     expect(followRepository.save).not.toHaveBeenCalled();

@@ -34,7 +34,7 @@ class EventInvitationsController extends BaseHttpController {
           eventId: requireObjectIdParam(req, "eventId"),
           initiatorId: requireAuth(req).id,
           invitations: body.eventInvitations.map((invitation) => ({
-            collaboratorId: invitation.collaborator._id,
+            collaboratorId: invitation.collaborator.id,
           })),
         });
       },
@@ -88,7 +88,7 @@ class EventInvitationsController extends BaseHttpController {
         await this.updateEventInvitationUseCase.execute({
           userId: requireAuth(req).id,
           invitations: body.eventInvitations.map((invitation) => ({
-            id: invitation._id,
+            id: invitation.id,
             deleted: invitation.deleted,
             status: invitation.status,
           })),

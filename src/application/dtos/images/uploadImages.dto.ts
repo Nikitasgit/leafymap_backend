@@ -14,7 +14,7 @@ export interface UploadImagesInput {
 }
 
 export interface UploadedImageOutput {
-  _id: string;
+  id: string;
   urls: {
     original: string;
     thumbnail: string;

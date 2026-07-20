@@ -1,4 +1,5 @@
 import { IPlaceRepository } from "@src/domain/interfaces/IPlaceRepository";
+import { PlaceListItemReadModel } from "@src/domain/read-models/place.read-models";
 import { PlaceCategoryId } from "@src/domain/value-objects/ObjectId.vo";
 import { GetPlacesInput } from "@src/application/dtos/places/getPlaces.dto";
 
@@ -7,7 +8,7 @@ class GetPlacesUseCase {
 
   async execute(
     params: GetPlacesInput = {}
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<PlaceListItemReadModel[]> {
     return this.placeRepository.findList({
       placeCategoryId: params.categoryId
         ? PlaceCategoryId.from(params.categoryId)

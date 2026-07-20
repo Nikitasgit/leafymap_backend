@@ -92,7 +92,6 @@ describe("DeletePlaceUseCase", () => {
       useCase.execute({ placeId, userId: mockObjectId() })
     ).rejects.toMatchObject({
       code: ERROR_CODES.PLACE_FORBIDDEN,
-      statusCode: 403,
     });
 
     expect(cascadeDeleter.deletePlace).not.toHaveBeenCalled();

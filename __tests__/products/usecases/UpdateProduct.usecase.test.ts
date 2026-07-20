@@ -70,7 +70,6 @@ describe("UpdateProductUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.PRODUCT_NOT_FOUND,
-      statusCode: 404,
     });
   });
 
@@ -85,7 +84,6 @@ describe("UpdateProductUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.PRODUCT_FORBIDDEN,
-      statusCode: 403,
     });
 
     expect(productRepository.update).not.toHaveBeenCalled();

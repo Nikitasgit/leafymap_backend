@@ -76,7 +76,6 @@ describe("UpdatePlaceUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.PLACE_NOT_FOUND,
-      statusCode: 404,
     });
   });
 
@@ -91,7 +90,6 @@ describe("UpdatePlaceUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.PLACE_FORBIDDEN,
-      statusCode: 403,
     });
   });
 });

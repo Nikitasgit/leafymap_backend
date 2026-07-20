@@ -1,9 +1,11 @@
+import { CategoryItemReadModel } from "@src/domain/read-models/category.read-models";
+
 export interface CategoriesResult {
-  categoryTypes: Record<string, unknown>[];
-  userCategories: Record<string, unknown>[];
-  placeCategories: Record<string, unknown>[];
-  productCategories: Record<string, unknown>[];
-  eventCategories: Record<string, unknown>[];
+  categoryTypes: CategoryItemReadModel[];
+  userCategories: CategoryItemReadModel[];
+  placeCategories: CategoryItemReadModel[];
+  productCategories: CategoryItemReadModel[];
+  eventCategories: CategoryItemReadModel[];
 }
 
 export interface ICategoryRepository {

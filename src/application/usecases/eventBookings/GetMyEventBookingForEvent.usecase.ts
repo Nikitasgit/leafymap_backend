@@ -1,4 +1,5 @@
 import { IEventBookingRepository } from "@src/domain/interfaces/IEventBookingRepository";
+import { MyEventBookingReadModel } from "@src/domain/read-models/eventBooking.read-models";
 import { EventId, UserId } from "@src/domain/value-objects/ObjectId.vo";
 import { GetMyEventBookingForEventInput } from "@src/application/dtos/eventBookings/getMyEventBookingForEvent.dto";
 
@@ -9,7 +10,7 @@ class GetMyEventBookingForEventUseCase {
 
   async execute(
     params: GetMyEventBookingForEventInput
-  ): Promise<Record<string, unknown> | null> {
+  ): Promise<MyEventBookingReadModel | null> {
     const booking =
       await this.eventBookingRepository.findConfirmedByEventAndUser(
         EventId.from(params.eventId),
@@ -21,7 +22,7 @@ class GetMyEventBookingForEventUseCase {
     }
 
     return {
-      _id: booking.id,
+      id: booking.id,
       event: booking.eventId,
       user: booking.userId,
       seats: booking.seats,

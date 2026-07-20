@@ -111,7 +111,6 @@ describe("CreateEventBookingUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.EVENT_BOOKING_OWN_EVENT,
-      statusCode: 403,
     });
   });
 
@@ -132,7 +131,6 @@ describe("CreateEventBookingUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.EVENT_BOOKING_NOT_ENOUGH_SEATS,
-      statusCode: 409,
     });
   });
 });

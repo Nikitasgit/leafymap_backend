@@ -1,29 +1,20 @@
 import { GetUserProfileInput } from "@src/application/dtos/users/getUserProfile.dto";
 import type GetPlaceByIdUseCase from "@src/application/usecases/places/GetPlaceById.usecase";
 import { IUserRepository } from "@src/domain/interfaces/IUserRepository";
+import { UserDetailsReadModel } from "@src/domain/read-models/user.read-models";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
 import { ERROR_CODES, NotFoundError } from "@src/shared/errors";
-import { toId } from "@src/shared/mongoose";
 
-const USER_PROJECT = [
-  "_id",
-  "firstname",
-  "lastname",
-  "username",
-  "userType",
-  "email",
-  "website",
-  "phone",
-  "description",
-  "country",
-  "followers",
-  "place._id",
-  "image.urls",
-  "googlePictureUrl",
-  "userCategory.name",
-  "userCategory.type",
-  "userCategory.type.name",
-];
+const extractId = (value: unknown): string | null => {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (value && typeof value === "object" && "id" in value) {
+    const id = (value as { id?: unknown }).id;
+    return typeof id === "string" ? id : null;
+  }
+  return null;
+};
 
 class GetUserProfileUseCase {
   constructor(
@@ -32,19 +23,19 @@ class GetUserProfileUseCase {
   ) {}
 
   async execute(params: GetUserProfileInput): Promise<{
-    user: Record<string, unknown>;
+    user: UserDetailsReadModel;
     place: Awaited<ReturnType<GetPlaceByIdUseCase["execute"]>> | null;
   }> {
     const user = await this.userRepository.findDetailsById(
       UserId.from(params.userId),
-      { project: USER_PROJECT }
+      { view: "profile" }
     );
 
     if (!user) {
       throw new NotFoundError(ERROR_CODES.USER_NOT_FOUND, "User not found");
     }
 
-    const placeId = toId(user.place as Parameters<typeof toId>[0]);
+    const placeId = extractId(user.place);
     const place = placeId
       ? await this.getPlaceByIdUseCase.execute({
           placeId,

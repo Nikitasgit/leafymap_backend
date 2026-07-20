@@ -8,6 +8,7 @@ export interface UploadImageFileParams {
 
 export interface IImageStorage {
   upload(params: UploadImageFileParams): Promise<ImageUrls>;
+  signUrl(url: string): Promise<string>;
   signUrls(urls: ImageUrls): Promise<ImageUrls>;
   deleteUrls(urls: ImageUrls): Promise<void>;
 }

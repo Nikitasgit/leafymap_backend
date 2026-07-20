@@ -11,6 +11,8 @@ import EventInvitationModel, {
   EventInvitationDocumentProps,
 } from "@src/infrastructure/persistence/schemas/EventInvitation.schema";
 import EventModel from "@src/infrastructure/persistence/schemas/Event.schema";
+import { EventInvitationListItemReadModel } from "@src/domain/read-models/eventInvitation.read-models";
+import { EventInvitationReadMapper } from "@src/infrastructure/read-mappers/EventInvitation.read-mapper";
 import { FilterQuery, Types } from "mongoose";
 
 type EventInvitationDocumentWithId = EventInvitationDocumentProps & {
@@ -116,7 +118,7 @@ class MongooseEventInvitationRepository implements IEventInvitationRepository {
 
   async findListByEvent(
     eventId: EventId
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<EventInvitationListItemReadModel[]> {
     const invitations = await EventInvitationModel.find({
       event: new Types.ObjectId(eventId),
       deleted: false,
@@ -126,12 +128,12 @@ class MongooseEventInvitationRepository implements IEventInvitationRepository {
       .sort({ updatedAt: -1 })
       .lean();
 
-    return invitations as unknown as Record<string, unknown>[];
+    return EventInvitationReadMapper.toListItems(invitations);
   }
 
   async findListForUser(
     filters: EventInvitationUserListFilters
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<EventInvitationListItemReadModel[]> {
     const query = await this.buildUserQuery(filters);
     const invitations = await EventInvitationModel.find(query)
       .select("_id initiator collaborator status deleted updatedAt event")
@@ -139,7 +141,7 @@ class MongooseEventInvitationRepository implements IEventInvitationRepository {
       .sort({ updatedAt: -1 })
       .lean();
 
-    return invitations as unknown as Record<string, unknown>[];
+    return EventInvitationReadMapper.toListItems(invitations);
   }
 
   async deleteManyByEventIds(eventIds: EventId[]): Promise<void> {

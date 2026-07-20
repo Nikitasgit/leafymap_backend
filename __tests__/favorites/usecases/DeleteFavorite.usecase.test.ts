@@ -62,7 +62,6 @@ describe("DeleteFavoriteUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.FAVORITE_NOT_FOUND,
-      statusCode: 404,
     });
 
     expect(favoriteRepository.delete).not.toHaveBeenCalled();
@@ -91,7 +90,6 @@ describe("DeleteFavoriteUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.FAVORITE_FORBIDDEN,
-      statusCode: 403,
     });
 
     expect(favoriteRepository.delete).not.toHaveBeenCalled();

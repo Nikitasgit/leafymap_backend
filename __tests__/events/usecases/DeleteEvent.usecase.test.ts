@@ -89,7 +89,6 @@ describe("DeleteEventUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.FORBIDDEN,
-      statusCode: 403,
     });
 
     expect(cascadeDeleter.deleteEvents).not.toHaveBeenCalled();

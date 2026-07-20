@@ -3,9 +3,9 @@ import { isValidObjectId } from "@src/api/http/objectId";
 import { z } from "zod";
 import { CustomRequest, IDecodedToken } from "@src/api/types/custom";
 import { APIResponse } from "./response";
+import { signResponseImageUrls } from "./imageUrlSigning";
 import { getParam } from "./request";
 import {
-  AppError,
   ERROR_CODES,
   UnauthorizedError,
   ValidationError,
@@ -22,6 +22,11 @@ export interface ControllerOptions<TResult> {
   successStatus?: number;
   /** Maps the execute result to the response payload (defaults to identity). */
   mapResult?: (result: TResult) => unknown;
+  /**
+   * When false, skips automatic S3 URL signing on the response payload.
+   * Defaults to true so populated image URLs stay accessible to clients.
+   */
+  signImages?: boolean;
 }
 
 /**
@@ -44,9 +49,14 @@ export const createController = <TResult>(
           typeof options.successMessage === "function"
             ? options.successMessage(result)
             : options.successMessage;
-        const payload = options.mapResult
+        let payload = options.mapResult
           ? options.mapResult(result)
           : (result as unknown);
+
+        if (options.signImages !== false) {
+          payload = await signResponseImageUrls(payload);
+        }
+
         APIResponse(res, payload ?? null, message, options.successStatus ?? 200);
       } catch (error) {
         next(error);
@@ -63,7 +73,7 @@ export const requireAuth = (req: CustomRequest): IDecodedToken => {
   return req.decoded;
 };
 
-/** Validates data against a Zod schema, throwing a 400 ValidationError on failure. */
+/** Validates data against a Zod schema, throwing a ValidationError on failure. */
 export const validateOrThrow = <T extends z.ZodTypeAny>(
   schema: T,
   data: unknown
@@ -83,18 +93,17 @@ export const validateOrThrow = <T extends z.ZodTypeAny>(
   return result.data;
 };
 
-/** Returns a route param validated as a MongoDB ObjectId, or throws a 400. */
+/** Returns a route param validated as a MongoDB ObjectId, or throws a ValidationError. */
 export const requireObjectIdParam = (
   req: CustomRequest,
   name: string
 ): string => {
   const value = getParam(req.params, name);
   if (!value || !isValidObjectId(value)) {
-    throw new AppError(
+    throw new ValidationError(
+      { param: name },
       ERROR_CODES.INVALID_ROUTE_PARAM,
-      400,
-      `Paramètre '${name}' invalide`,
-      { param: name }
+      `Paramètre '${name}' invalide`
     );
   }
   return value;

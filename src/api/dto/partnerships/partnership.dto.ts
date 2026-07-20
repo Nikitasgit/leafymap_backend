@@ -10,7 +10,7 @@ const booleanQuery = z
 export const createPartnershipSchema = z.object({
   partnership: z.object({
     collaborator: z.object({
-      _id: objectIdString,
+      id: objectIdString,
     }),
   }),
 });
@@ -19,7 +19,7 @@ export const updatePartnershipsSchema = z.object({
   partnerships: z
     .array(
       z.object({
-        _id: objectIdString,
+        id: objectIdString,
         status: z.enum(["pending", "accepted"]).optional(),
       })
     )

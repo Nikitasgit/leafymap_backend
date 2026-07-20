@@ -1,4 +1,8 @@
 import { Event } from "@src/domain/entities/Event.entity";
+import {
+  EventDetailsReadModel,
+  EventListItemReadModel,
+} from "@src/domain/read-models/event.read-models";
 import { EventStatus } from "@src/domain/value-objects/EventStatus.vo";
 import { LifecycleStatus } from "@src/domain/value-objects/LifecycleStatus.vo";
 import {
@@ -44,7 +48,7 @@ export interface LifecycleEventSlice {
 }
 
 export interface AdminEventSummary {
-  _id: string;
+  id: string;
   name: string;
   status: EventStatus;
   lifecycleStatus: LifecycleStatus;
@@ -57,9 +61,9 @@ export interface IEventRepository {
   findById(id: EventId): Promise<Event | null>;
   update(event: Event): Promise<void>;
 
-  findDetailById(id: EventId): Promise<Record<string, unknown> | null>;
-  findList(filters: EventListFilters): Promise<Record<string, unknown>[]>;
-  findInView(filters: EventInViewFilters): Promise<Record<string, unknown>[]>;
+  findDetailById(id: EventId): Promise<EventDetailsReadModel | null>;
+  findList(filters: EventListFilters): Promise<EventListItemReadModel[]>;
+  findInView(filters: EventInViewFilters): Promise<EventListItemReadModel[]>;
 
   findAllForLifecycleUpdate(limit?: number): Promise<LifecycleEventSlice[]>;
   updateLifecycleFields(
@@ -83,7 +87,7 @@ export interface IEventRepository {
     placeId: PlaceId,
     start: Date,
     end: Date
-  ): Promise<Record<string, unknown>[]>;
+  ): Promise<EventListItemReadModel[]>;
 
   findOwnerId(id: EventId): Promise<UserId | null>;
 }

@@ -1,5 +1,9 @@
 import { Place } from "@src/domain/entities/Place.entity";
 import {
+  PlaceDetailsReadModel,
+  PlaceListItemReadModel,
+} from "@src/domain/read-models/place.read-models";
+import {
   PlaceCategoryId,
   PlaceId,
   UserId,
@@ -37,14 +41,14 @@ export interface IPlaceRepository {
   save(place: Place): Promise<PlaceId>;
   update(place: Place): Promise<void>;
   findById(id: PlaceId): Promise<Place | null>;
-  findDetailsById(id: PlaceId): Promise<Record<string, unknown> | null>;
-  findList(filters: PlaceListFilters): Promise<Record<string, unknown>[]>;
-  findInView(query: PlacesInViewQuery): Promise<Record<string, unknown>[]>;
+  findDetailsById(id: PlaceId): Promise<PlaceDetailsReadModel | null>;
+  findList(filters: PlaceListFilters): Promise<PlaceListItemReadModel[]>;
+  findInView(query: PlacesInViewQuery): Promise<PlaceListItemReadModel[]>;
   findIdsByUserId(userId: UserId): Promise<PlaceId[]>;
   findAdminSummariesByUserId(
     userId: UserId,
     limit: number
-  ): Promise<Record<string, unknown>[]>;
+  ): Promise<PlaceListItemReadModel[]>;
   updateRating(id: PlaceId, rating: number): Promise<void>;
   deleteOne(id: PlaceId): Promise<void>;
   softDelete(id: PlaceId, update: PlaceSoftDeleteUpdate): Promise<void>;

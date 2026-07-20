@@ -6,7 +6,7 @@ export interface GetImagesInput {
 }
 
 export interface ImageListItemOutput {
-  _id: string;
+  id: string;
   urls: {
     original: string;
     thumbnail: string;

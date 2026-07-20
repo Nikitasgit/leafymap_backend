@@ -1,10 +1,10 @@
-import { ReviewListItem } from "@src/domain/interfaces/IReviewRepository";
+import { ReviewListItemReadModel } from "@src/domain/read-models/review.read-models";
 
 export interface GetReceivedReviewsInput {
   userId: string;
 }
 
 export interface GetReceivedReviewsOutput {
-  reviews: ReviewListItem[];
+  reviews: ReviewListItemReadModel[];
   noPlace: boolean;
 }

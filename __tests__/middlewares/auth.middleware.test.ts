@@ -1,14 +1,16 @@
 import { Types } from "mongoose";
-import jwt from "jsonwebtoken";
 import { User } from "@src/domain/entities/User.entity";
+import { IJwtTokenIssuer } from "@src/domain/interfaces/IJwtTokenIssuer";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
 import { UserPreferences } from "@src/domain/value-objects/UserPreferences.vo";
 import AuthMiddleware from "@src/api/middlewares/auth.middleware";
 import { CustomRequest } from "@src/api/types/custom";
-import { ERROR_CODES, UnauthorizedError } from "@src/shared/errors";
+import {
+  ERROR_CODES,
+  ForbiddenError,
+  UnauthorizedError,
+} from "@src/shared/errors";
 import { createMockUserRepository } from "../helpers/mockUserRepository";
-
-jest.mock("jsonwebtoken");
 
 const mockObjectId = (): string => new Types.ObjectId().toString();
 
@@ -32,18 +34,21 @@ const buildUser = (
 describe("AuthMiddleware", () => {
   const userId = mockObjectId();
   let userRepository: ReturnType<typeof createMockUserRepository>;
+  let jwtTokenIssuer: jest.Mocked<IJwtTokenIssuer>;
   let middleware: AuthMiddleware;
   const next = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env.JWT_SECRET = "test-secret";
     userRepository = createMockUserRepository();
-    middleware = new AuthMiddleware(userRepository);
-    (jwt.verify as jest.Mock).mockReturnValue({
-      id: userId,
-      userType: "guest",
-    });
+    jwtTokenIssuer = {
+      issue: jest.fn(),
+      verify: jest.fn().mockReturnValue({
+        id: userId,
+        userType: "guest",
+      }),
+    };
+    middleware = new AuthMiddleware(jwtTokenIssuer, userRepository);
   });
 
   const runVerify = async (req: Partial<CustomRequest> = {}) => {
@@ -76,10 +81,10 @@ describe("AuthMiddleware", () => {
 
     expect(next).toHaveBeenCalledWith(
       expect.objectContaining({
-        code: ERROR_CODES.USER_NOT_FOUND,
+        code: ERROR_CODES.AUTH_ACCOUNT_INACCESSIBLE,
       })
     );
-    expect(next.mock.calls[0][0]).toBeInstanceOf(UnauthorizedError);
+    expect(next.mock.calls[0][0]).toBeInstanceOf(ForbiddenError);
   });
 
   it("rejects a banned user", async () => {
@@ -95,8 +100,22 @@ describe("AuthMiddleware", () => {
 
     expect(next).toHaveBeenCalledWith(
       expect.objectContaining({
+        code: ERROR_CODES.AUTH_USER_BANNED,
+      })
+    );
+    expect(next.mock.calls[0][0]).toBeInstanceOf(ForbiddenError);
+  });
+
+  it("rejects when user is not found", async () => {
+    userRepository.findById.mockResolvedValue(null);
+
+    await runVerify();
+
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
         code: ERROR_CODES.USER_NOT_FOUND,
       })
     );
+    expect(next.mock.calls[0][0]).toBeInstanceOf(UnauthorizedError);
   });
 });

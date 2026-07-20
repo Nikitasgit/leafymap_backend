@@ -11,7 +11,7 @@ import type GetUserByIdUseCase from "@src/application/usecases/users/GetUserById
 import type GetUserProfileUseCase from "@src/application/usecases/users/GetUserProfile.usecase";
 import type GetUsersUseCase from "@src/application/usecases/users/GetUsers.usecase";
 import type UpdateUserUseCase from "@src/application/usecases/users/UpdateUser.usecase";
-import { setTokenCookie } from "@src/infrastructure/auth/jwt";
+import { setTokenCookie } from "@src/api/http/cookies";
 
 class UsersController extends BaseHttpController {
   constructor(

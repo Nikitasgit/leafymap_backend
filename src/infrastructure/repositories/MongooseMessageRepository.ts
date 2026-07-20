@@ -2,9 +2,8 @@ import { Message } from "@src/domain/entities/Message.entity";
 import {
   FindMessagesByConversationParams,
   IMessageRepository,
-  MessageListItem,
-  MessageSenderReadModel,
 } from "@src/domain/interfaces/IMessageRepository";
+import { MessageListItem } from "@src/domain/read-models/message.read-models";
 import {
   ConversationId,
   MessageId,
@@ -14,6 +13,7 @@ import { MessageMapper } from "@src/infrastructure/mappers/Message.mapper";
 import MessageModel, {
   MessageDocumentProps,
 } from "@src/infrastructure/persistence/schemas/Message.schema";
+import { MessageReadMapper } from "@src/infrastructure/read-mappers/Message.read-mapper";
 import { FilterQuery, Types } from "mongoose";
 
 const SENDER_POPULATE = {
@@ -94,7 +94,7 @@ class MongooseMessageRepository implements IMessageRepository {
     if (!document) {
       return null;
     }
-    return this.toListItem(document);
+    return MessageReadMapper.toListItem(document);
   }
 
   async findByConversation(
@@ -116,7 +116,7 @@ class MongooseMessageRepository implements IMessageRepository {
       .sort({ createdAt: 1 })
       .lean<LeanMessageDoc[]>();
 
-    return documents.map((doc) => this.toListItem(doc));
+    return MessageReadMapper.toListItems(documents);
   }
 
   async update(message: Message): Promise<void> {
@@ -173,41 +173,6 @@ class MongooseMessageRepository implements IMessageRepository {
       .select("_id")
       .lean();
     return unread !== null;
-  }
-
-  private toListItem(doc: LeanMessageDoc): MessageListItem {
-    return {
-      _id: doc._id.toString(),
-      conversation: doc.conversation.toString(),
-      sender: this.mapSender(doc.sender),
-      content: doc.content,
-      readBy: (doc.readBy ?? []).map((id) => id.toString()),
-      partnership: doc.partnership,
-      createdAt: doc.createdAt ?? new Date(),
-      updatedAt: doc.updatedAt ?? new Date(),
-    };
-  }
-
-  private mapSender(
-    sender: Types.ObjectId | PopulatedSender | undefined
-  ): MessageSenderReadModel | string | undefined {
-    if (!sender) {
-      return undefined;
-    }
-    if (sender instanceof Types.ObjectId) {
-      return sender.toString();
-    }
-    if (typeof sender === "object" && "_id" in sender) {
-      return {
-        _id: sender._id.toString(),
-        username: sender.username,
-        firstname: sender.firstname,
-        lastname: sender.lastname,
-        email: sender.email,
-        image: sender.image,
-      };
-    }
-    return String(sender);
   }
 }
 

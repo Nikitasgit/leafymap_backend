@@ -1,4 +1,5 @@
 import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
+import { EventListItemReadModel } from "@src/domain/read-models/event.read-models";
 import { GetEventsInViewInput } from "@src/application/dtos/events/getEventsInView.dto";
 
 export const MAX_EVENTS_IN_VIEW = 100;
@@ -8,7 +9,7 @@ class GetEventsInViewUseCase {
 
   async execute(params: {
     filters: GetEventsInViewInput;
-  }): Promise<Record<string, unknown>[]> {
+  }): Promise<EventListItemReadModel[]> {
     const limit = Math.min(
       params.filters.limit ?? MAX_EVENTS_IN_VIEW,
       MAX_EVENTS_IN_VIEW

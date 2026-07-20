@@ -9,6 +9,8 @@ import { EventBookingMapper } from "@src/infrastructure/mappers/EventBooking.map
 import EventBookingModel, {
   EventBookingDocumentProps,
 } from "@src/infrastructure/persistence/schemas/EventBooking.schema";
+import { EventBookingListItemReadModel } from "@src/domain/read-models/eventBooking.read-models";
+import { EventBookingReadMapper } from "@src/infrastructure/read-mappers/EventBooking.read-mapper";
 import { Types } from "mongoose";
 
 type EventBookingDocumentWithId = EventBookingDocumentProps & {
@@ -97,7 +99,7 @@ class MongooseEventBookingRepository implements IEventBookingRepository {
 
   async findConfirmedByEvent(
     eventId: EventId
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<EventBookingListItemReadModel[]> {
     const bookings = await EventBookingModel.find({
       event: new Types.ObjectId(eventId),
       status: "confirmed",
@@ -109,12 +111,12 @@ class MongooseEventBookingRepository implements IEventBookingRepository {
       })
       .lean();
 
-    return bookings as unknown as Record<string, unknown>[];
+    return EventBookingReadMapper.toListItems(bookings);
   }
 
   async findConfirmedByUser(
     userId: UserId
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<EventBookingListItemReadModel[]> {
     const bookings = await EventBookingModel.find({
       user: new Types.ObjectId(userId),
       status: "confirmed",
@@ -130,7 +132,7 @@ class MongooseEventBookingRepository implements IEventBookingRepository {
       })
       .lean();
 
-    return bookings as unknown as Record<string, unknown>[];
+    return EventBookingReadMapper.toListItems(bookings);
   }
 }
 

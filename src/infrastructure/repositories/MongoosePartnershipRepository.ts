@@ -9,6 +9,8 @@ import { PartnershipMapper } from "@src/infrastructure/mappers/Partnership.mappe
 import PartnershipModel, {
   PartnershipDocumentProps,
 } from "@src/infrastructure/persistence/schemas/Partnership.schema";
+import { PartnershipListItemReadModel } from "@src/domain/read-models/partnership.read-models";
+import { PartnershipReadMapper } from "@src/infrastructure/read-mappers/Partnership.read-mapper";
 import { FilterQuery, Types } from "mongoose";
 
 type PartnershipDocumentWithId = PartnershipDocumentProps & {
@@ -86,7 +88,7 @@ class MongoosePartnershipRepository implements IPartnershipRepository {
 
   async findListForUser(
     filters: PartnershipUserListFilters
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<PartnershipListItemReadModel[]> {
     const query = this.buildUserQuery(filters);
     const partnerships = await PartnershipModel.find(query)
       .select("_id initiator collaborator status deleted updatedAt")
@@ -94,7 +96,7 @@ class MongoosePartnershipRepository implements IPartnershipRepository {
       .sort({ updatedAt: -1 })
       .lean();
 
-    return partnerships as unknown as Record<string, unknown>[];
+    return PartnershipReadMapper.toListItems(partnerships);
   }
 
   async deleteManyByUserId(userId: UserId): Promise<void> {

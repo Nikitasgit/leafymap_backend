@@ -2,10 +2,16 @@ import { User } from "@src/domain/entities/User.entity";
 import {
   FindUserDetailsOptions,
   IUserRepository,
+  UserDetailsView,
   UserListFilters,
 } from "@src/domain/interfaces/IUserRepository";
+import {
+  UserDetailsReadModel,
+  UserListItemReadModel,
+} from "@src/domain/read-models/user.read-models";
 import { PlaceId, UserId } from "@src/domain/value-objects/ObjectId.vo";
 import { UserMapper } from "@src/infrastructure/mappers/User.mapper";
+import { UserReadMapper } from "@src/infrastructure/read-mappers/User.read-mapper";
 import UserModel, {
   UserDocumentProps,
 } from "@src/infrastructure/persistence/schemas/User.schema";
@@ -14,7 +20,7 @@ import { FilterQuery, Types } from "mongoose";
 
 type UserDocumentWithId = UserDocumentProps & { _id: Types.ObjectId };
 
-const DEFAULT_DETAILS_SELECT = [
+const DEFAULT_VIEW_PROJECT = [
   "_id",
   "firstname",
   "lastname",
@@ -26,25 +32,93 @@ const DEFAULT_DETAILS_SELECT = [
   "description",
   "country",
   "followers",
-  "place",
-  "image",
+  "place._id",
+  "place.placeCategory.name",
+  "place.location",
+  "image.urls",
   "googlePictureUrl",
-  "userCategory",
-].join(" ");
-
-const USER_DETAILS_POPULATE = [
-  {
-    path: "place",
-    select: "_id placeCategory location",
-    populate: { path: "placeCategory", select: "name" },
-  },
-  { path: "image", select: "urls" },
-  {
-    path: "userCategory",
-    select: "name type",
-    populate: { path: "type", select: "name" },
-  },
+  "userCategory.name",
+  "userCategory.type",
+  "userCategory.type.name",
 ];
+
+const PROFILE_VIEW_PROJECT = [
+  "_id",
+  "firstname",
+  "lastname",
+  "username",
+  "userType",
+  "email",
+  "website",
+  "phone",
+  "description",
+  "country",
+  "followers",
+  "place._id",
+  "image.urls",
+  "googlePictureUrl",
+  "userCategory.name",
+  "userCategory.type",
+  "userCategory.type.name",
+];
+
+const CURRENT_VIEW_PROJECT = [
+  "_id",
+  "email",
+  "username",
+  "firstname",
+  "lastname",
+  "userType",
+  "role",
+  "acceptedCGU",
+  "website",
+  "phone",
+  "description",
+  "country",
+  "address",
+  "followers",
+  "place",
+  "image.urls",
+  "googlePictureUrl",
+  "place.location",
+  "place.placeCategory",
+  "place.rating",
+  "userCategory",
+  "userCategory.name",
+  "bannedAt",
+  "banReason",
+  "banDuration",
+  "banExpiresAt",
+  "lastLogin",
+  "preferences",
+];
+
+const ADMIN_VIEW_PROJECT = [
+  "_id",
+  "email",
+  "username",
+  "firstname",
+  "lastname",
+  "userType",
+  "role",
+  "deleted",
+  "bannedAt",
+  "banReason",
+  "banDuration",
+  "banExpiresAt",
+  "lastLogin",
+  "createdAt",
+  "updatedAt",
+  "place",
+  "image.urls",
+];
+
+const USER_DETAILS_VIEW_PROJECTS: Record<UserDetailsView, string[]> = {
+  default: DEFAULT_VIEW_PROJECT,
+  profile: PROFILE_VIEW_PROJECT,
+  current: CURRENT_VIEW_PROJECT,
+  admin: ADMIN_VIEW_PROJECT,
+};
 
 const USER_LIST_POPULATE = [
   { path: "image", select: "urls" },
@@ -173,7 +247,7 @@ class MongooseUserRepository implements IUserRepository {
   async findDetailsById(
     id: UserId,
     options?: FindUserDetailsOptions
-  ): Promise<Record<string, unknown> | null> {
+  ): Promise<UserDetailsReadModel | null> {
     const includeDeleted = options?.includeDeleted ?? false;
     const filter: FilterQuery<UserDocumentProps> = {
       _id: new Types.ObjectId(id),
@@ -182,32 +256,27 @@ class MongooseUserRepository implements IUserRepository {
       filter.deleted = false;
     }
 
+    const project = USER_DETAILS_VIEW_PROJECTS[options?.view ?? "default"];
+    const { selectFields, populateConfig } =
+      PopulateParser.parseProjectFields(project);
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let query: any = UserModel.findOne(filter);
-
-    if (options?.project && options.project.length > 0) {
-      const { selectFields, populateConfig } =
-        PopulateParser.parseProjectFields(options.project);
-      if (selectFields.length > 0) {
-        query = query.select(selectFields.join(" "));
-      }
-      query = PopulateParser.applyPopulate(query, populateConfig);
-    } else {
-      query = query
-        .select(DEFAULT_DETAILS_SELECT)
-        .populate(USER_DETAILS_POPULATE);
+    if (selectFields.length > 0) {
+      query = query.select(selectFields.join(" "));
     }
+    query = PopulateParser.applyPopulate(query, populateConfig);
 
     const document = await query.lean();
     if (!document) {
       return null;
     }
-    return document as unknown as Record<string, unknown>;
+    return UserReadMapper.toDetail(document);
   }
 
   async findList(
     filters: UserListFilters
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<UserListItemReadModel[]> {
     const query: FilterQuery<UserDocumentProps> = { deleted: false };
 
     if (filters.username) {
@@ -230,13 +299,13 @@ class MongooseUserRepository implements IUserRepository {
       .limit(filters.limit ?? 10)
       .lean();
 
-    return documents as unknown as Record<string, unknown>[];
+    return UserReadMapper.toListItems(documents);
   }
 
   async findAdminByEmail(
     email: string,
     limit = 20
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<UserDetailsReadModel[]> {
     const documents = await UserModel.find({
       email: { $regex: email, $options: "i" },
     })
@@ -247,7 +316,7 @@ class MongooseUserRepository implements IUserRepository {
       .limit(limit)
       .lean();
 
-    return documents as unknown as Record<string, unknown>[];
+    return UserReadMapper.toDetails(documents);
   }
 
   async incrementFollowers(id: UserId, delta: 1 | -1): Promise<void> {

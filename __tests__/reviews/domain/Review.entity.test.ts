@@ -78,7 +78,7 @@ describe("Review entity", () => {
       })
     ).toThrow(
       expect.objectContaining({
-        statusCode: 400,
+        code: "VALIDATION_ERROR",
       })
     );
   });

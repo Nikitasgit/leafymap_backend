@@ -1,4 +1,8 @@
 import { User, UserType } from "@src/domain/entities/User.entity";
+import {
+  UserDetailsReadModel,
+  UserListItemReadModel,
+} from "@src/domain/read-models/user.read-models";
 import { PlaceId, UserId } from "@src/domain/value-objects/ObjectId.vo";
 
 export interface UserListFilters {
@@ -8,8 +12,10 @@ export interface UserListFilters {
   limit?: number;
 }
 
+export type UserDetailsView = "default" | "profile" | "current" | "admin";
+
 export interface FindUserDetailsOptions {
-  project?: string[];
+  view?: UserDetailsView;
   includeDeleted?: boolean;
 }
 
@@ -25,12 +31,12 @@ export interface IUserRepository {
   findDetailsById(
     id: UserId,
     options?: FindUserDetailsOptions
-  ): Promise<Record<string, unknown> | null>;
-  findList(filters: UserListFilters): Promise<Record<string, unknown>[]>;
+  ): Promise<UserDetailsReadModel | null>;
+  findList(filters: UserListFilters): Promise<UserListItemReadModel[]>;
   findAdminByEmail(
     email: string,
     limit?: number
-  ): Promise<Record<string, unknown>[]>;
+  ): Promise<UserDetailsReadModel[]>;
   incrementFollowers(id: UserId, delta: 1 | -1): Promise<void>;
   deleteOne(id: UserId): Promise<void>;
   linkPlace(userId: UserId, placeId: PlaceId): Promise<void>;

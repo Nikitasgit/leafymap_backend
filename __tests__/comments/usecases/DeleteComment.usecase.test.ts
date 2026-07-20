@@ -64,7 +64,6 @@ describe("DeleteCommentUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.COMMENT_NOT_FOUND,
-      statusCode: 404,
     });
 
     expect(commentRepository.delete).not.toHaveBeenCalled();
@@ -92,7 +91,6 @@ describe("DeleteCommentUseCase", () => {
       useCase.execute({ commentId, authorId: otherUserId })
     ).rejects.toMatchObject({
       code: ERROR_CODES.COMMENT_FORBIDDEN,
-      statusCode: 403,
     });
 
     expect(commentRepository.delete).not.toHaveBeenCalled();

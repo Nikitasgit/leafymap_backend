@@ -1,4 +1,5 @@
 import { Image } from "@src/domain/entities/Image.entity";
+import { ImageAdminSummaryReadModel } from "@src/domain/read-models/image.read-models";
 import { ImageReferenceType } from "@src/domain/value-objects/ImageReferenceType.vo";
 import { ImageType } from "@src/domain/value-objects/ImageType.vo";
 import {
@@ -38,7 +39,7 @@ export interface IImageRepository {
   findAdminSummariesByUserId(
     userId: UserId,
     limit: number
-  ): Promise<Record<string, unknown>[]>;
+  ): Promise<ImageAdminSummaryReadModel[]>;
   deleteMany(ids: ImageId[]): Promise<void>;
   softDelete(id: ImageId, update: ImageSoftDeleteUpdate): Promise<void>;
 }

@@ -1,32 +1,14 @@
 import { Comment } from "@src/domain/entities/Comment.entity";
+import {
+  AdminCommentSummaryReadModel,
+  CommentListItemReadModel,
+} from "@src/domain/read-models/comment.read-models";
 import { CommentReferenceType } from "@src/domain/value-objects/CommentReferenceType.vo";
 import {
   CommentId,
   ReferenceId,
   UserId,
 } from "@src/domain/value-objects/ObjectId.vo";
-
-export interface CommentListItem {
-  _id: string;
-  author: {
-    _id: string;
-    username?: string;
-    image?: { urls?: unknown };
-  } | null;
-  content: string;
-  reference: string;
-  referenceType: CommentReferenceType;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface AdminCommentSummary {
-  _id: string;
-  content: string;
-  referenceType: CommentReferenceType;
-  deleted: boolean;
-  createdAt: Date;
-}
 
 export interface SoftDeleteCommentParams {
   deleted: boolean;
@@ -43,12 +25,15 @@ export interface ICommentRepository {
     referenceId: ReferenceId,
     referenceType: CommentReferenceType,
     authorId?: UserId
-  ): Promise<CommentListItem[]>;
+  ): Promise<CommentListItemReadModel[]>;
   findIdsByReferences(
     referenceIds: ReferenceId[],
     referenceType: CommentReferenceType
   ): Promise<CommentId[]>;
   deleteManyByIds(ids: CommentId[]): Promise<void>;
-  findByAuthor(authorId: UserId, limit?: number): Promise<AdminCommentSummary[]>;
+  findByAuthor(
+    authorId: UserId,
+    limit?: number
+  ): Promise<AdminCommentSummaryReadModel[]>;
   softDelete(id: CommentId, params: SoftDeleteCommentParams): Promise<void>;
 }

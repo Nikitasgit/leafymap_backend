@@ -38,7 +38,7 @@ class ProductsController extends BaseHttpController {
       },
       successMessage: "Product created successfully",
       successStatus: 201,
-      mapResult: (result) => ({ _id: result.id }),
+      mapResult: (result) => ({ id: result.id }),
     });
   }
 

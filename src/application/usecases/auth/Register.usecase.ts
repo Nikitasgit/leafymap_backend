@@ -35,7 +35,7 @@ class RegisterUseCase {
         .withEmailNotificationPreference(emailNotifications === true);
       await this.userRepository.update(refreshed);
       await this.authEmailSender.sendEmailVerification(email, token);
-      return { _id: existingUser.id! };
+      return { id: existingUser.id! };
     }
 
     const passwordHash = await this.passwordHasher.hash(password);
@@ -51,7 +51,7 @@ class RegisterUseCase {
     const userId = await this.userRepository.create(user);
     await this.authEmailSender.sendEmailVerification(email, token);
 
-    return { _id: userId };
+    return { id: userId };
   }
 }
 

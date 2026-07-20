@@ -56,7 +56,6 @@ class CreatePartnershipUseCase {
     if (!created) {
       throw new AppError(
         ERROR_CODES.PARTNERSHIP_CREATE_FAILED,
-        500,
         "Failed to create partnership"
       );
     }

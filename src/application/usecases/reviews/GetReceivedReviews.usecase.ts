@@ -1,7 +1,5 @@
-import {
-  IReviewRepository,
-  ReviewListItem,
-} from "@src/domain/interfaces/IReviewRepository";
+import { IReviewRepository } from "@src/domain/interfaces/IReviewRepository";
+import { ReviewListItemReadModel } from "@src/domain/read-models/review.read-models";
 import { IUserPlaceResolver } from "@src/domain/interfaces/IUserPlaceResolver";
 import { ReferenceId, UserId } from "@src/domain/value-objects/ObjectId.vo";
 import { ReviewReferenceType } from "@src/domain/value-objects/ReviewReferenceType.vo";
@@ -24,7 +22,7 @@ class GetReceivedReviewsUseCase {
     );
 
     if (!placeId) {
-      return { reviews: [] as ReviewListItem[], noPlace: true };
+      return { reviews: [] as ReviewListItemReadModel[], noPlace: true };
     }
 
     const reviews = await this.reviewRepository.findByReference(

@@ -78,7 +78,6 @@ describe("CreateEventUseCase", () => {
     placeOwnershipChecker.assertOwnedBy.mockRejectedValue(
       Object.assign(new Error("forbidden"), {
         code: ERROR_CODES.EVENT_PLACE_FORBIDDEN,
-        statusCode: 403,
       })
     );
 

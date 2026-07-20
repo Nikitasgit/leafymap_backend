@@ -1,4 +1,5 @@
 import { GetUsersInput } from "@src/application/dtos/users/getUsers.dto";
+import { UserListItemReadModel } from "@src/domain/read-models/user.read-models";
 import { IUserRepository } from "@src/domain/interfaces/IUserRepository";
 
 class GetUsersUseCase {
@@ -6,7 +7,7 @@ class GetUsersUseCase {
 
   async execute(params: {
     filters?: GetUsersInput;
-  }): Promise<Record<string, unknown>[]> {
+  }): Promise<UserListItemReadModel[]> {
     return this.userRepository.findList({
       username: params.filters?.username,
       userType: params.filters?.userType,

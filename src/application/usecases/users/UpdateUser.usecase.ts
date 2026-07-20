@@ -36,7 +36,7 @@ class UpdateUserUseCase {
       banDuration: _banDuration,
       banExpiresAt: _banExpiresAt,
       lastLogin: _lastLogin,
-      _id,
+      id: _id,
       createdAt: _createdAt,
       updatedAt: _updatedAt,
       place: _place,

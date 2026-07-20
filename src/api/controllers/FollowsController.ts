@@ -37,7 +37,7 @@ class FollowsController extends BaseHttpController {
       },
       successMessage: "Follow créé avec succès",
       successStatus: 201,
-      mapResult: (result) => ({ _id: result.id }),
+      mapResult: (result) => ({ id: result.id }),
     });
   }
 
@@ -88,7 +88,7 @@ class FollowsController extends BaseHttpController {
           followerId: follower,
           followingId: following,
         });
-        return { follow: follow ? { _id: follow.id } : null };
+        return { follow: follow ? { id: follow.id } : null };
       },
       successMessage: "Follow vérifié avec succès",
     });

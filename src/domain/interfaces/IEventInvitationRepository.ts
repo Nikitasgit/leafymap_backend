@@ -1,4 +1,5 @@
 import { EventInvitation } from "@src/domain/entities/EventInvitation.entity";
+import { EventInvitationListItemReadModel } from "@src/domain/read-models/eventInvitation.read-models";
 import {
   EventId,
   EventInvitationId,
@@ -26,10 +27,12 @@ export interface IEventInvitationRepository {
     collaboratorId: UserId
   ): Promise<EventInvitation | null>;
 
-  findListByEvent(eventId: EventId): Promise<Record<string, unknown>[]>;
+  findListByEvent(
+    eventId: EventId
+  ): Promise<EventInvitationListItemReadModel[]>;
   findListForUser(
     filters: EventInvitationUserListFilters
-  ): Promise<Record<string, unknown>[]>;
+  ): Promise<EventInvitationListItemReadModel[]>;
 
   deleteManyByEventIds(eventIds: EventId[]): Promise<void>;
   deleteManyByUserId(userId: UserId): Promise<void>;

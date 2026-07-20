@@ -1,10 +1,10 @@
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { Server as HTTPServer } from "http";
-import jwt from "jsonwebtoken";
 import type MarkMessagesAsReadUseCase from "@src/application/usecases/messages/MarkMessagesAsRead.usecase";
+import { IJwtTokenIssuer } from "@src/domain/interfaces/IJwtTokenIssuer";
+import type { NewMessageRealtimePayload } from "@src/domain/interfaces/IMessageRealtimePublisher";
 import { IUserRepository } from "@src/domain/interfaces/IUserRepository";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
-import { IDecodedToken } from "@src/api/types/custom";
 import logger from "@src/shared/logger";
 import { ALLOWED_ORIGINS } from "@src/shared/constants/common";
 
@@ -17,11 +17,13 @@ class SocketService {
   private io: SocketIOServer;
   private userRepository: IUserRepository;
   private markMessagesAsReadUseCase: MarkMessagesAsReadUseCase;
+  private jwtTokenIssuer: IJwtTokenIssuer;
 
   constructor(
     httpServer: HTTPServer,
     userRepository: IUserRepository,
-    markMessagesAsReadUseCase: MarkMessagesAsReadUseCase
+    markMessagesAsReadUseCase: MarkMessagesAsReadUseCase,
+    jwtTokenIssuer: IJwtTokenIssuer
   ) {
     const allowedOrigins = ALLOWED_ORIGINS;
 
@@ -36,6 +38,7 @@ class SocketService {
 
     this.userRepository = userRepository;
     this.markMessagesAsReadUseCase = markMessagesAsReadUseCase;
+    this.jwtTokenIssuer = jwtTokenIssuer;
     this.setupMiddleware();
     this.setupEventHandlers();
   }
@@ -77,16 +80,7 @@ class SocketService {
             return next(new Error("Authentication error: No token provided"));
           }
 
-          const JWT_SECRET = process.env.JWT_SECRET;
-          if (!JWT_SECRET) {
-            return next(new Error("JWT_SECRET is not defined"));
-          }
-
-          const decoded = jwt.verify(token, JWT_SECRET) as IDecodedToken;
-
-          if (!decoded) {
-            return next(new Error("Invalid token"));
-          }
+          const decoded = this.jwtTokenIssuer.verify(token);
 
           const user = await this.userRepository.findById(
             UserId.from(decoded.id)
@@ -160,7 +154,7 @@ class SocketService {
 
   emitNewMessage(
     conversationId: string,
-    message: Record<string, unknown>
+    message: NewMessageRealtimePayload
   ) {
     this.io.to(`conversation:${conversationId}`).emit("new_message", message);
     logger.info(`New message emitted to conversation ${conversationId}`);

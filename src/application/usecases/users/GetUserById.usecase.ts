@@ -1,39 +1,16 @@
 import { GetUserByIdInput } from "@src/application/dtos/users/getUserById.dto";
 import { IUserRepository } from "@src/domain/interfaces/IUserRepository";
+import { UserDetailsReadModel } from "@src/domain/read-models/user.read-models";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
 import { ERROR_CODES, NotFoundError } from "@src/shared/errors";
-
-const DEFAULT_PROJECT = [
-  "_id",
-  "firstname",
-  "lastname",
-  "username",
-  "userType",
-  "email",
-  "website",
-  "phone",
-  "description",
-  "country",
-  "followers",
-  "place._id",
-  "place.placeCategory.name",
-  "place.location",
-  "image.urls",
-  "googlePictureUrl",
-  "userCategory.name",
-  "userCategory.type",
-  "userCategory.type.name",
-];
 
 class GetUserByIdUseCase {
   constructor(private readonly userRepository: IUserRepository) {}
 
-  async execute(
-    params: GetUserByIdInput
-  ): Promise<Record<string, unknown>> {
+  async execute(params: GetUserByIdInput): Promise<UserDetailsReadModel> {
     const user = await this.userRepository.findDetailsById(
       UserId.from(params.userId),
-      { project: params.project ?? DEFAULT_PROJECT }
+      { view: params.view ?? "default" }
     );
 
     if (!user) {

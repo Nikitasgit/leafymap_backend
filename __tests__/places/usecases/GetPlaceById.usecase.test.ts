@@ -36,7 +36,7 @@ describe("GetPlaceByIdUseCase", () => {
 
   it("returns place details", async () => {
     const placeId = mockObjectId();
-    const details = { _id: placeId, rating: 4, deleted: false };
+    const details = { id: placeId, rating: 4, deleted: false };
     placeRepository.findDetailsById.mockResolvedValue(details);
 
     const result = await useCase.execute({ placeId });
@@ -47,7 +47,7 @@ describe("GetPlaceByIdUseCase", () => {
 
   it("rejects deleted places", async () => {
     placeRepository.findDetailsById.mockResolvedValue({
-      _id: mockObjectId(),
+      id: mockObjectId(),
       deleted: true,
     });
 
@@ -55,7 +55,6 @@ describe("GetPlaceByIdUseCase", () => {
       useCase.execute({ placeId: mockObjectId() })
     ).rejects.toMatchObject({
       code: ERROR_CODES.PLACE_NOT_FOUND,
-      statusCode: 404,
     });
   });
 });

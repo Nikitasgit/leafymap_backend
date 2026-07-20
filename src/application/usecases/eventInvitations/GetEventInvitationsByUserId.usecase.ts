@@ -1,4 +1,5 @@
 import { IEventInvitationRepository } from "@src/domain/interfaces/IEventInvitationRepository";
+import { EventInvitationListItemReadModel } from "@src/domain/read-models/eventInvitation.read-models";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
 import { GetEventInvitationsByUserIdInput } from "@src/application/dtos/eventInvitations/getEventInvitationsByUserId.dto";
 
@@ -9,7 +10,7 @@ class GetEventInvitationsByUserIdUseCase {
 
   async execute(
     params: GetEventInvitationsByUserIdInput
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<EventInvitationListItemReadModel[]> {
     return this.eventInvitationRepository.findListForUser({
       userId: UserId.from(params.userId),
       asCollaborator: params.asCollaborator,

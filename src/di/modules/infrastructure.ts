@@ -1,4 +1,4 @@
-import { asClass, asFunction, AwilixContainer } from "awilix";
+import { aliasTo, asClass, asFunction, AwilixContainer } from "awilix";
 import {
   AdminMiddleware,
   AuthMiddleware,
@@ -65,7 +65,8 @@ export const registerInfrastructureModule = (
     // Avoid CLASSIC resolving optional `awsService` constructor param
     imageStorage: asFunction(() => new AwsImageStorageAdapter()).singleton(),
 
-    createNotificationUseCase: asClass(CreateNotificationUseCase).singleton(),
+    notificationCreator: asClass(CreateNotificationUseCase).singleton(),
+    createNotificationUseCase: aliasTo("notificationCreator"),
     deleteImagesUseCase: asClass(DeleteImagesUseCase).singleton(),
     cascadeDeleter: asClass(CascadeDeleteUseCase).singleton(),
 

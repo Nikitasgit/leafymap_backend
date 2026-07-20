@@ -19,7 +19,7 @@ import type GetPlaceByIdUseCase from "@src/application/usecases/places/GetPlaceB
 import type GetPlacesUseCase from "@src/application/usecases/places/GetPlaces.usecase";
 import type GetPlacesInViewUseCase from "@src/application/usecases/places/GetPlacesInView.usecase";
 import type UpdatePlaceUseCase from "@src/application/usecases/places/UpdatePlace.usecase";
-import { AppError, ForbiddenError } from "@src/shared/errors";
+import { ERROR_CODES, ForbiddenError, ValidationError } from "@src/shared/errors";
 
 class PlacesController extends BaseHttpController {
   constructor(
@@ -51,7 +51,7 @@ class PlacesController extends BaseHttpController {
       },
       successMessage: "Place created successfully",
       successStatus: 201,
-      mapResult: (result) => ({ _id: result.id }),
+      mapResult: (result) => ({ id: result.id }),
     });
   }
 
@@ -102,7 +102,11 @@ class PlacesController extends BaseHttpController {
             : undefined;
 
         if (idsParam && idsParam.length > MAX_PLACE_IDS) {
-          throw new AppError(`Too many ids (max ${MAX_PLACE_IDS})`, 400);
+          throw new ValidationError(
+            { ids: `Too many ids (max ${MAX_PLACE_IDS})` },
+            ERROR_CODES.VALIDATION_ERROR,
+            `Too many ids (max ${MAX_PLACE_IDS})`
+          );
         }
 
         const inputFilters: GetPlacesInViewInput = {
@@ -114,14 +118,22 @@ class PlacesController extends BaseHttpController {
 
         if (!idsParam?.length) {
           if (!ne || !sw || typeof ne !== "string" || typeof sw !== "string") {
-            throw new AppError("Missing required coordinates", 400);
+            throw new ValidationError(
+              { coordinates: "Missing required coordinates" },
+              ERROR_CODES.VALIDATION_ERROR,
+              "Missing required coordinates"
+            );
           }
 
           try {
             inputFilters.ne = JSON.parse(ne);
             inputFilters.sw = JSON.parse(sw);
           } catch {
-            throw new AppError("Invalid coordinate format", 400);
+            throw new ValidationError(
+              { coordinates: "Invalid coordinate format" },
+              ERROR_CODES.VALIDATION_ERROR,
+              "Invalid coordinate format"
+            );
           }
         }
 

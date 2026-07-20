@@ -34,6 +34,7 @@ describe("UpdateUserUseCase", () => {
     userRepository = createMockUserRepository();
     jwtTokenIssuer = {
       issue: jest.fn().mockReturnValue("new-token"),
+      verify: jest.fn(),
     } as jest.Mocked<IJwtTokenIssuer>;
     useCase = new UpdateUserUseCase(userRepository, jwtTokenIssuer);
   });
@@ -83,7 +84,6 @@ describe("UpdateUserUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.USER_NOT_FOUND,
-      statusCode: 404,
     });
   });
 });

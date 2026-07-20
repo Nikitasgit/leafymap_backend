@@ -1,9 +1,7 @@
 import { GetCurrentUserNotificationsInput } from "@src/application/dtos/notifications/getCurrentUserNotifications.dto";
-import {
-  INotificationRepository,
-  NotificationListItem,
-} from "@src/domain/interfaces/INotificationRepository";
+import { INotificationRepository } from "@src/domain/interfaces/INotificationRepository";
 import { IUnreadConversationCounter } from "@src/domain/interfaces/IUnreadConversationCounter";
+import { NotificationListItem } from "@src/domain/read-models/notification.read-models";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
 
 export type GetCurrentUserNotificationsResult = {

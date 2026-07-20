@@ -78,7 +78,6 @@ describe("DeleteReviewUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.REVIEW_NOT_FOUND,
-      statusCode: 404,
     });
 
     expect(reviewRepository.delete).not.toHaveBeenCalled();
@@ -106,7 +105,6 @@ describe("DeleteReviewUseCase", () => {
       useCase.execute({ reviewId, authorId: mockObjectId() })
     ).rejects.toMatchObject({
       code: ERROR_CODES.REVIEW_FORBIDDEN,
-      statusCode: 403,
     });
 
     expect(reviewRepository.delete).not.toHaveBeenCalled();

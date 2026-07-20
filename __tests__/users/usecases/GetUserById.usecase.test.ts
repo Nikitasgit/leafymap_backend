@@ -17,27 +17,25 @@ describe("GetUserByIdUseCase", () => {
 
   it("returns the user details when found", async () => {
     const userId = mockObjectId();
-    const details = { _id: userId, username: "alice" };
+    const details = { id: userId, username: "alice" };
     userRepository.findDetailsById.mockResolvedValue(details);
 
     const result = await useCase.execute({ userId });
 
     expect(result).toEqual(details);
-    expect(userRepository.findDetailsById).toHaveBeenCalledWith(
-      userId,
-      expect.objectContaining({ project: expect.any(Array) })
-    );
+    expect(userRepository.findDetailsById).toHaveBeenCalledWith(userId, {
+      view: "default",
+    });
   });
 
-  it("uses a custom project when provided", async () => {
+  it("uses a custom view when provided", async () => {
     const userId = mockObjectId();
-    const project = ["email", "username"];
-    userRepository.findDetailsById.mockResolvedValue({ _id: userId });
+    userRepository.findDetailsById.mockResolvedValue({ id: userId });
 
-    await useCase.execute({ userId, project });
+    await useCase.execute({ userId, view: "current" });
 
     expect(userRepository.findDetailsById).toHaveBeenCalledWith(userId, {
-      project,
+      view: "current",
     });
   });
 
@@ -48,7 +46,6 @@ describe("GetUserByIdUseCase", () => {
       useCase.execute({ userId: mockObjectId() })
     ).rejects.toMatchObject({
       code: ERROR_CODES.USER_NOT_FOUND,
-      statusCode: 404,
     });
   });
 });

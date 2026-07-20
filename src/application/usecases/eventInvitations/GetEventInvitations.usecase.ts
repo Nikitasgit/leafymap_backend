@@ -1,4 +1,5 @@
 import { IEventInvitationRepository } from "@src/domain/interfaces/IEventInvitationRepository";
+import { EventInvitationListItemReadModel } from "@src/domain/read-models/eventInvitation.read-models";
 import { EventId, UserId } from "@src/domain/value-objects/ObjectId.vo";
 import { GetEventInvitationsInput } from "@src/application/dtos/eventInvitations/getEventInvitations.dto";
 
@@ -8,14 +9,14 @@ const getParticipantId = (
   if (typeof participant === "string") {
     return participant;
   }
-  if (
-    participant &&
-    typeof participant === "object" &&
-    "_id" in participant &&
-    (participant as { _id?: { toString(): string } | string })._id
-  ) {
-    const id = (participant as { _id: { toString(): string } | string })._id;
-    return typeof id === "string" ? id : id.toString();
+  if (participant && typeof participant === "object") {
+    const record = participant as {
+      id?: { toString(): string } | string;
+    };
+    const rawId = record.id;
+    if (rawId) {
+      return typeof rawId === "string" ? rawId : rawId.toString();
+    }
   }
   if (
     participant &&
@@ -34,7 +35,7 @@ class GetEventInvitationsUseCase {
 
   async execute(
     params: GetEventInvitationsInput
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<EventInvitationListItemReadModel[]> {
     const eventId = EventId.from(params.eventId);
     const invitations =
       await this.eventInvitationRepository.findListByEvent(eventId);

@@ -1,4 +1,4 @@
-import { CommentListItem } from "@src/domain/interfaces/ICommentRepository";
+import { CommentListItemReadModel } from "@src/domain/read-models/comment.read-models";
 
 export interface GetCommentsInput {
   referenceId: string;
@@ -6,4 +6,4 @@ export interface GetCommentsInput {
   authorId?: string;
 }
 
-export type GetCommentsOutput = CommentListItem[];
+export type GetCommentsOutput = CommentListItemReadModel[];

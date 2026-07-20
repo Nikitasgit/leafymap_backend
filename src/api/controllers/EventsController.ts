@@ -47,7 +47,7 @@ class EventsController extends BaseHttpController {
               title: slot.title,
               startTime: slot.startTime,
               endTime: slot.endTime,
-              collaboratorIds: (slot.collaborators ?? []).map((c) => c._id),
+              collaboratorIds: (slot.collaborators ?? []).map((c) => c.id),
             })),
           })),
           placeId: eventData.place,
@@ -61,7 +61,7 @@ class EventsController extends BaseHttpController {
       },
       successMessage: "Event created successfully",
       successStatus: 201,
-      mapResult: (result) => ({ _id: result.id }),
+      mapResult: (result) => ({ id: result.id }),
     });
   }
 
@@ -122,7 +122,7 @@ class EventsController extends BaseHttpController {
               title: slot.title,
               startTime: slot.startTime,
               endTime: slot.endTime,
-              collaboratorIds: (slot.collaborators ?? []).map((c) => c._id),
+              collaboratorIds: (slot.collaborators ?? []).map((c) => c.id),
             })),
           })),
           placeId: updateData.place,
@@ -133,7 +133,7 @@ class EventsController extends BaseHttpController {
           capacity: updateData.capacity,
           maxSeatsPerBooking: updateData.maxSeatsPerBooking,
         });
-        return { _id: eventId };
+        return { id: eventId };
       },
       successMessage: "Event updated successfully",
     });

@@ -138,7 +138,6 @@ describe("CreateEventInvitationsUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.FORBIDDEN,
-      statusCode: 403,
     });
   });
 });

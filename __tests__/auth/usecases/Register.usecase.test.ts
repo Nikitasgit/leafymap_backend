@@ -76,7 +76,7 @@ describe("RegisterUseCase", () => {
       emailNotifications: true,
     });
 
-    expect(result).toEqual({ _id: userId });
+    expect(result).toEqual({ id: userId });
     expect(passwordHasher.hash).toHaveBeenCalledWith("Password1");
     expect(userRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -104,7 +104,6 @@ describe("RegisterUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.AUTH_EMAIL_ALREADY_USED,
-      statusCode: 409,
     });
 
     expect(userRepository.create).not.toHaveBeenCalled();
@@ -126,7 +125,7 @@ describe("RegisterUseCase", () => {
       emailNotifications: true,
     });
 
-    expect(result).toEqual({ _id: existingUser.id });
+    expect(result).toEqual({ id: existingUser.id });
     expect(userRepository.create).not.toHaveBeenCalled();
     expect(userRepository.update).toHaveBeenCalledWith(
       expect.objectContaining({

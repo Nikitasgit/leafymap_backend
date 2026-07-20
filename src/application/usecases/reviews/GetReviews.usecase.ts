@@ -1,7 +1,5 @@
-import {
-  IReviewRepository,
-  ReviewListItem,
-} from "@src/domain/interfaces/IReviewRepository";
+import { IReviewRepository } from "@src/domain/interfaces/IReviewRepository";
+import { ReviewListItemReadModel } from "@src/domain/read-models/review.read-models";
 import {
   ReferenceId,
   UserId,
@@ -12,7 +10,7 @@ import { GetReviewsInput } from "@src/application/dtos/reviews/getReviews.dto";
 class GetReviewsUseCase {
   constructor(private readonly reviewRepository: IReviewRepository) {}
 
-  async execute(input: GetReviewsInput): Promise<ReviewListItem[]> {
+  async execute(input: GetReviewsInput): Promise<ReviewListItemReadModel[]> {
     return this.reviewRepository.findByReference(
       ReferenceId.from(input.referenceId),
       ReviewReferenceType.from(input.referenceType),

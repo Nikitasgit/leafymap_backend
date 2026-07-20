@@ -12,7 +12,7 @@ import {
 import type DeleteImagesUseCase from "@src/application/usecases/images/DeleteImages.usecase";
 import type GetImagesUseCase from "@src/application/usecases/images/GetImages.usecase";
 import type UploadImagesUseCase from "@src/application/usecases/images/UploadImages.usecase";
-import { AppError, ERROR_CODES } from "@src/shared/errors";
+import { ERROR_CODES, ValidationError } from "@src/shared/errors";
 
 class ImagesController extends BaseHttpController {
   constructor(
@@ -32,9 +32,9 @@ class ImagesController extends BaseHttpController {
           : req.files?.images;
 
         if (!files || files.length === 0) {
-          throw new AppError(
+          throw new ValidationError(
+            { images: "Aucune image fournie" },
             ERROR_CODES.IMAGE_NO_FILES,
-            400,
             "Aucune image fournie"
           );
         }
@@ -76,7 +76,7 @@ class ImagesController extends BaseHttpController {
       execute: async (req) => {
         const body = validateOrThrow(deleteImagesBodySchema, req.body);
         const imageIds = body.images.map((image) =>
-          typeof image === "string" ? image : image._id
+          typeof image === "string" ? image : image.id
         );
 
         await this.deleteImagesUseCase.execute({

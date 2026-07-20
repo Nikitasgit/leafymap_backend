@@ -24,6 +24,34 @@ export default defineConfig(
       ],
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-require-imports": "off",
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "MemberExpression[property.name='_id']",
+          message:
+            "'_id' est un détail Mongo, interdit hors de src/infrastructure. Utilisez 'id'.",
+        },
+        {
+          selector: "Literal[value='_id']",
+          message:
+            "'_id' est un détail Mongo, interdit hors de src/infrastructure. Utilisez 'id'.",
+        },
+        {
+          selector: "Property[key.name='_id']",
+          message:
+            "'_id' est un détail Mongo, interdit hors de src/infrastructure. Utilisez 'id'.",
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      "src/infrastructure/**/*.ts",
+      "__tests__/infrastructure/**/*.ts",
+      "scripts/**/*.ts",
+    ],
+    rules: {
+      "no-restricted-syntax": "off",
     },
   }
 );
