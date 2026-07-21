@@ -1,4 +1,3 @@
-import { Response } from "express";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -19,13 +18,14 @@ export const generateToken = (payload: JWTPayload): string => {
   });
 };
 
-export const setTokenCookie = (res: Response, token: string): void => {
-  const isProduction = process.env.NODE_ENV === "production";
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
-    maxAge: 86400000, // 1 day
-    path: "/",
-  });
+export const verifyToken = (token: string): JWTPayload => {
+  const decoded = jwt.verify(token, JWT_SECRET);
+  if (typeof decoded === "string" || !decoded || typeof decoded !== "object") {
+    throw new Error("Invalid token");
+  }
+  const { id, userType, role } = decoded as JWTPayload;
+  if (!id || !userType) {
+    throw new Error("Invalid token payload");
+  }
+  return { id, userType, role };
 };

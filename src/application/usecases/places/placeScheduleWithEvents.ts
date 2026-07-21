@@ -19,7 +19,7 @@ interface SchedulePeriod {
 }
 
 export interface EventForScheduleGrouping {
-  _id: { toString(): string };
+  id: string | { toString(): string };
   name: string;
   schedule: SchedulePeriod[];
   image?: { toString(): string } | Record<string, unknown> | null;
@@ -128,11 +128,11 @@ export function groupEventsByDay(
 
         dates.forEach((date) => {
           const dayOfWeek = getDayOfWeek(date);
-          if (
-            !eventsByDay[dayOfWeek].some((e) => e.id === event._id.toString())
-          ) {
+          const eventId =
+            typeof event.id === "string" ? event.id : event.id.toString();
+          if (!eventsByDay[dayOfWeek].some((e) => e.id === eventId)) {
             eventsByDay[dayOfWeek].push({
-              id: event._id.toString(),
+              id: eventId,
               name: event.name,
               image: resolveEventImage(event.image),
             });

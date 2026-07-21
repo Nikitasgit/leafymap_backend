@@ -50,6 +50,7 @@ describe("UploadImagesUseCase", () => {
     };
     imageStorage = {
       upload: jest.fn().mockResolvedValue(urls),
+      signUrl: jest.fn(),
       signUrls: jest.fn().mockResolvedValue(signedUrls),
       deleteUrls: jest.fn(),
     };
@@ -159,7 +160,6 @@ describe("UploadImagesUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.IMAGE_NO_FILES,
-      statusCode: 400,
     });
   });
 });

@@ -1,4 +1,6 @@
+import { UserDetailsView } from "@src/domain/interfaces/IUserRepository";
+
 export interface GetUserByIdInput {
   userId: string;
-  project?: string[];
+  view?: UserDetailsView;
 }

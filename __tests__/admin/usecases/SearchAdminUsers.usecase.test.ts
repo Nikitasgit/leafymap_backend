@@ -18,11 +18,13 @@ describe("SearchAdminUsersUseCase", () => {
   });
 
   it("searches by trimmed email", async () => {
-    userRepository.findAdminByEmail.mockResolvedValue([{ email: "a@b.com" }]);
+    userRepository.findAdminByEmail.mockResolvedValue([
+      { id: "u1", email: "a@b.com" },
+    ]);
 
     const result = await useCase.execute({ email: "  a@b.com  " });
 
     expect(userRepository.findAdminByEmail).toHaveBeenCalledWith("a@b.com", 20);
-    expect(result).toEqual([{ email: "a@b.com" }]);
+    expect(result).toEqual([{ id: "u1", email: "a@b.com" }]);
   });
 });

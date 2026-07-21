@@ -31,8 +31,8 @@ describe("GetCommentsUseCase", () => {
     const referenceId = mockObjectId();
     const comments = [
       {
-        _id: mockObjectId(),
-        author: { _id: mockObjectId(), username: "alice" },
+        id: mockObjectId(),
+        author: { id: mockObjectId(), username: "alice" },
         content: "Hello",
         reference: referenceId,
         referenceType: "Review" as const,

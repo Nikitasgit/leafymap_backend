@@ -103,7 +103,6 @@ describe("UpdateEventInvitationUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.EVENT_INVITATION_RESPOND_FORBIDDEN,
-      statusCode: 403,
     });
   });
 

@@ -6,6 +6,10 @@ import {
   PlacesInViewQuery,
 } from "@src/domain/interfaces/IPlaceRepository";
 import {
+  PlaceDetailsReadModel,
+  PlaceListItemReadModel,
+} from "@src/domain/read-models/place.read-models";
+import {
   PlaceId,
   UserId,
 } from "@src/domain/value-objects/ObjectId.vo";
@@ -13,6 +17,7 @@ import { PlaceMapper } from "@src/infrastructure/mappers/Place.mapper";
 import PlaceModel, {
   PlaceDocumentProps,
 } from "@src/infrastructure/persistence/schemas/Place.schema";
+import { PlaceReadMapper } from "@src/infrastructure/read-mappers/Place.read-mapper";
 import { FilterQuery, PipelineStage, Types } from "mongoose";
 
 type PlaceDocumentWithId = PlaceDocumentProps & { _id: Types.ObjectId };
@@ -69,9 +74,7 @@ class MongoosePlaceRepository implements IPlaceRepository {
     return PlaceMapper.toDomain(document as PlaceDocumentWithId);
   }
 
-  async findDetailsById(
-    id: PlaceId
-  ): Promise<Record<string, unknown> | null> {
+  async findDetailsById(id: PlaceId): Promise<PlaceDetailsReadModel | null> {
     const document = await PlaceModel.findById(id)
       .select(
         "_id location rating placeCategory defaultSchedule customDates deleted user createdAt updatedAt"
@@ -83,12 +86,12 @@ class MongoosePlaceRepository implements IPlaceRepository {
       return null;
     }
 
-    return document as unknown as Record<string, unknown>;
+    return PlaceReadMapper.toDetail(document);
   }
 
   async findList(
     filters: PlaceListFilters
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<PlaceListItemReadModel[]> {
     const query: FilterQuery<PlaceDocumentProps> = { deleted: false };
 
     if (filters.placeCategoryId) {
@@ -104,14 +107,17 @@ class MongoosePlaceRepository implements IPlaceRepository {
       .limit(filters.limit ?? 10)
       .lean();
 
-    return documents as unknown as Record<string, unknown>[];
+    return PlaceReadMapper.toListItems(documents);
   }
 
   async findInView(
     query: PlacesInViewQuery
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<PlaceListItemReadModel[]> {
     const pipeline = this.buildInViewPipeline(query);
-    return PlaceModel.aggregate(pipeline as unknown as PipelineStage[]).exec();
+    const documents = await PlaceModel.aggregate(
+      pipeline as unknown as PipelineStage[]
+    ).exec();
+    return PlaceReadMapper.toListItems(documents);
   }
 
   async findIdsByUserId(userId: UserId): Promise<PlaceId[]> {
@@ -127,7 +133,7 @@ class MongoosePlaceRepository implements IPlaceRepository {
   async findAdminSummariesByUserId(
     userId: UserId,
     limit: number
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<PlaceListItemReadModel[]> {
     const documents = await PlaceModel.find({
       user: new Types.ObjectId(userId),
     })
@@ -136,7 +142,7 @@ class MongoosePlaceRepository implements IPlaceRepository {
       .limit(limit)
       .lean();
 
-    return documents as unknown as Record<string, unknown>[];
+    return PlaceReadMapper.toListItems(documents);
   }
 
   async updateRating(id: PlaceId, rating: number): Promise<void> {

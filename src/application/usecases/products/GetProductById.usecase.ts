@@ -1,4 +1,5 @@
 import { IProductRepository } from "@src/domain/interfaces/IProductRepository";
+import { ProductDetailsReadModel } from "@src/domain/read-models/product.read-models";
 import { ProductId } from "@src/domain/value-objects/ObjectId.vo";
 import { ERROR_CODES, NotFoundError } from "@src/shared/errors";
 import { GetProductByIdInput } from "@src/application/dtos/products/getProductById.dto";
@@ -6,7 +7,7 @@ import { GetProductByIdInput } from "@src/application/dtos/products/getProductBy
 class GetProductByIdUseCase {
   constructor(private readonly productRepository: IProductRepository) {}
 
-  async execute(params: GetProductByIdInput): Promise<Record<string, unknown>> {
+  async execute(params: GetProductByIdInput): Promise<ProductDetailsReadModel> {
     const product = await this.productRepository.findDetailsById(
       ProductId.from(params.productId)
     );

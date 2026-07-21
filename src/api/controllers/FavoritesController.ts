@@ -37,7 +37,7 @@ class FavoritesController extends BaseHttpController {
       },
       successMessage: "Favori ajouté avec succès",
       successStatus: 201,
-      mapResult: (result) => ({ _id: result.id }),
+      mapResult: (result) => ({ id: result.id }),
     });
   }
 

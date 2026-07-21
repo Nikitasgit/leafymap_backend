@@ -76,7 +76,6 @@ describe("CreateCommentUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.COMMENT_REFERENCE_NOT_FOUND,
-      statusCode: 404,
     });
 
     expect(commentRepository.save).not.toHaveBeenCalled();
@@ -92,7 +91,6 @@ describe("CreateCommentUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.COMMENT_REFERENCE_UNSUPPORTED,
-      statusCode: 400,
     });
 
     expect(referenceChecker.exists).not.toHaveBeenCalled();

@@ -25,16 +25,15 @@ __tests__/
 ## Conventions
 
 1. **2 à 4 tests par use case** : happy path + erreurs métier importantes.
-2. **Asserter sur `code` et `statusCode`**, pas sur `message` :
+2. **Asserter sur `code`** (pas sur `message` ni HTTP `statusCode`) :
 
    ```ts
    await expect(useCase.execute(params)).rejects.toMatchObject({
      code: ERROR_CODES.EVENT_BOOKING_ALREADY_EXISTS,
-     statusCode: 409,
    });
    ```
 
-   Codes dans `src/shared/errors`.
+   Codes dans `src/shared/errors`. Le mapping HTTP se fait dans `errorHandler`.
 3. **Fixtures** : entités domain (`User.reconstitute`, `Event.reconstitute`…).
    Mocks de ports via `helpers/mock*Repository.ts`.
 4. **Side-effects** mockés (`jest.mock`) — pas de vrai email / réseau.

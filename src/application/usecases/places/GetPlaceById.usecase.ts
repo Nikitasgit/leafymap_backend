@@ -1,4 +1,5 @@
 import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
+import { PlaceDetailsReadModel } from "@src/domain/read-models/place.read-models";
 import { IPlaceRepository } from "@src/domain/interfaces/IPlaceRepository";
 import { PlaceId } from "@src/domain/value-objects/ObjectId.vo";
 import {
@@ -36,7 +37,7 @@ class GetPlaceByIdUseCase {
 
   async execute(
     params: GetPlaceByIdInput
-  ): Promise<Record<string, unknown>> {
+  ): Promise<PlaceDetailsReadModel> {
     const placeId = PlaceId.from(params.placeId);
     const place = await this.placeRepository.findDetailsById(placeId);
 

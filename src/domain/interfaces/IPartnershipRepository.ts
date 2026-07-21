@@ -1,4 +1,5 @@
 import { Partnership } from "@src/domain/entities/Partnership.entity";
+import { PartnershipListItemReadModel } from "@src/domain/read-models/partnership.read-models";
 import {
   PartnershipId,
   UserId,
@@ -25,7 +26,7 @@ export interface IPartnershipRepository {
 
   findListForUser(
     filters: PartnershipUserListFilters
-  ): Promise<Record<string, unknown>[]>;
+  ): Promise<PartnershipListItemReadModel[]>;
 
   deleteManyByUserId(userId: UserId): Promise<void>;
 }

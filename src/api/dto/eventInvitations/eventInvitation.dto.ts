@@ -12,7 +12,7 @@ export const createEventInvitationsSchema = z.object({
     .array(
       z.object({
         collaborator: z.object({
-          _id: objectIdString,
+          id: objectIdString,
         }),
       })
     )
@@ -23,7 +23,7 @@ export const updateEventInvitationsSchema = z.object({
   eventInvitations: z
     .array(
       z.object({
-        _id: objectIdString,
+        id: objectIdString,
         deleted: z.boolean().optional(),
         status: z.enum(EVENT_INVITATION_STATUSES).optional(),
       })

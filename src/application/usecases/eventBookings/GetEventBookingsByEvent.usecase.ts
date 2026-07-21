@@ -1,4 +1,5 @@
 import { IEventBookingRepository } from "@src/domain/interfaces/IEventBookingRepository";
+import { EventBookingListItemReadModel } from "@src/domain/read-models/eventBooking.read-models";
 import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
 import { EventId, UserId } from "@src/domain/value-objects/ObjectId.vo";
 import {
@@ -16,7 +17,7 @@ class GetEventBookingsByEventUseCase {
 
   async execute(
     params: GetEventBookingsByEventInput
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<EventBookingListItemReadModel[]> {
     const eventId = EventId.from(params.eventId);
     const actorId = UserId.from(params.actorId);
 

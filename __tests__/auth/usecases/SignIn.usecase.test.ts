@@ -45,6 +45,7 @@ describe("SignInUseCase", () => {
     };
     jwtTokenIssuer = {
       issue: jest.fn().mockReturnValue("jwt-token"),
+      verify: jest.fn(),
     };
     useCase = new SignInUseCase(
       userRepository,
@@ -85,7 +86,6 @@ describe("SignInUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.AUTH_INVALID_CREDENTIALS,
-      statusCode: 401,
     });
 
     expect(userRepository.update).not.toHaveBeenCalled();
@@ -102,7 +102,6 @@ describe("SignInUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.AUTH_INVALID_CREDENTIALS,
-      statusCode: 401,
     });
   });
 
@@ -118,7 +117,6 @@ describe("SignInUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.AUTH_EMAIL_NOT_VERIFIED,
-      statusCode: 403,
     });
   });
 
@@ -138,7 +136,6 @@ describe("SignInUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.AUTH_USER_BANNED,
-      statusCode: 403,
     });
   });
 });

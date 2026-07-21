@@ -14,6 +14,10 @@ jest.mock("@src/api/http/response", () => ({
   APIResponse: jest.fn(),
 }));
 
+jest.mock("@src/api/http/imageUrlSigning", () => ({
+  signResponseImageUrls: jest.fn(async (payload: unknown) => payload),
+}));
+
 describe("controllerFactory", () => {
   describe("requireAuth", () => {
     it("throws UNAUTHORIZED when the request has no decoded token", () => {
@@ -22,7 +26,6 @@ describe("controllerFactory", () => {
       expect(() => requireAuth(req)).toThrow(
         expect.objectContaining({
           code: ERROR_CODES.UNAUTHORIZED,
-          statusCode: 401,
         })
       );
     });
@@ -44,7 +47,6 @@ describe("controllerFactory", () => {
       expect(() => requireObjectIdParam(req, "eventId")).toThrow(
         expect.objectContaining({
           code: ERROR_CODES.INVALID_ROUTE_PARAM,
-          statusCode: 400,
           data: { param: "eventId" },
         })
       );
@@ -65,7 +67,6 @@ describe("controllerFactory", () => {
       expect(() => validateOrThrow(schema, { name: "" })).toThrow(
         expect.objectContaining({
           code: ERROR_CODES.VALIDATION_ERROR,
-          statusCode: 400,
           data: { name: expect.any(String) },
         })
       );

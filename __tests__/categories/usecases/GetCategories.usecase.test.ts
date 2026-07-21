@@ -17,11 +17,11 @@ describe("GetCategoriesUseCase", () => {
 
   it("returns the aggregated categories payload", async () => {
     const payload: CategoriesResult = {
-      categoryTypes: [{ name: "craft" }],
-      userCategories: [{ name: "weaver" }],
-      placeCategories: [{ name: "atelier" }],
-      productCategories: [{ name: "textile" }],
-      eventCategories: [{ name: "workshop" }],
+      categoryTypes: [{ id: "ct1", name: "craft" }],
+      userCategories: [{ id: "uc1", name: "weaver" }],
+      placeCategories: [{ id: "pc1", name: "atelier" }],
+      productCategories: [{ id: "prc1", name: "textile" }],
+      eventCategories: [{ id: "ec1", name: "workshop" }],
     };
 
     categoryRepository.findAll.mockResolvedValue(payload);

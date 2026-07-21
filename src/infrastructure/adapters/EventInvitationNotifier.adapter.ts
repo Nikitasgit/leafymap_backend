@@ -1,18 +1,16 @@
-import CreateNotificationUseCase from "@src/application/usecases/notifications/CreateNotification.usecase";
 import { IEventInvitationNotifier } from "@src/domain/interfaces/IEventInvitationNotifier";
+import { INotificationCreator } from "@src/domain/interfaces/INotificationCreator";
 import { EventId, UserId } from "@src/domain/value-objects/ObjectId.vo";
 
 class EventInvitationNotifierAdapter implements IEventInvitationNotifier {
-  constructor(
-    private readonly createNotificationUseCase: CreateNotificationUseCase
-  ) {}
+  constructor(private readonly notificationCreator: INotificationCreator) {}
 
   async notifyInvitation(params: {
     senderId: UserId;
     receiverId: UserId;
     eventId: EventId;
   }): Promise<void> {
-    await this.createNotificationUseCase.execute({
+    await this.notificationCreator.create({
       senderId: params.senderId,
       receiverId: params.receiverId,
       action: "event_invitation",
@@ -26,7 +24,7 @@ class EventInvitationNotifierAdapter implements IEventInvitationNotifier {
     receiverId: UserId;
     eventId: EventId;
   }): Promise<void> {
-    await this.createNotificationUseCase.execute({
+    await this.notificationCreator.create({
       senderId: params.senderId,
       receiverId: params.receiverId,
       action: "event_accepted",
@@ -40,7 +38,7 @@ class EventInvitationNotifierAdapter implements IEventInvitationNotifier {
     receiverId: UserId;
     eventId: EventId;
   }): Promise<void> {
-    await this.createNotificationUseCase.execute({
+    await this.notificationCreator.create({
       senderId: params.senderId,
       receiverId: params.receiverId,
       action: "event_refused",

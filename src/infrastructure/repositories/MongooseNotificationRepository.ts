@@ -2,9 +2,8 @@ import { Notification } from "@src/domain/entities/Notification.entity";
 import {
   ExistsRecentSimilarParams,
   INotificationRepository,
-  NotificationListItem,
-  NotificationSenderReadModel,
 } from "@src/domain/interfaces/INotificationRepository";
+import { NotificationListItem } from "@src/domain/read-models/notification.read-models";
 import { NotificationAction } from "@src/domain/value-objects/NotificationAction.vo";
 import {
   NotificationId,
@@ -15,6 +14,7 @@ import { NotificationMapper } from "@src/infrastructure/mappers/Notification.map
 import NotificationModel, {
   NotificationDocumentProps,
 } from "@src/infrastructure/persistence/schemas/Notification.schema";
+import { NotificationReadMapper } from "@src/infrastructure/read-mappers/Notification.read-mapper";
 import { FilterQuery, Types } from "mongoose";
 
 const SENDER_POPULATE = {
@@ -69,7 +69,7 @@ class MongooseNotificationRepository implements INotificationRepository {
       .limit(options?.limit ?? 50)
       .lean<LeanNotificationWithSender[]>();
 
-    return documents.map((doc) => this.toListItem(doc));
+    return NotificationReadMapper.toListItems(documents);
   }
 
   async markAsReadByAction(
@@ -151,42 +151,6 @@ class MongooseNotificationRepository implements INotificationRepository {
     await NotificationModel.deleteMany({
       $or: [{ sender: userObjectId }, { receiver: userObjectId }],
     }).exec();
-  }
-
-  private toListItem(doc: LeanNotificationWithSender): NotificationListItem {
-    return {
-      _id: doc._id.toString(),
-      action: doc.action,
-      reference: doc.reference.toString(),
-      referenceType: doc.referenceType,
-      read: doc.read,
-      readAt: doc.readAt,
-      createdAt: doc.createdAt ?? new Date(),
-      updatedAt: doc.updatedAt ?? new Date(),
-      sender: this.toSenderReadModel(doc.sender),
-    };
-  }
-
-  private toSenderReadModel(
-    sender: LeanNotificationWithSender["sender"]
-  ): NotificationSenderReadModel | undefined {
-    if (!sender || !this.isPopulatedSender(sender)) {
-      return undefined;
-    }
-    return {
-      _id: sender._id.toString(),
-      username: sender.username,
-      firstname: sender.firstname,
-      lastname: sender.lastname,
-      image: sender.image,
-      googlePictureUrl: sender.googlePictureUrl,
-    };
-  }
-
-  private isPopulatedSender(
-    sender: Types.ObjectId | PopulatedSender
-  ): sender is PopulatedSender {
-    return !(sender instanceof Types.ObjectId) && "_id" in sender;
   }
 }
 

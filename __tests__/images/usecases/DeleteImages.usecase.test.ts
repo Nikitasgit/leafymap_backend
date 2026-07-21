@@ -58,6 +58,7 @@ describe("DeleteImagesUseCase", () => {
     };
     imageStorage = {
       upload: jest.fn(),
+      signUrl: jest.fn(),
       signUrls: jest.fn(),
       deleteUrls: jest.fn().mockResolvedValue(undefined),
     };
@@ -90,7 +91,6 @@ describe("DeleteImagesUseCase", () => {
       useCase.execute({ imageIds: [imageId], actorId: userId })
     ).rejects.toMatchObject({
       code: ERROR_CODES.IMAGE_NOT_FOUND,
-      statusCode: 404,
     });
   });
 
@@ -101,7 +101,6 @@ describe("DeleteImagesUseCase", () => {
       useCase.execute({ imageIds: [imageId], actorId: mockObjectId() })
     ).rejects.toMatchObject({
       code: ERROR_CODES.IMAGE_FORBIDDEN,
-      statusCode: 403,
     });
 
     expect(imageRepository.deleteMany).not.toHaveBeenCalled();

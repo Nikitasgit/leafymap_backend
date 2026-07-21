@@ -6,5 +6,5 @@ export interface RegisterInput {
 }
 
 export interface RegisterOutput {
-  _id: string;
+  id: string;
 }

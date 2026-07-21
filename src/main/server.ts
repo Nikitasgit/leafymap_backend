@@ -18,6 +18,7 @@ const {
   markMessagesAsReadUseCase,
   eventInvitationRepository,
   userRepository,
+  jwtTokenIssuer,
 } = cradle;
 
 const httpServer = createServer(app);
@@ -25,7 +26,8 @@ const httpServer = createServer(app);
 const socketService = new SocketService(
   httpServer,
   userRepository,
-  markMessagesAsReadUseCase
+  markMessagesAsReadUseCase,
+  jwtTokenIssuer
 );
 setSocketService(socketService);
 

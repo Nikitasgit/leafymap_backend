@@ -1,10 +1,12 @@
 import {
-  AdminCommentSummary,
-  CommentListItem,
   ICommentRepository,
   SoftDeleteCommentParams,
 } from "@src/domain/interfaces/ICommentRepository";
 import { Comment } from "@src/domain/entities/Comment.entity";
+import {
+  AdminCommentSummaryReadModel,
+  CommentListItemReadModel,
+} from "@src/domain/read-models/comment.read-models";
 import {
   CommentId,
   ReferenceId,
@@ -12,28 +14,13 @@ import {
 } from "@src/domain/value-objects/ObjectId.vo";
 import { CommentReferenceType } from "@src/domain/value-objects/CommentReferenceType.vo";
 import { CommentMapper } from "@src/infrastructure/mappers/Comment.mapper";
+import { CommentReadMapper } from "@src/infrastructure/read-mappers/Comment.read-mapper";
 import CommentModel, {
   CommentDocumentProps,
 } from "@src/infrastructure/persistence/schemas/Comment.schema";
 import { Types } from "mongoose";
 
 type CommentDocumentWithId = CommentDocumentProps & { _id: Types.ObjectId };
-
-type PopulatedAuthor = {
-  _id?: Types.ObjectId;
-  username?: string;
-  image?: { urls?: unknown };
-};
-
-type CommentListDocument = {
-  _id: Types.ObjectId;
-  author: PopulatedAuthor | Types.ObjectId | null;
-  content: string;
-  reference: Types.ObjectId;
-  referenceType: CommentReferenceType;
-  createdAt?: Date;
-  updatedAt?: Date;
-};
 
 class MongooseCommentRepository implements ICommentRepository {
   async save(comment: Comment): Promise<CommentId> {
@@ -72,7 +59,7 @@ class MongooseCommentRepository implements ICommentRepository {
     referenceId: ReferenceId,
     referenceType: CommentReferenceType,
     authorId?: UserId
-  ): Promise<CommentListItem[]> {
+  ): Promise<CommentListItemReadModel[]> {
     const filter: Record<string, unknown> = {
       reference: new Types.ObjectId(referenceId),
       referenceType,
@@ -88,15 +75,7 @@ class MongooseCommentRepository implements ICommentRepository {
       .sort({ createdAt: -1 })
       .lean();
 
-    return (documents as CommentListDocument[]).map((doc) => ({
-      _id: doc._id.toString(),
-      author: this.mapAuthor(doc.author),
-      content: doc.content,
-      reference: doc.reference.toString(),
-      referenceType: doc.referenceType,
-      createdAt: doc.createdAt ?? new Date(),
-      updatedAt: doc.updatedAt ?? new Date(),
-    }));
+    return CommentReadMapper.toListItems(documents);
   }
 
   async findIdsByReferences(
@@ -129,7 +108,7 @@ class MongooseCommentRepository implements ICommentRepository {
   async findByAuthor(
     authorId: UserId,
     limit = 50
-  ): Promise<AdminCommentSummary[]> {
+  ): Promise<AdminCommentSummaryReadModel[]> {
     const documents = await CommentModel.find({
       author: new Types.ObjectId(authorId),
     })
@@ -138,13 +117,7 @@ class MongooseCommentRepository implements ICommentRepository {
       .sort({ createdAt: -1 })
       .lean();
 
-    return documents.map((doc) => ({
-      _id: doc._id.toString(),
-      content: doc.content,
-      referenceType: doc.referenceType,
-      deleted: doc.deleted ?? false,
-      createdAt: doc.createdAt ?? new Date(),
-    }));
+    return CommentReadMapper.toAdminSummaries(documents);
   }
 
   async softDelete(
@@ -166,22 +139,6 @@ class MongooseCommentRepository implements ICommentRepository {
         };
 
     await CommentModel.updateOne({ _id: id }, update).exec();
-  }
-
-  private mapAuthor(
-    author: PopulatedAuthor | Types.ObjectId | null
-  ): CommentListItem["author"] {
-    if (!author || author instanceof Types.ObjectId) {
-      return null;
-    }
-    if (!author._id) {
-      return null;
-    }
-    return {
-      _id: author._id.toString(),
-      username: author.username,
-      image: author.image,
-    };
   }
 }
 

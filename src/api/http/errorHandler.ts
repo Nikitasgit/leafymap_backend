@@ -1,7 +1,24 @@
 import { Request, Response, NextFunction } from "express";
-import { AppError, ERROR_CODES } from "@src/shared/errors";
+import {
+  AppError,
+  ConflictError,
+  ERROR_CODES,
+  ForbiddenError,
+  NotFoundError,
+  UnauthorizedError,
+  ValidationError,
+} from "@src/shared/errors";
 import { APIResponse } from "@src/api/http/response";
 import logger from "@src/shared/logger";
+
+const httpStatusFor = (err: AppError): number => {
+  if (err instanceof ValidationError) return 400;
+  if (err instanceof UnauthorizedError) return 401;
+  if (err instanceof ForbiddenError) return 403;
+  if (err instanceof NotFoundError) return 404;
+  if (err instanceof ConflictError) return 409;
+  return 500;
+};
 
 const errorHandler = (
   err: unknown,
@@ -15,17 +32,18 @@ const errorHandler = (
   }
 
   if (err instanceof AppError) {
-    if (err.statusCode >= 500) {
+    const statusCode = httpStatusFor(err);
+    if (statusCode >= 500) {
       logger.error(
-        `${req.method} ${req.originalUrl} - ${err.statusCode} ${err.code} ${err.message}`,
+        `${req.method} ${req.originalUrl} - ${statusCode} ${err.code} ${err.message}`,
         err
       );
     } else {
       logger.warn(
-        `${req.method} ${req.originalUrl} - ${err.statusCode} ${err.code} ${err.message}`
+        `${req.method} ${req.originalUrl} - ${statusCode} ${err.code} ${err.message}`
       );
     }
-    APIResponse(res, err.data, err.message, err.statusCode, err.code);
+    APIResponse(res, err.data, err.message, statusCode, err.code);
     return;
   }
 

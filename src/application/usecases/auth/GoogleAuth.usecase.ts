@@ -22,7 +22,7 @@ class GoogleAuthUseCase {
 
   private toAuthUser(user: User): GoogleAuthUserOutput {
     return {
-      _id: user.id!,
+      id: user.id!,
       email: user.email,
       username: user.username,
       firstname: user.firstname,

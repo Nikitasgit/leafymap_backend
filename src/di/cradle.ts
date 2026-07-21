@@ -129,6 +129,7 @@ import type { IImageStorage } from "@src/domain/interfaces/IImageStorage";
 import type { IJwtTokenIssuer } from "@src/domain/interfaces/IJwtTokenIssuer";
 import type { IMessageRealtimePublisher } from "@src/domain/interfaces/IMessageRealtimePublisher";
 import type { IMessageRepository } from "@src/domain/interfaces/IMessageRepository";
+import type { INotificationCreator } from "@src/domain/interfaces/INotificationCreator";
 import type { INotificationEmailSender } from "@src/domain/interfaces/INotificationEmailSender";
 import type { INotificationRepository } from "@src/domain/interfaces/INotificationRepository";
 import type { IOpaqueTokenFactory } from "@src/domain/interfaces/IOpaqueTokenFactory";
@@ -193,6 +194,7 @@ export interface Cradle {
   partnershipNotifier: IPartnershipNotifier;
 
   // Shared use cases
+  notificationCreator: INotificationCreator;
   createNotificationUseCase: CreateNotificationUseCase;
   deleteImagesUseCase: DeleteImagesUseCase;
   cascadeDeleter: ICascadeDeleter;

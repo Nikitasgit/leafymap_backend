@@ -71,7 +71,6 @@ describe("VerifyEmailUseCase", () => {
       useCase.execute({ token: "unknown-token" })
     ).rejects.toMatchObject({
       code: ERROR_CODES.AUTH_INVALID_EMAIL_VERIFICATION_TOKEN,
-      statusCode: 401,
     });
 
     expect(userRepository.update).not.toHaveBeenCalled();
@@ -89,7 +88,6 @@ describe("VerifyEmailUseCase", () => {
       useCase.execute({ token: "expired-verification-token" })
     ).rejects.toMatchObject({
       code: ERROR_CODES.AUTH_INVALID_EMAIL_VERIFICATION_TOKEN,
-      statusCode: 401,
     });
 
     expect(userRepository.update).not.toHaveBeenCalled();

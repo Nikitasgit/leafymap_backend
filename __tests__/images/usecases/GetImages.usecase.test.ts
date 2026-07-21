@@ -44,6 +44,7 @@ describe("GetImagesUseCase", () => {
     };
     imageStorage = {
       upload: jest.fn(),
+      signUrl: jest.fn(),
       signUrls: jest.fn().mockResolvedValue(signedUrls),
       deleteUrls: jest.fn(),
     };

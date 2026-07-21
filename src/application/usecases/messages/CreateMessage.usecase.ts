@@ -59,12 +59,12 @@ class CreateMessageUseCase {
     if (populated) {
       this.realtimePublisher.publishNewMessage(
         conversationId,
-        populated as unknown as Record<string, unknown>
+        populated
       );
     }
 
     return {
-      _id: messageId,
+      id: messageId,
       conversationId,
     };
   }

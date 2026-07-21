@@ -10,7 +10,7 @@ describe("eventInvitation validations", () => {
   describe("createEventInvitationsSchema", () => {
     it("accepts a valid invitations payload", () => {
       const result = createEventInvitationsSchema.safeParse({
-        eventInvitations: [{ collaborator: { _id: mockObjectId() } }],
+        eventInvitations: [{ collaborator: { id: mockObjectId() } }],
       });
 
       expect(result.success).toBe(true);
@@ -26,7 +26,7 @@ describe("eventInvitation validations", () => {
 
     it("rejects an invalid collaborator id", () => {
       const result = createEventInvitationsSchema.safeParse({
-        eventInvitations: [{ collaborator: { _id: "not-an-id" } }],
+        eventInvitations: [{ collaborator: { id: "not-an-id" } }],
       });
 
       expect(result.success).toBe(false);
@@ -36,7 +36,7 @@ describe("eventInvitation validations", () => {
   describe("updateEventInvitationsSchema", () => {
     it("accepts a status update payload", () => {
       const result = updateEventInvitationsSchema.safeParse({
-        eventInvitations: [{ _id: mockObjectId(), status: "accepted" }],
+        eventInvitations: [{ id: mockObjectId(), status: "accepted" }],
       });
 
       expect(result.success).toBe(true);
@@ -44,7 +44,7 @@ describe("eventInvitation validations", () => {
 
     it("rejects an invalid status", () => {
       const result = updateEventInvitationsSchema.safeParse({
-        eventInvitations: [{ _id: mockObjectId(), status: "unknown" }],
+        eventInvitations: [{ id: mockObjectId(), status: "unknown" }],
       });
 
       expect(result.success).toBe(false);

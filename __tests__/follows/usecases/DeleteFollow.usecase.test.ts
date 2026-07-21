@@ -64,7 +64,6 @@ describe("DeleteFollowUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.FOLLOW_NOT_FOUND,
-      statusCode: 404,
     });
 
     expect(followRepository.delete).not.toHaveBeenCalled();
@@ -88,7 +87,6 @@ describe("DeleteFollowUseCase", () => {
       useCase.execute({ followId, followerId: otherUserId })
     ).rejects.toMatchObject({
       code: ERROR_CODES.FOLLOW_FORBIDDEN,
-      statusCode: 403,
     });
 
     expect(followRepository.delete).not.toHaveBeenCalled();

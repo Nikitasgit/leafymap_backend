@@ -1,11 +1,12 @@
 import {
-  AdminReviewSummary,
   IReviewRepository,
-  ReviewListItem,
-  ReviewPlaceReference,
   SoftDeleteReviewParams,
 } from "@src/domain/interfaces/IReviewRepository";
 import { Review } from "@src/domain/entities/Review.entity";
+import {
+  AdminReviewSummaryReadModel,
+  ReviewListItemReadModel,
+} from "@src/domain/read-models/review.read-models";
 import {
   ReferenceId,
   ReviewId,
@@ -13,41 +14,13 @@ import {
 } from "@src/domain/value-objects/ObjectId.vo";
 import { ReviewReferenceType } from "@src/domain/value-objects/ReviewReferenceType.vo";
 import { ReviewMapper } from "@src/infrastructure/mappers/Review.mapper";
+import { ReviewReadMapper } from "@src/infrastructure/read-mappers/Review.read-mapper";
 import ReviewModel, {
   ReviewDocumentProps,
 } from "@src/infrastructure/persistence/schemas/Review.schema";
 import { Types } from "mongoose";
 
 type ReviewDocumentWithId = ReviewDocumentProps & { _id: Types.ObjectId };
-
-type PopulatedAuthor = {
-  _id?: Types.ObjectId;
-  username?: string;
-  image?: { urls?: unknown };
-};
-
-type PopulatedPlaceUser = {
-  username?: string;
-  image?: { urls?: unknown };
-};
-
-type PopulatedPlaceReference = {
-  _id?: Types.ObjectId;
-  location?: unknown;
-  user?: PopulatedPlaceUser | Types.ObjectId | null;
-};
-
-type ReviewListDocument = {
-  _id: Types.ObjectId;
-  author: PopulatedAuthor | Types.ObjectId | null;
-  rating: number;
-  comment?: string;
-  reference: Types.ObjectId | PopulatedPlaceReference;
-  referenceType: ReviewReferenceType;
-  certified?: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
-};
 
 class MongooseReviewRepository implements IReviewRepository {
   async save(review: Review): Promise<ReviewId> {
@@ -104,7 +77,7 @@ class MongooseReviewRepository implements IReviewRepository {
     referenceId: ReferenceId,
     referenceType: ReviewReferenceType,
     authorId?: UserId
-  ): Promise<ReviewListItem[]> {
+  ): Promise<ReviewListItemReadModel[]> {
     const filter: Record<string, unknown> = {
       reference: new Types.ObjectId(referenceId),
       referenceType,
@@ -122,14 +95,12 @@ class MongooseReviewRepository implements IReviewRepository {
       .sort({ createdAt: -1 })
       .lean();
 
-    return (documents as ReviewListDocument[]).map((doc) =>
-      this.mapListItem(doc, false)
-    );
+    return ReviewReadMapper.toListItems(documents);
   }
 
   async findByAuthorWithPlaceReference(
     authorId: UserId
-  ): Promise<ReviewListItem[]> {
+  ): Promise<ReviewListItemReadModel[]> {
     const documents = await ReviewModel.find({
       author: new Types.ObjectId(authorId),
       deleted: false,
@@ -146,9 +117,7 @@ class MongooseReviewRepository implements IReviewRepository {
       .sort({ createdAt: -1 })
       .lean();
 
-    return (documents as ReviewListDocument[]).map((doc) =>
-      this.mapListItem(doc, true)
-    );
+    return ReviewReadMapper.toListItems(documents);
   }
 
   async findIdsByReferences(
@@ -200,7 +169,7 @@ class MongooseReviewRepository implements IReviewRepository {
   async findByAuthorAdmin(
     authorId: UserId,
     limit = 50
-  ): Promise<AdminReviewSummary[]> {
+  ): Promise<AdminReviewSummaryReadModel[]> {
     const documents = await ReviewModel.find({
       author: new Types.ObjectId(authorId),
     })
@@ -209,14 +178,7 @@ class MongooseReviewRepository implements IReviewRepository {
       .sort({ createdAt: -1 })
       .lean();
 
-    return documents.map((doc) => ({
-      _id: doc._id.toString(),
-      rating: doc.rating,
-      comment: doc.comment,
-      referenceType: doc.referenceType,
-      deleted: doc.deleted ?? false,
-      createdAt: doc.createdAt ?? new Date(),
-    }));
+    return ReviewReadMapper.toAdminSummaries(documents);
   }
 
   async softDelete(
@@ -238,78 +200,6 @@ class MongooseReviewRepository implements IReviewRepository {
         };
 
     await ReviewModel.updateOne({ _id: id }, update).exec();
-  }
-
-  private mapListItem(
-    doc: ReviewListDocument,
-    withPlaceReference: boolean
-  ): ReviewListItem {
-    return {
-      _id: doc._id.toString(),
-      author: this.mapAuthor(doc.author),
-      rating: doc.rating,
-      comment: doc.comment,
-      reference: withPlaceReference
-        ? this.mapPlaceReference(doc.reference)
-        : this.mapReferenceId(doc.reference),
-      referenceType: doc.referenceType,
-      certified: doc.certified ?? false,
-      createdAt: doc.createdAt ?? new Date(),
-      updatedAt: doc.updatedAt ?? new Date(),
-    };
-  }
-
-  private mapAuthor(
-    author: PopulatedAuthor | Types.ObjectId | null
-  ): ReviewListItem["author"] {
-    if (!author || author instanceof Types.ObjectId) {
-      return null;
-    }
-    if (!author._id) {
-      return null;
-    }
-    return {
-      _id: author._id.toString(),
-      username: author.username,
-      image: author.image,
-    };
-  }
-
-  private mapReferenceId(
-    reference: Types.ObjectId | PopulatedPlaceReference
-  ): string {
-    if (reference instanceof Types.ObjectId) {
-      return reference.toString();
-    }
-    if (reference._id) {
-      return reference._id.toString();
-    }
-    return String(reference);
-  }
-
-  private mapPlaceReference(
-    reference: Types.ObjectId | PopulatedPlaceReference
-  ): string | ReviewPlaceReference {
-    if (reference instanceof Types.ObjectId) {
-      return reference.toString();
-    }
-    if (!reference._id) {
-      return this.mapReferenceId(reference);
-    }
-
-    const user =
-      reference.user && !(reference.user instanceof Types.ObjectId)
-        ? {
-            username: reference.user.username,
-            image: reference.user.image,
-          }
-        : null;
-
-    return {
-      _id: reference._id.toString(),
-      location: reference.location,
-      user,
-    };
   }
 }
 

@@ -21,7 +21,7 @@ export const deleteImagesBodySchema = z.object({
     .array(
       z.union([
         objectIdString,
-        z.object({ _id: objectIdString }),
+        z.object({ id: objectIdString }),
       ])
     )
     .min(1, "Images requises"),

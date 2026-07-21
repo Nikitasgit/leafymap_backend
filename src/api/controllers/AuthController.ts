@@ -23,38 +23,7 @@ import type ResetPasswordUseCase from "@src/application/usecases/auth/ResetPassw
 import type SignInUseCase from "@src/application/usecases/auth/SignIn.usecase";
 import type VerifyEmailUseCase from "@src/application/usecases/auth/VerifyEmail.usecase";
 import type GetUserByIdUseCase from "@src/application/usecases/users/GetUserById.usecase";
-import { setTokenCookie } from "@src/infrastructure/auth/jwt";
-
-const CURRENT_USER_PROJECT = [
-  "_id",
-  "email",
-  "username",
-  "firstname",
-  "lastname",
-  "userType",
-  "role",
-  "acceptedCGU",
-  "website",
-  "phone",
-  "description",
-  "country",
-  "address",
-  "followers",
-  "place",
-  "image.urls",
-  "googlePictureUrl",
-  "place.location",
-  "place.placeCategory",
-  "place.rating",
-  "userCategory",
-  "userCategory.name",
-  "bannedAt",
-  "banReason",
-  "banDuration",
-  "banExpiresAt",
-  "lastLogin",
-  "preferences",
-];
+import { setTokenCookie, clearTokenCookie } from "@src/api/http/cookies";
 
 class AuthController extends BaseHttpController {
   constructor(
@@ -100,17 +69,12 @@ class AuthController extends BaseHttpController {
   signOut(): RequestHandler {
     return this.handler({
       execute: async (_req, res) => {
-        res
-          .clearCookie("token", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-          })
-          .clearCookie("userType", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-          });
+        clearTokenCookie(res);
+        res.clearCookie("userType", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        });
       },
       successMessage: "Logged out",
     });
@@ -121,7 +85,7 @@ class AuthController extends BaseHttpController {
       execute: async (req) => {
         const user = await this.getUserByIdUseCase.execute({
           userId: requireAuth(req).id,
-          project: CURRENT_USER_PROJECT,
+          view: "current",
         });
         return { user };
       },

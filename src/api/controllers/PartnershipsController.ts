@@ -30,7 +30,7 @@ class PartnershipsController extends BaseHttpController {
       execute: async (req) => {
         const body = validateOrThrow(createPartnershipSchema, req.body);
         return this.createPartnershipUseCase.execute({
-          collaboratorId: body.partnership.collaborator._id,
+          collaboratorId: body.partnership.collaborator.id,
           initiatorId: requireAuth(req).id,
         });
       },
@@ -46,7 +46,7 @@ class PartnershipsController extends BaseHttpController {
         await this.updatePartnershipsUseCase.execute({
           userId: requireAuth(req).id,
           partnerships: body.partnerships.map((partnership) => ({
-            id: partnership._id,
+            id: partnership.id,
             status: partnership.status,
           })),
         });

@@ -1,4 +1,5 @@
 import { IPlaceRepository } from "@src/domain/interfaces/IPlaceRepository";
+import { PlaceListItemReadModel } from "@src/domain/read-models/place.read-models";
 import { PlacesInViewClientFilters } from "@src/domain/interfaces/IPlaceRepository";
 import {
   GetPlacesInViewInput,
@@ -17,7 +18,7 @@ class GetPlacesInViewUseCase {
 
   async execute(
     params: GetPlacesInViewInput
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<PlaceListItemReadModel[]> {
     const clientFilters = parseJson<PlacesInViewClientFilters>(
       params.clientFilters,
       CLIENT_FILTERS_DEFAULTS

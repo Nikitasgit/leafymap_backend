@@ -5,6 +5,6 @@ export interface CreateMessageInput {
 }
 
 export interface CreateMessageResult {
-  _id: string;
+  id: string;
   conversationId: string;
 }

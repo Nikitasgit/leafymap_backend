@@ -86,7 +86,6 @@ describe("CreatePartnershipUseCase", () => {
       useCase.execute({ collaboratorId, initiatorId })
     ).rejects.toMatchObject({
       code: ERROR_CODES.PARTNERSHIP_ALREADY_EXISTS,
-      statusCode: 409,
     });
 
     expect(partnershipRepository.save).not.toHaveBeenCalled();
@@ -113,7 +112,6 @@ describe("CreatePartnershipUseCase", () => {
       useCase.execute({ collaboratorId, initiatorId })
     ).rejects.toMatchObject({
       code: ERROR_CODES.PARTNERSHIP_INVITATION_ALREADY_SENT,
-      statusCode: 409,
     });
 
     expect(partnershipRepository.save).not.toHaveBeenCalled();

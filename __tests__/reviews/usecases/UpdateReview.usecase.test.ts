@@ -88,7 +88,6 @@ describe("UpdateReviewUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.REVIEW_NOT_FOUND,
-      statusCode: 404,
     });
 
     expect(reviewRepository.update).not.toHaveBeenCalled();
@@ -120,7 +119,6 @@ describe("UpdateReviewUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.REVIEW_FORBIDDEN,
-      statusCode: 403,
     });
 
     expect(reviewRepository.update).not.toHaveBeenCalled();

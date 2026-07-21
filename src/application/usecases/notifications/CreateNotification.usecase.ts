@@ -1,6 +1,10 @@
 import { CreateNotificationInput } from "@src/application/dtos/notifications/createNotification.dto";
 import { Notification } from "@src/domain/entities/Notification.entity";
 import { User } from "@src/domain/entities/User.entity";
+import {
+  CreateNotificationParams,
+  INotificationCreator,
+} from "@src/domain/interfaces/INotificationCreator";
 import { INotificationEmailSender } from "@src/domain/interfaces/INotificationEmailSender";
 import { INotificationRepository } from "@src/domain/interfaces/INotificationRepository";
 import { IUserRepository } from "@src/domain/interfaces/IUserRepository";
@@ -36,19 +40,21 @@ const EMAIL_NOTIFICATION_THROTTLE_RULES: Partial<
   },
 };
 
-class CreateNotificationUseCase {
+class CreateNotificationUseCase implements INotificationCreator {
   constructor(
     private readonly notificationRepository: INotificationRepository,
     private readonly userRepository: IUserRepository,
     private readonly notificationEmailSender: INotificationEmailSender
   ) {}
 
-  async execute(input: CreateNotificationInput): Promise<NotificationId> {
-    const senderId = UserId.from(input.senderId);
-    const receiverId = UserId.from(input.receiverId);
-    const action = NotificationAction.from(input.action);
-    const referenceId = ReferenceId.from(input.referenceId);
-    const referenceType = NotificationReferenceType.from(input.referenceType);
+  async create(params: CreateNotificationParams): Promise<NotificationId> {
+    const senderId = UserId.from(params.senderId);
+    const receiverId = UserId.from(params.receiverId);
+    const action = NotificationAction.from(String(params.action));
+    const referenceId = ReferenceId.from(String(params.referenceId));
+    const referenceType = NotificationReferenceType.from(
+      String(params.referenceType)
+    );
 
     const notificationId = await this.notificationRepository.save(
       Notification.create({
@@ -66,6 +72,16 @@ class CreateNotificationUseCase {
     );
 
     return notificationId;
+  }
+
+  async execute(input: CreateNotificationInput): Promise<NotificationId> {
+    return this.create({
+      senderId: UserId.from(input.senderId),
+      receiverId: UserId.from(input.receiverId),
+      action: input.action,
+      referenceId: input.referenceId,
+      referenceType: input.referenceType,
+    });
   }
 
   private async sendNotificationEmail(

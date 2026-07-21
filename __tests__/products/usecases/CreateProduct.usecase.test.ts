@@ -48,7 +48,6 @@ describe("CreateProductUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.MAX_PRODUCTS_REACHED,
-      statusCode: 409,
     });
 
     expect(productRepository.save).not.toHaveBeenCalled();

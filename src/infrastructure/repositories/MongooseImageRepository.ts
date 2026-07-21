@@ -14,6 +14,8 @@ import { ImageMapper } from "@src/infrastructure/mappers/Image.mapper";
 import ImageModel, {
   ImageDocumentProps,
 } from "@src/infrastructure/persistence/schemas/Image.schema";
+import { ImageAdminSummaryReadModel } from "@src/domain/read-models/image.read-models";
+import { ImageReadMapper } from "@src/infrastructure/read-mappers/Image.read-mapper";
 import { FilterQuery, Types } from "mongoose";
 
 type ImageDocumentWithId = ImageDocumentProps & { _id: Types.ObjectId };
@@ -95,7 +97,7 @@ class MongooseImageRepository implements IImageRepository {
   async findAdminSummariesByUserId(
     userId: UserId,
     limit: number
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<ImageAdminSummaryReadModel[]> {
     const documents = await ImageModel.find({
       user: new Types.ObjectId(userId),
     })
@@ -104,7 +106,7 @@ class MongooseImageRepository implements IImageRepository {
       .limit(limit)
       .lean();
 
-    return documents as unknown as Record<string, unknown>[];
+    return ImageReadMapper.toAdminSummaries(documents);
   }
 
   async deleteMany(ids: ImageId[]): Promise<void> {

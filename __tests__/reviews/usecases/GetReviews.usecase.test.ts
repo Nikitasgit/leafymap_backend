@@ -35,8 +35,8 @@ describe("GetReviewsUseCase", () => {
     const authorId = mockObjectId();
     const reviews = [
       {
-        _id: mockObjectId(),
-        author: { _id: authorId, username: "alice" },
+        id: mockObjectId(),
+        author: { id: authorId, username: "alice" },
         rating: 5,
         comment: "Top",
         reference: referenceId,

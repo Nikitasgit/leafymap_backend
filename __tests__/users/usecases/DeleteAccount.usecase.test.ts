@@ -87,7 +87,6 @@ describe("DeleteAccountUseCase", () => {
       useCase.execute({ userId: mockObjectId() })
     ).rejects.toMatchObject({
       code: ERROR_CODES.USER_NOT_FOUND,
-      statusCode: 404,
     });
     expect(userRepository.deleteOne).not.toHaveBeenCalled();
   });

@@ -30,16 +30,17 @@ class AwsImageStorageAdapter implements IImageStorage {
     };
   }
 
+  async signUrl(url: string): Promise<string> {
+    return this.awsService.generateSignedUrlFromFullUrl(url);
+  }
+
   async signUrls(urls: ImageUrls): Promise<ImageUrls> {
-    return {
-      original: await this.awsService.generateSignedUrlFromFullUrl(
-        urls.original
-      ),
-      thumbnail: await this.awsService.generateSignedUrlFromFullUrl(
-        urls.thumbnail
-      ),
-      medium: await this.awsService.generateSignedUrlFromFullUrl(urls.medium),
-    };
+    const [original, thumbnail, medium] = await Promise.all([
+      this.signUrl(urls.original),
+      this.signUrl(urls.thumbnail),
+      this.signUrl(urls.medium),
+    ]);
+    return { original, thumbnail, medium };
   }
 
   async deleteUrls(urls: ImageUrls): Promise<void> {

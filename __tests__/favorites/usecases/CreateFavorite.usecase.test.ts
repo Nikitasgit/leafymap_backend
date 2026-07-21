@@ -73,7 +73,6 @@ describe("CreateFavoriteUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.FAVORITE_ALREADY_EXISTS,
-      statusCode: 409,
     });
 
     expect(favoriteRepository.save).not.toHaveBeenCalled();

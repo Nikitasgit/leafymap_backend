@@ -45,7 +45,7 @@ describe("CreateMessageUseCase", () => {
     );
     messageRepository.save.mockResolvedValue(messageId);
     messageRepository.findPopulatedById.mockResolvedValue({
-      _id: messageId,
+      id: messageId,
       conversation: conversationId,
       content: "hello",
       readBy: [],
@@ -60,7 +60,7 @@ describe("CreateMessageUseCase", () => {
         content: "hello",
       })
     ).resolves.toEqual({
-      _id: messageId,
+      id: messageId,
       conversationId,
     });
 
@@ -98,7 +98,7 @@ describe("CreateMessageUseCase", () => {
         content: "first",
       })
     ).resolves.toEqual({
-      _id: messageId,
+      id: messageId,
       conversationId,
     });
 

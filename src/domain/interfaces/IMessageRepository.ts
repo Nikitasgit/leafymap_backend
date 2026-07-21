@@ -1,35 +1,10 @@
 import { Message } from "@src/domain/entities/Message.entity";
+import { MessageListItem } from "@src/domain/read-models/message.read-models";
 import {
   ConversationId,
   MessageId,
   UserId,
 } from "@src/domain/value-objects/ObjectId.vo";
-
-export interface MessageSenderReadModel {
-  _id: string;
-  username?: string;
-  firstname?: string;
-  lastname?: string;
-  email?: string;
-  image?: {
-    urls?: {
-      original?: string;
-      thumbnail?: string;
-      medium?: string;
-    };
-  };
-}
-
-export interface MessageListItem {
-  _id: string;
-  conversation: string;
-  sender?: MessageSenderReadModel | string;
-  content?: string;
-  readBy: string[];
-  partnership?: unknown;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 export interface FindMessagesByConversationParams {
   conversationId: ConversationId;

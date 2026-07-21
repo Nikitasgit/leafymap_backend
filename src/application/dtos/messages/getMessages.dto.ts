@@ -1,4 +1,4 @@
-import { MessageListItem } from "@src/domain/interfaces/IMessageRepository";
+import { MessageListItem } from "@src/domain/read-models/message.read-models";
 
 export interface GetMessagesInput {
   conversationId: string;

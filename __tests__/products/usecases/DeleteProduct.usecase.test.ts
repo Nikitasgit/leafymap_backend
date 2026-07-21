@@ -57,7 +57,6 @@ describe("DeleteProductUseCase", () => {
       useCase.execute({ productId, userId })
     ).rejects.toMatchObject({
       code: ERROR_CODES.PRODUCT_NOT_FOUND,
-      statusCode: 404,
     });
   });
 
@@ -76,7 +75,6 @@ describe("DeleteProductUseCase", () => {
       useCase.execute({ productId, userId: mockObjectId() })
     ).rejects.toMatchObject({
       code: ERROR_CODES.PRODUCT_FORBIDDEN,
-      statusCode: 403,
     });
 
     expect(productRepository.delete).not.toHaveBeenCalled();

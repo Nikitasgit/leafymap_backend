@@ -8,6 +8,10 @@ import {
 } from "@src/domain/interfaces/IEventRepository";
 import { Event } from "@src/domain/entities/Event.entity";
 import {
+  EventDetailsReadModel,
+  EventListItemReadModel,
+} from "@src/domain/read-models/event.read-models";
+import {
   EventDateRange,
   EventPeriod,
 } from "@src/domain/value-objects/EventSchedule.vo";
@@ -18,6 +22,7 @@ import {
   UserId,
 } from "@src/domain/value-objects/ObjectId.vo";
 import { EventMapper } from "@src/infrastructure/mappers/Event.mapper";
+import { EventReadMapper } from "@src/infrastructure/read-mappers/Event.read-mapper";
 import EventModel, {
   EventDocumentProps,
 } from "@src/infrastructure/persistence/schemas/Event.schema";
@@ -99,7 +104,7 @@ class MongooseEventRepository implements IEventRepository {
 
   async findDetailById(
     id: EventId
-  ): Promise<Record<string, unknown> | null> {
+  ): Promise<EventDetailsReadModel | null> {
     let query = EventModel.findById(id);
     const { selectFields, populateConfig } =
       PopulateParser.parseProjectFields(DETAIL_PROJECT);
@@ -111,12 +116,12 @@ class MongooseEventRepository implements IEventRepository {
       populateConfig
     ) as typeof query;
     const event = await query.lean();
-    return event as Record<string, unknown> | null;
+    return event ? EventReadMapper.toDetail(event) : null;
   }
 
   async findList(
     filters: EventListFilters
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<EventListItemReadModel[]> {
     const query: FilterQuery<EventDocumentProps> = { deleted: false };
 
     if (filters.placeId) {
@@ -166,12 +171,12 @@ class MongooseEventRepository implements IEventRepository {
     ) as typeof mongooseQuery;
 
     const events = await mongooseQuery.lean();
-    return events as unknown as Record<string, unknown>[];
+    return EventReadMapper.toListItems(events);
   }
 
   async findInView(
     filters: EventInViewFilters
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<EventListItemReadModel[]> {
     const pipeline: Record<string, unknown>[] = [
       {
         $match: {
@@ -288,7 +293,9 @@ class MongooseEventRepository implements IEventRepository {
       }
     );
 
-    return EventModel.aggregate(pipeline as never[]).exec();
+    return EventReadMapper.toListItems(
+      await EventModel.aggregate(pipeline as never[]).exec()
+    );
   }
 
   async findAllForLifecycleUpdate(
@@ -412,7 +419,7 @@ class MongooseEventRepository implements IEventRepository {
       .lean();
 
     return events.map((event) => ({
-      _id: event._id.toString(),
+      id: event._id.toString(),
       name: event.name,
       status: event.status,
       lifecycleStatus: event.lifecycleStatus,
@@ -425,7 +432,7 @@ class MongooseEventRepository implements IEventRepository {
     placeId: PlaceId,
     start: Date,
     end: Date
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<EventListItemReadModel[]> {
     const query: FilterQuery<EventDocumentProps> = {
       place: new Types.ObjectId(placeId),
       deleted: false,
@@ -472,7 +479,7 @@ class MongooseEventRepository implements IEventRepository {
     ) as typeof mongooseQuery;
 
     const events = await mongooseQuery.lean();
-    return events as unknown as Record<string, unknown>[];
+    return EventReadMapper.toListItems(events);
   }
 
   async findOwnerId(id: EventId): Promise<UserId | null> {

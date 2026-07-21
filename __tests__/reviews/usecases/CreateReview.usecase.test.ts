@@ -98,7 +98,6 @@ describe("CreateReviewUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.REVIEW_REFERENCE_NOT_FOUND,
-      statusCode: 404,
     });
 
     expect(reviewRepository.save).not.toHaveBeenCalled();
@@ -120,7 +119,6 @@ describe("CreateReviewUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.REVIEW_OWN_ENTITY_FORBIDDEN,
-      statusCode: 403,
     });
 
     expect(reviewRepository.save).not.toHaveBeenCalled();
@@ -157,7 +155,6 @@ describe("CreateReviewUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.REVIEW_ALREADY_EXISTS,
-      statusCode: 409,
     });
 
     expect(reviewRepository.save).not.toHaveBeenCalled();

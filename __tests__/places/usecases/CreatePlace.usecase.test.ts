@@ -63,7 +63,6 @@ describe("CreatePlaceUseCase", () => {
   it("rejects when the user cannot create a place", async () => {
     userPlaceLinker.assertCanCreatePlace.mockRejectedValue({
       code: ERROR_CODES.USER_ALREADY_HAS_PLACE,
-      statusCode: 409,
     });
 
     await expect(
@@ -73,7 +72,6 @@ describe("CreatePlaceUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.USER_ALREADY_HAS_PLACE,
-      statusCode: 409,
     });
 
     expect(placeRepository.save).not.toHaveBeenCalled();

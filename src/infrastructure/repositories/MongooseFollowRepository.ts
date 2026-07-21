@@ -1,32 +1,14 @@
-import {
-  FollowingUserProfile,
-  FollowUserProfile,
-  IFollowRepository,
-} from "@src/domain/interfaces/IFollowRepository";
+import { IFollowRepository } from "@src/domain/interfaces/IFollowRepository";
 import { Follow } from "@src/domain/entities/Follow.entity";
+import {
+  FollowingUserProfileReadModel,
+  FollowUserProfileReadModel,
+} from "@src/domain/read-models/follow.read-models";
 import { FollowId, UserId } from "@src/domain/value-objects/ObjectId.vo";
 import { FollowMapper } from "@src/infrastructure/mappers/Follow.mapper";
+import { FollowReadMapper } from "@src/infrastructure/read-mappers/Follow.read-mapper";
 import FollowModel from "@src/infrastructure/persistence/schemas/Follow.schema";
 import { Types } from "mongoose";
-
-type PopulatedUser = {
-  _id: Types.ObjectId;
-  username?: string;
-  firstname?: string;
-  lastname?: string;
-  image?: FollowUserProfile["image"];
-  userType: "creator" | "guest";
-};
-
-type FollowWithFollower = {
-  _id: Types.ObjectId;
-  follower: PopulatedUser;
-};
-
-type FollowWithFollowing = {
-  _id: Types.ObjectId;
-  following: PopulatedUser;
-};
 
 class MongooseFollowRepository implements IFollowRepository {
   async save(follow: Follow): Promise<FollowId> {
@@ -64,7 +46,9 @@ class MongooseFollowRepository implements IFollowRepository {
     );
   }
 
-  async findFollowersOf(userId: UserId): Promise<FollowUserProfile[]> {
+  async findFollowersOf(
+    userId: UserId
+  ): Promise<FollowUserProfileReadModel[]> {
     const documents = await FollowModel.find({
       following: new Types.ObjectId(userId),
     })
@@ -76,20 +60,12 @@ class MongooseFollowRepository implements IFollowRepository {
       .sort({ createdAt: -1 })
       .lean();
 
-    return (documents as unknown as FollowWithFollower[]).map((follow) => {
-      const follower = follow.follower;
-      return {
-        _id: follower._id.toString(),
-        username: follower.username,
-        firstname: follower.firstname,
-        lastname: follower.lastname,
-        image: follower.image,
-        userType: follower.userType,
-      };
-    });
+    return FollowReadMapper.toFollowerProfiles(documents);
   }
 
-  async findFollowingOf(userId: UserId): Promise<FollowingUserProfile[]> {
+  async findFollowingOf(
+    userId: UserId
+  ): Promise<FollowingUserProfileReadModel[]> {
     const documents = await FollowModel.find({
       follower: new Types.ObjectId(userId),
     })
@@ -101,18 +77,7 @@ class MongooseFollowRepository implements IFollowRepository {
       .sort({ createdAt: -1 })
       .lean();
 
-    return (documents as unknown as FollowWithFollowing[]).map((follow) => {
-      const following = follow.following;
-      return {
-        _id: following._id.toString(),
-        followId: follow._id.toString(),
-        username: following.username,
-        firstname: following.firstname,
-        lastname: following.lastname,
-        image: following.image,
-        userType: following.userType,
-      };
-    });
+    return FollowReadMapper.toFollowingProfiles(documents);
   }
 
   async delete(id: FollowId): Promise<void> {

@@ -11,6 +11,11 @@ import { ProductMapper } from "@src/infrastructure/mappers/Product.mapper";
 import ProductModel, {
   ProductDocumentProps,
 } from "@src/infrastructure/persistence/schemas/Product.schema";
+import {
+  ProductDetailsReadModel,
+  ProductListItemReadModel,
+} from "@src/domain/read-models/product.read-models";
+import { ProductReadMapper } from "@src/infrastructure/read-mappers/Product.read-mapper";
 import { FilterQuery, Types } from "mongoose";
 
 type ProductDocumentWithId = ProductDocumentProps & {
@@ -44,7 +49,7 @@ class MongooseProductRepository implements IProductRepository {
 
   async findDetailsById(
     id: ProductId
-  ): Promise<Record<string, unknown> | null> {
+  ): Promise<ProductDetailsReadModel | null> {
     const document = await ProductModel.findById(id)
       .select("_id productCategory user createdAt updatedAt")
       .populate(PRODUCT_CATEGORY_POPULATE)
@@ -54,7 +59,7 @@ class MongooseProductRepository implements IProductRepository {
       return null;
     }
 
-    return document as unknown as Record<string, unknown>;
+    return ProductReadMapper.toDetail(document);
   }
 
   async update(product: Product): Promise<void> {
@@ -82,7 +87,7 @@ class MongooseProductRepository implements IProductRepository {
 
   async findList(
     filters: ProductListFilters
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<ProductListItemReadModel[]> {
     const query = this.buildListQuery(filters);
     const products = await ProductModel.find(query)
       .select("_id productCategory user createdAt updatedAt")
@@ -91,7 +96,7 @@ class MongooseProductRepository implements IProductRepository {
       .limit(filters.limit ?? 100)
       .lean();
 
-    return products as unknown as Record<string, unknown>[];
+    return ProductReadMapper.toListItems(products);
   }
 
   async deleteManyByUserId(userId: UserId): Promise<void> {

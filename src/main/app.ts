@@ -24,8 +24,10 @@ import { cradle } from "@src/di/container";
 import logger from "@src/shared/logger";
 import { Request, Response, NextFunction } from "express";
 import { ALLOWED_ORIGINS } from "@src/shared/constants/common";
+import { configureImageUrlSigning } from "@src/api/http/imageUrlSigning";
 
-const { rateLimiterMiddleware } = cradle;
+const { rateLimiterMiddleware, imageStorage } = cradle;
+configureImageUrlSigning(imageStorage);
 
 const app = express();
 

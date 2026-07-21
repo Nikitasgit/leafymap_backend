@@ -53,7 +53,6 @@ describe("User auth domain", () => {
     ).toThrow(
       expect.objectContaining({
         code: ERROR_CODES.AUTH_EMAIL_NOT_VERIFIED,
-        statusCode: 403,
       })
     );
   });
@@ -68,7 +67,6 @@ describe("User auth domain", () => {
     expect(() => user.assertCanAuthenticate()).toThrow(
       expect.objectContaining({
         code: ERROR_CODES.AUTH_USER_BANNED,
-        statusCode: 403,
       })
     );
   });

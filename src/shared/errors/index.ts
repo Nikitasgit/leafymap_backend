@@ -79,30 +79,17 @@ export type ErrorCode =
 
 const isStableErrorCode = (value: string): boolean => /^[A-Z0-9_]+$/.test(value);
 
-const defaultCodeForStatus = (statusCode: number): ErrorCode => {
-  if (statusCode === 400) return ERROR_CODES.VALIDATION_ERROR;
-  if (statusCode === 401) return ERROR_CODES.UNAUTHORIZED;
-  if (statusCode === 403) return ERROR_CODES.FORBIDDEN;
-  if (statusCode === 404) return ERROR_CODES.NOT_FOUND;
-  if (statusCode === 409) return ERROR_CODES.CONFLICT;
-  return ERROR_CODES.INTERNAL_SERVER_ERROR;
-};
-
 /**
- * Operational error carrying a stable code and HTTP status, handled by the
- * central error handler middleware. Throw these from actions, middlewares and
- * controllers instead of responding manually.
+ * Domain/application operational error with a stable code.
+ * HTTP status mapping happens only at the edge in `errorHandler`.
  */
 export class AppError extends Error {
   public readonly code: ErrorCode;
-
-  public readonly statusCode: number;
 
   public readonly data: unknown;
 
   constructor(
     codeOrMessage: ErrorCode,
-    statusCode: number,
     message?: string,
     data: unknown = null
   ) {
@@ -111,8 +98,7 @@ export class AppError extends Error {
     this.name = new.target.name;
     this.code = hasExplicitCode
       ? codeOrMessage
-      : defaultCodeForStatus(statusCode);
-    this.statusCode = statusCode;
+      : ERROR_CODES.INTERNAL_SERVER_ERROR;
     this.data = data;
   }
 }
@@ -138,7 +124,7 @@ export class ValidationError extends AppError {
     code: ErrorCode = ERROR_CODES.VALIDATION_ERROR,
     message = "Données invalides"
   ) {
-    super(code, 400, message, errors);
+    super(code, message, errors);
   }
 }
 
@@ -153,7 +139,7 @@ export class UnauthorizedError extends AppError {
       codeOrMessage,
       message
     );
-    super(resolved.code, 401, resolved.message);
+    super(resolved.code, resolved.message);
   }
 }
 
@@ -168,7 +154,7 @@ export class ForbiddenError extends AppError {
       codeOrMessage,
       message
     );
-    super(resolved.code, 403, resolved.message);
+    super(resolved.code, resolved.message);
   }
 }
 
@@ -183,7 +169,7 @@ export class NotFoundError extends AppError {
       codeOrMessage,
       message
     );
-    super(resolved.code, 404, resolved.message);
+    super(resolved.code, resolved.message);
   }
 }
 
@@ -198,6 +184,6 @@ export class ConflictError extends AppError {
       codeOrMessage,
       message
     );
-    super(resolved.code, 409, resolved.message);
+    super(resolved.code, resolved.message);
   }
 }

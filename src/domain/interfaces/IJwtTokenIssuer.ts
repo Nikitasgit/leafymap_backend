@@ -6,4 +6,5 @@ export interface JwtTokenPayload {
 
 export interface IJwtTokenIssuer {
   issue(payload: JwtTokenPayload): string;
+  verify(token: string): JwtTokenPayload;
 }

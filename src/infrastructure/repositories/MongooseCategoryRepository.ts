@@ -2,6 +2,7 @@ import {
   CategoriesResult,
   ICategoryRepository,
 } from "@src/domain/interfaces/ICategoryRepository";
+import { CategoryReadMapper } from "@src/infrastructure/read-mappers/Category.read-mapper";
 import CategoryTypeModel from "@src/infrastructure/persistence/schemas/CategoryType.schema";
 import UserCategoryModel from "@src/infrastructure/persistence/schemas/UserCategory.schema";
 import PlaceCategoryModel from "@src/infrastructure/persistence/schemas/PlaceCategory.schema";
@@ -25,11 +26,11 @@ class MongooseCategoryRepository implements ICategoryRepository {
     ]);
 
     return {
-      categoryTypes: categoryTypes as Record<string, unknown>[],
-      userCategories: userCategories as Record<string, unknown>[],
-      placeCategories: placeCategories as Record<string, unknown>[],
-      productCategories: productCategories as Record<string, unknown>[],
-      eventCategories: eventCategories as Record<string, unknown>[],
+      categoryTypes: CategoryReadMapper.toItems(categoryTypes),
+      userCategories: CategoryReadMapper.toItems(userCategories),
+      placeCategories: CategoryReadMapper.toItems(placeCategories),
+      productCategories: CategoryReadMapper.toItems(productCategories),
+      eventCategories: CategoryReadMapper.toItems(eventCategories),
     };
   }
 }

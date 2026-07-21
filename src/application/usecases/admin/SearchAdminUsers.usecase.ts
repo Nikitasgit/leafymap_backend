@@ -1,4 +1,5 @@
 import { SearchAdminUsersInput } from "@src/application/dtos/admin/searchAdminUsers.dto";
+import { UserDetailsReadModel } from "@src/domain/read-models/user.read-models";
 import { IUserRepository } from "@src/domain/interfaces/IUserRepository";
 
 class SearchAdminUsersUseCase {
@@ -6,7 +7,7 @@ class SearchAdminUsersUseCase {
 
   async execute(
     params: SearchAdminUsersInput
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<UserDetailsReadModel[]> {
     const search = params.email?.trim();
     if (!search) {
       return [];

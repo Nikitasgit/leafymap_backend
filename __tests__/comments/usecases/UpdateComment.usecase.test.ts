@@ -71,7 +71,6 @@ describe("UpdateCommentUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.COMMENT_NOT_FOUND,
-      statusCode: 404,
     });
 
     expect(commentRepository.update).not.toHaveBeenCalled();
@@ -103,7 +102,6 @@ describe("UpdateCommentUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.COMMENT_FORBIDDEN,
-      statusCode: 403,
     });
 
     expect(commentRepository.update).not.toHaveBeenCalled();

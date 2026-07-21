@@ -23,7 +23,7 @@ describe("GetCurrentUserNotificationsUseCase", () => {
     const userId = new Types.ObjectId().toString();
     const notifications = [
       {
-        _id: "n1",
+        id: "n1",
         action: "new_follower" as const,
         reference: "r1",
         referenceType: "Follow" as const,

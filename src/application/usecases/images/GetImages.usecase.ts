@@ -30,7 +30,7 @@ class GetImagesUseCase {
       images.map(async (image) => {
         const signedUrls = await this.imageStorage.signUrls(image.urls);
         return {
-          _id: image.id!,
+          id: image.id!,
           urls: signedUrls,
           user: image.userId,
           reference: image.referenceId,

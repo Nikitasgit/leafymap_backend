@@ -84,7 +84,6 @@ describe("ResetPasswordUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.AUTH_INVALID_RESET_PASSWORD_TOKEN,
-      statusCode: 401,
     });
 
     expect(userRepository.update).not.toHaveBeenCalled();
@@ -106,7 +105,6 @@ describe("ResetPasswordUseCase", () => {
       })
     ).rejects.toMatchObject({
       code: ERROR_CODES.AUTH_INVALID_RESET_PASSWORD_TOKEN,
-      statusCode: 401,
     });
 
     expect(userRepository.update).not.toHaveBeenCalled();

@@ -1,10 +1,6 @@
 import { Conversation } from "@src/domain/entities/Conversation.entity";
-import {
-  ConversationInboxItem,
-  ConversationLastMessageReadModel,
-  ConversationParticipantReadModel,
-  IConversationRepository,
-} from "@src/domain/interfaces/IConversationRepository";
+import { IConversationRepository } from "@src/domain/interfaces/IConversationRepository";
+import { ConversationInboxItem } from "@src/domain/read-models/conversation.read-models";
 import {
   ConversationId,
   MessageId,
@@ -15,6 +11,7 @@ import ConversationModel, {
   ConversationDocumentProps,
 } from "@src/infrastructure/persistence/schemas/Conversation.schema";
 import MessageModel from "@src/infrastructure/persistence/schemas/Message.schema";
+import { ConversationReadMapper } from "@src/infrastructure/read-mappers/Conversation.read-mapper";
 import { Types } from "mongoose";
 
 const PARTICIPANTS_POPULATE = {
@@ -133,15 +130,7 @@ class MongooseConversationRepository implements IConversationRepository {
         readBy: { $nin: [userObjectId] },
       });
 
-      result.push({
-        _id: doc._id.toString(),
-        participants: doc.participants.map((participant) =>
-          this.mapParticipant(participant)
-        ),
-        lastMessage: this.mapLastMessage(doc.lastMessage),
-        unreadCount,
-        updatedAt: doc.updatedAt,
-      });
+      result.push(ConversationReadMapper.toInboxItem(doc, unreadCount));
     }
 
     return result;
@@ -157,44 +146,6 @@ class MongooseConversationRepository implements IConversationRepository {
     ).exec();
   }
 
-  private mapParticipant(
-    participant: Types.ObjectId | PopulatedParticipant
-  ): ConversationParticipantReadModel {
-    if (participant instanceof Types.ObjectId) {
-      return { _id: participant.toString() };
-    }
-    return {
-      _id: participant._id.toString(),
-      username: participant.username,
-      firstname: participant.firstname,
-      lastname: participant.lastname,
-      email: participant.email,
-      image: participant.image,
-    };
-  }
-
-  private mapLastMessage(
-    lastMessage: Types.ObjectId | PopulatedLastMessage | null | undefined
-  ): ConversationLastMessageReadModel | undefined {
-    if (!lastMessage || lastMessage instanceof Types.ObjectId) {
-      return undefined;
-    }
-    let partnership: ConversationLastMessageReadModel["partnership"];
-    if (lastMessage.partnership instanceof Types.ObjectId) {
-      partnership = lastMessage.partnership.toString();
-    } else if (
-      lastMessage.partnership &&
-      typeof lastMessage.partnership === "object"
-    ) {
-      partnership = { type: lastMessage.partnership.type };
-    }
-
-    return {
-      content: lastMessage.content,
-      partnership,
-      createdAt: lastMessage.createdAt ?? new Date(),
-    };
-  }
 }
 
 export default MongooseConversationRepository;

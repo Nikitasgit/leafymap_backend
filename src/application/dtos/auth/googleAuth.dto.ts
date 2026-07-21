@@ -3,7 +3,7 @@ export interface GoogleAuthInput {
 }
 
 export interface GoogleAuthUserOutput {
-  _id: string;
+  id: string;
   email: string;
   username?: string;
   firstname?: string;

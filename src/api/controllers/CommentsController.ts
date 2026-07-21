@@ -41,7 +41,7 @@ class CommentsController extends BaseHttpController {
       },
       successMessage: "Commentaire créé avec succès",
       successStatus: 201,
-      mapResult: (result) => ({ _id: result.id }),
+      mapResult: (result) => ({ id: result.id }),
     });
   }
 
