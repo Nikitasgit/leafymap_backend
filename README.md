@@ -1,6 +1,5 @@
 # Documentation Backend - Leafy Map
 
-test
 Plateforme de **découverte d'événements locaux** : carte interactive, lieux, organisateurs et gestion d'événements.
 
 ## Table des matières
@@ -56,16 +55,27 @@ npm run lint:fix
 # Détection code / deps inutilisés
 npm run knip
 
+# Tests unitaires (les tests Mongoose sont exclus)
+npm test
+
+# Tests d'intégration MongoMemory
+npm run test:integration
+
+# Couverture unitaire et seuil de non-régression
+npm run test:coverage
+
+# Toutes les vérifications de tests
+npm run test:all
+
 # Démarrage en production
 npm start
 ```
 
 La CI exécute, dans l'ordre : `lint:ci`, `knip`, `build`, tests unitaires, puis
-tests d'intégration.
-
-`lint:ci` utilise un plafond `--max-warnings 79`. Lorsqu'une correction réduit
-leur nombre, diminuez aussi cette valeur dans `package.json` afin d'empêcher
-leur réintroduction.
+tests d'intégration et couverture. Elle s'exécute pour `develop` et `main`.
+`lint:ci` impose zéro warning. Les seuils globaux de couverture sont volontairement
+conservateurs (32 % statements, 27 % branches, 33 % lignes) : ils protègent la
+baseline actuelle sans constituer un objectif de couverture production.
 
 `knip` détecte fichiers, exports et dépendances inutilisés. Lancez
 `npm run knip` localement avant de pousser si vous touchez à la structure des
@@ -73,7 +83,7 @@ modules ou aux dépendances.
 
 ## Architecture du projet
 
-Le backend suit une **Clean Architecture** stricte : tout le code runtime vit sous `src/`. Hors `src/` : tooling, scripts ops, tests et docs.
+Le backend suit une **Clean Architecture pragmatique** : tout le code runtime vit sous `src/`. Hors `src/` : tooling, scripts ops, tests et docs.
 
 ```
 leafymap_backend/
@@ -98,11 +108,17 @@ leafymap_backend/
 
 ### Domaines : Favorites, Follows, Comments, Reviews, Events, EventBookings, EventInvitations, Partnerships, Products, Categories, Images, Places, Users, Auth, Admin, Notifications, Messages
 
-Flux :
+Flux d'écriture :
 
 ```
 Route → Controller → UseCase → Domain Entity / Port → Mongoose Repository / Adapter
 ```
+
+Les lectures suivent un **CQRS-lite** : les mutations reconstituent des entités
+riches, tandis que les queries retournent des read models dédiés. Les repositories
+Mongoose appliquent les projections/populates, puis les `*ReadMapper` normalisent
+les documents lean vers les contrats de lecture. Il n'y a ni bus CQRS, ni
+event-sourcing.
 
 | Couche | Emplacement | Rôle |
 | --- | --- | --- |
@@ -116,9 +132,28 @@ Route → Controller → UseCase → Domain Entity / Port → Mongoose Repositor
 
 Alias unique : `@src/*` → `src/*`. Entry prod : `dist/main/server.js`.
 
-Règles de dépendance : `domain` → (shared/errors uniquement) ; `application` → domain + shared ; `api` → application + http ; `infrastructure` → domain + shared ; `main` / `di` → composition root Awilix ; routes consomment `cradle`.
+Règles de dépendance (contrôlées par ESLint) : `domain` ne dépend pas de
+`application`, `api`, `infrastructure`, `main` ou `di` ; `application` ne dépend
+pas de `api`, `infrastructure`, `main` ou `di` ; `api` ne dépend pas de
+`infrastructure`, `main` ou `di`. `infrastructure` implémente les ports domain ;
+`main` et `di` constituent le composition root.
 
-DI : registration `asClass` / `asFunction` en `Lifetime.SINGLETON` ; les noms de constructeur (`userRepository`, `cascadeDeleter`, …) doivent matcher les clés du cradle.
+Les fichiers `src/api/routes/*.routes.ts` exportent des factories pures qui
+reçoivent un `Pick<RouteDependencies, ...>`. Seul `src/main/app.ts` lit le
+`cradle`, configure le signing HTTP et compose les routers. DI : registration
+`asClass` / `asFunction` en `Lifetime.SINGLETON` ; les noms de constructeur
+(`userRepository`, `cascadeDeleter`, …) doivent matcher les clés du cradle.
+
+### Frontière Mongo et réponses HTTP
+
+- `_id` et `Types.ObjectId` restent confinés à l'infrastructure. Les entités et
+  ports utilisent des IDs brandés ; les read models exposent `id: string`.
+- `normalizeLeanDocument` normalise récursivement `_id` en `id`, y compris dans
+  les objets populés et tableaux. Les read mappers sélectionnent ensuite
+  explicitement les champs du contrat.
+- Les URLs S3 sont signées une seule fois à la frontière HTTP par
+  `createController` → `signResponseImageUrls` → `signNestedImageUrls`.
+  `signImages: false` est réservé aux réponses qui ne doivent pas être signées.
 
 Points d’attention :
 
@@ -135,7 +170,7 @@ Points d’attention :
 - Categories : lecture seule (`GET /api/categories`), agrège CategoryType + User/Place/Product/EventCategory via `ICategoryRepository.findAll()` ; pas d’entité riche ni de writes HTTP (seeds uniquement).
 - Images : polymorphe `reference` / `referenceType` (Place/User/Event ; Comment/Review non uploadables), ports `IImageStorage` (S3) et `IImageReferenceOwnershipChecker` ; signing explicite (pas de post-hooks schéma) ; hard-delete HTTP/cascade (DB + S3) ; soft-delete admin ; ownership delete/upload dans les use cases.
 - Places : entité avec location GeoJSON + schedules ; port `IUserPlaceLinker` (back-ref `User.place`, rule 1 place/user) ; ownership update/delete dans les use cases ; `GET /in-view` via aggregation geo/`ids`/filters dans le repository ; `scheduleWithEvents` via helper application `placeScheduleWithEvents` (pas de service infra) ; delete user = cascade hard + unlink ; soft-delete admin.
-- Users : entité profil/compte ; port `IUserRepository` ; reads populés via `findDetailsById` / `findList` ; `UpdateUser` strip champs protégés + JWT si `userType` change ; `DeleteAccount` cascade (places/events/follows/images…) ; `AuthMiddleware` / `AdminMiddleware` / Socket.IO / `CreateNotificationUseCase` consomment le même port domain (`MongooseUserRepository`) ; `IUserPlaceLinker` / `IUserPlaceResolver` branchés sur le port domain.
+- Users : entité profil/compte ; port `IUserRepository` ; reads populés via `findDetailsById` / `findList` ; l'API valide un DTO d'update strict et `UpdateUser` renouvelle le JWT si `userType` change ; `DeleteAccount` cascade (places/events/follows/images…) ; `AuthMiddleware` / `AdminMiddleware` / Socket.IO / `CreateNotificationUseCase` consomment le même port domain (`MongooseUserRepository`) ; `IUserPlaceLinker` / `IUserPlaceResolver` branchés sur le port domain.
 - Auth : credentials sur l’entité `User` ; use cases Register / SignIn / GoogleAuth / VerifyEmail / ResendVerification / RequestPasswordReset / ResetPassword / AcceptCgu ; ports `IPasswordHasher`, `IAuthEmailSender`, `IJwtTokenIssuer`, `IGoogleIdentityVerifier`, `IOpaqueTokenFactory` ; `GET /me` réutilise `GetUserByIdUseCase` ; SignOut = clear cookies HTTP.
 - Admin : modération via use cases Search/Get/Ban/Unban/SoftDelete/Restore (users + resources) ; méthodes domain `User.ban` / `unban` / `softDelete` / `restore` ; `findAdminByEmail` + `findDetailsById({ includeDeleted })` ; soft-delete contenu via ports Event/Place/Image/Review/Comment ; middlewares auth/admin sur `IUserRepository` domain.
 - Notifications : entité + port `INotificationRepository` ; HTTP list / mark-by-action / mark-all ; `IUnreadConversationCounter` pour le compteur conversations non lues (messaging) ; writes + email via `CreateNotificationUseCase` + port `INotificationEmailSender` ; adapters `FollowNotifier` / `EventNotifier` / `EventInvitationNotifier` / `PartnershipNotifier` consomment le use case ; cascade/DeleteAccount sur le port domain.
@@ -179,35 +214,12 @@ Shell legacy (`middlewares/`, `utils/`, `types/`, `validations/`, `di/`, `config
 
 ### 2. Système de permissions et rôles
 
-#### Types d'utilisateurs
+#### Types d'utilisateurs et rôles
 
-- **Guest** : Utilisateur de base, peut consulter les événements et la carte
-- **Creator** : Organisateur ou hôte d'événements avec profil public et lieu associé
-- **Organizer** : Responsable de lieu qui accueille et publie des événements (documentation legacy)
-
-#### Limitations par rôle
-
-##### Guest
-
-- ✅ Peut créer un profil **Creator** ou **Organizer**
-- ❌ Ne peut PAS créer de lieu
-- ❌ Ne peut PAS créer d'événement
-- ❌ Ne peut PAS créer de partnership
-
-##### Creator
-
-- ✅ Peut créer **1 seul lieu** maximum (limite globale : 1 lieu par utilisateur)
-- ✅ Peut créer des événements
-- ✅ Peut **modifier le statut** d'un partnership (accepter/refuser)
-- ❌ Ne peut PAS créer de partnership
-- ✅ Possède un profil avec `creatorName` et `creatorCategories` (SubCategories)
-
-##### Organizer
-
-- ✅ Peut créer **1 seul lieu** maximum (limite globale : 1 lieu par utilisateur)
-- ✅ Peut créer des événements
-- ✅ Peut **créer des partnerships** (demandes de collaboration)
-- ❌ Ne peut PAS modifier le statut d'un partnership
+- **guest** : compte standard.
+- **creator** : profil pouvant gérer un lieu et publier des événements.
+- Les rôles d'administration (`user` / `admin`) sont distincts du `userType`.
+- `organizer` n'est plus une valeur du modèle courant.
 
 #### Règles de propriété
 
@@ -226,9 +238,9 @@ Shell legacy (`middlewares/`, `utils/`, `types/`, `validations/`, `di/`, `config
 
 ##### Partnerships (Partenariats)
 
-- Créés par des **Organizers** uniquement
-- Statut modifié par des **Creators** uniquement
-- Workflow : `pending` → `accepted` ou `refused`
+- Invitation entre deux utilisateurs, unique dans les deux sens
+- Acceptation réservée au collaborateur invité
+- Workflow : `pending` → `accepted`, ou annulation via soft-delete
 
 ### 3. Gestion des ressources
 
@@ -248,51 +260,50 @@ Shell legacy (`middlewares/`, `utils/`, `types/`, `validations/`, `di/`, `config
 - **Planning** : Périodes avec créneaux horaires et collaborateurs
 - **Statuts** : cancelled, full, available
 - **Images** : Gestion d'images via S3
-- **Création** : Disponible pour Creators et Organizers uniquement
-- **Modification/Suppression** : Réservée au propriétaire du lieu associé
+- **Création** : Réservée aux profils autorisés par les use cases
+- **Modification/Suppression** : Réservée au propriétaire de l'événement ;
+  un changement de lieu vérifie aussi la propriété du lieu
 
 #### Users (Utilisateurs)
 
-- **Types d'utilisateurs** : creator, organizer, guest
+- **Types d'utilisateurs** : creator, guest
 - **Profils** : Informations personnelles, catégories de créateur
 - **Suivis** : Système de followers pour les lieux
-- **Creator profile** :
-  - `creatorName` : Nom d'artiste (max 30 caractères)
-  - `creatorCategories` : Références aux SubCategories
-  - Associé à une ou plusieurs catégories d'artisan
+- **Creator profile** : catégorie utilisateur, intérêts, description, image et
+  lieu associé selon les contrats courants
 
 #### Partnerships (Partenariats)
 
-- Demandes de collaboration entre utilisateurs et lieux
-- Workflow : pending → accepted/refused
-- **Création** : Organizers uniquement
-- **Validation** : Creators uniquement (acceptation/refus)
+- Invitations de collaboration entre utilisateurs
+- Workflow : pending → accepted, avec annulation
+- **Validation** : l'utilisateur invité est le seul à pouvoir accepter
 
-#### Categories & SubCategories
+#### Catégories
 
-- **Category** : Catégorie principale (ex: "Art", "Artisanat", "Alimentaire")
-- **SubCategory** : Sous-catégorie liée à une Category
-  - Exemple : Category "Artisanat" → SubCategory "Céramiste", "Tisserand", "Forgeron"
-  - Les **SubCategories** sont utilisées pour les `creatorCategories` des utilisateurs
-  - Un creator peut avoir plusieurs SubCategories
-  - Chaque SubCategory référence une Category parente
+La lecture agrège `CategoryType`, `UserCategory`, `PlaceCategory`,
+`ProductCategory` et `EventCategory`. Les écritures de catégories sont réservées
+aux scripts de seed, pas aux routes HTTP publiques.
 
 #### Images
 
 - **Upload vers AWS S3** : Stockage sécurisé des images
 - **Processing** : Optimisation avec Sharp
 - **Middlewares** : Autorisation d'upload/delete, traitement mémoire
-- **URLs signés** : Génération automatique à chaque récupération
+- **URLs signées** : Génération à la frontière de réponse HTTP
 
 ### 4. URLs signés pour les images (AWS S3)
 
 #### Fonctionnement
 
-Les images stockées sur S3 ne sont pas accessibles publiquement. À chaque récupération d'une image depuis la base de données, un **URL signé** temporaire est généré automatiquement.
+Les images stockées sur S3 ne sont pas accessibles publiquement. Un **URL signé**
+temporaire est généré au moment de construire la réponse HTTP.
 
 #### Implémentation (`IImageStorage` / `AwsImageStorageAdapter`)
 
-Le signing est appliqué automatiquement sur les payloads de réponse HTTP (`createController` → `signNestedImageUrls`) pour tout URL S3 imbriqué. Les use cases images (`GetImages` / `UploadImages`) signent aussi explicitement via `IImageStorage.signUrls`. `AwsImageStorageAdapter.signUrls` / `signUrl` délèguent à `AwsService.generateSignedUrlFromFullUrl`.
+Le signing est appliqué une seule fois sur les payloads de réponse HTTP
+(`createController` → `signResponseImageUrls` → `signNestedImageUrls`) pour
+toute URL S3 imbriquée. `AwsImageStorageAdapter.signUrls` / `signUrl` délèguent
+à `AwsService.generateSignedUrlFromFullUrl`.
 
 #### Processus de génération
 
@@ -418,7 +429,8 @@ AWS_BUCKET_NAME=...
 - **Logs** : Vérifier `logs/error.log` en cas de problème
 - **Types** : Typer les nouvelles entités/domain dans `src/domain/`, les DTOs HTTP dans `src/api/dto/`, les types Express dans `src/api/types/`
 - **Validation** : Créer un schéma Zod pour chaque nouveau endpoint
-- **Tests** : Utiliser Postman/Thunder Client pour tester les routes
+- **Tests** : Jest pour les tests unitaires, MongoMemory pour les repositories ;
+  Postman reste utile pour une vérification manuelle des routes
 
 ## Déploiement
 
@@ -448,8 +460,8 @@ sudo apt update && sudo apt upgrade -y
 # Installation de Node.js via NVM
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 source ~/.bashrc
-nvm install 20
-nvm use 20
+nvm install 22
+nvm use 22
 
 # Installation de Git
 sudo apt install git -y

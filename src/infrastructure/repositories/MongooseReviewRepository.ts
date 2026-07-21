@@ -18,9 +18,16 @@ import { ReviewReadMapper } from "@src/infrastructure/read-mappers/Review.read-m
 import ReviewModel, {
   ReviewDocumentProps,
 } from "@src/infrastructure/persistence/schemas/Review.schema";
+import { assertPersistedId } from "@src/infrastructure/persistence/utils/assertPersistedId";
+import { buildSoftDeleteUpdate } from "@src/infrastructure/persistence/utils/buildSoftDeleteUpdate";
+import { userWithImagePopulate } from "@src/infrastructure/persistence/utils/populatePresets";
 import { Types } from "mongoose";
 
 type ReviewDocumentWithId = ReviewDocumentProps & { _id: Types.ObjectId };
+export const REVIEW_AUTHOR_POPULATE = userWithImagePopulate(
+  "author",
+  "_id username image"
+);
 
 class MongooseReviewRepository implements IReviewRepository {
   async save(review: Review): Promise<ReviewId> {
@@ -56,11 +63,9 @@ class MongooseReviewRepository implements IReviewRepository {
   }
 
   async update(review: Review): Promise<void> {
-    if (!review.id) {
-      return;
-    }
+    const id = assertPersistedId("review", review.id);
     await ReviewModel.updateOne(
-      { _id: review.id },
+      { _id: id },
       {
         rating: review.rating,
         comment: review.comment,
@@ -91,7 +96,7 @@ class MongooseReviewRepository implements IReviewRepository {
       .select(
         "_id author rating comment reference referenceType certified createdAt updatedAt"
       )
-      .populate({ path: "author", select: "_id username image.urls" })
+      .populate(REVIEW_AUTHOR_POPULATE)
       .sort({ createdAt: -1 })
       .lean();
 
@@ -108,11 +113,11 @@ class MongooseReviewRepository implements IReviewRepository {
       .select(
         "_id author rating comment reference referenceType certified createdAt updatedAt"
       )
-      .populate({ path: "author", select: "_id username image.urls" })
+      .populate(REVIEW_AUTHOR_POPULATE)
       .populate({
         path: "reference",
         select: "location user",
-        populate: { path: "user", select: "username image.urls" },
+        populate: userWithImagePopulate("user", "username image"),
       })
       .sort({ createdAt: -1 })
       .lean();
@@ -185,21 +190,14 @@ class MongooseReviewRepository implements IReviewRepository {
     id: ReviewId,
     params: SoftDeleteReviewParams
   ): Promise<void> {
-    const update = params.deleted
-      ? {
-          deleted: true,
-          deletedAt: new Date(),
-          deletedBy: new Types.ObjectId(params.adminId),
-          deleteReason: params.reason,
-        }
-      : {
-          deleted: false,
-          deletedAt: undefined,
-          deletedBy: undefined,
-          deleteReason: undefined,
-        };
-
-    await ReviewModel.updateOne({ _id: id }, update).exec();
+    await ReviewModel.updateOne(
+      { _id: id },
+      buildSoftDeleteUpdate({
+        deleted: params.deleted,
+        adminId: params.adminId,
+        reason: params.reason,
+      })
+    ).exec();
   }
 }
 

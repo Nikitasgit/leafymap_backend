@@ -1,5 +1,8 @@
 import { Image } from "@src/domain/entities/Image.entity";
-import { ImageAdminSummaryReadModel } from "@src/domain/read-models/image.read-models";
+import {
+  ImageAdminSummaryReadModel,
+  ImageListItemReadModel,
+} from "@src/domain/read-models/image.read-models";
 import { ImageReferenceType } from "@src/domain/value-objects/ImageReferenceType.vo";
 import { ImageType } from "@src/domain/value-objects/ImageType.vo";
 import {
@@ -30,7 +33,7 @@ export interface IImageRepository {
   saveMany(images: Image[]): Promise<ImageId[]>;
   findById(id: ImageId): Promise<Image | null>;
   findByIds(ids: ImageId[]): Promise<Image[]>;
-  findList(filters: ImageListFilters): Promise<Image[]>;
+  findList(filters: ImageListFilters): Promise<ImageListItemReadModel[]>;
   findIdsByReferences(
     referenceIds: ReferenceId[],
     referenceType: ImageReferenceType

@@ -1,23 +1,25 @@
 import express, { Router } from "express";
-import { cradle } from "@src/di/container";
+import type { RouteDependencies } from "@src/api/routes/routeDependencies";
 
-const {
+const createUserRoutes = ({
   usersController,
   authMiddleware,
   rateLimiterMiddleware,
-} = cradle;
+}: Pick<RouteDependencies, "usersController" | "authMiddleware" | "rateLimiterMiddleware">): Router => {
+  const router: Router = express.Router();
 
-const router: Router = express.Router();
+  router.get("/", usersController.list());
+  router.get("/:userId/profile", usersController.getProfile());
+  router.get("/:userId", usersController.getById());
+  router.put("/", authMiddleware.verify(), usersController.update());
+  router.delete(
+    "/",
+    authMiddleware.verify(),
+    rateLimiterMiddleware.strict(),
+    usersController.deleteAccount()
+  );
 
-router.get("/", usersController.list());
-router.get("/:userId/profile", usersController.getProfile());
-router.get("/:userId", usersController.getById());
-router.put("/", authMiddleware.verify(), usersController.update());
-router.delete(
-  "/",
-  authMiddleware.verify(),
-  rateLimiterMiddleware.strict(),
-  usersController.deleteAccount()
-);
+  return router;
+};
 
-export default router;
+export default createUserRoutes;

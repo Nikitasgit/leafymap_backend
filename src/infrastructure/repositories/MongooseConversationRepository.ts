@@ -1,6 +1,6 @@
 import { Conversation } from "@src/domain/entities/Conversation.entity";
 import { IConversationRepository } from "@src/domain/interfaces/IConversationRepository";
-import { ConversationInboxItem } from "@src/domain/read-models/conversation.read-models";
+import { ConversationInboxItemReadModel } from "@src/domain/read-models/conversation.read-models";
 import {
   ConversationId,
   MessageId,
@@ -111,7 +111,9 @@ class MongooseConversationRepository implements IConversationRepository {
     return documents.map((doc) => ConversationId.from(doc._id.toString()));
   }
 
-  async findInboxForUser(userId: UserId): Promise<ConversationInboxItem[]> {
+  async findInboxForUser(
+    userId: UserId
+  ): Promise<ConversationInboxItemReadModel[]> {
     const documents = await ConversationModel.find({
       participants: new Types.ObjectId(userId),
     })
@@ -121,7 +123,7 @@ class MongooseConversationRepository implements IConversationRepository {
       .lean<LeanConversationDoc[]>();
 
     const userObjectId = new Types.ObjectId(userId);
-    const result: ConversationInboxItem[] = [];
+    const result: ConversationInboxItemReadModel[] = [];
 
     for (const doc of documents) {
       const unreadCount = await MessageModel.countDocuments({

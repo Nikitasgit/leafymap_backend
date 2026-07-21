@@ -1,7 +1,7 @@
 import { ConversationId } from "@src/domain/value-objects/ObjectId.vo";
-import type { MessageListItem } from "@src/domain/read-models/message.read-models";
+import type { MessageListItemReadModel } from "@src/domain/read-models/message.read-models";
 
-export type NewMessageRealtimePayload = MessageListItem;
+export type NewMessageRealtimePayload = MessageListItemReadModel;
 
 export interface IMessageRealtimePublisher {
   publishNewMessage(

@@ -1,22 +1,27 @@
 import express, { Router } from "express";
-import { cradle } from "@src/di/container";
+import type { RouteDependencies } from "@src/api/routes/routeDependencies";
 
-const { authMiddleware, notificationsController } = cradle;
+const createNotificationRoutes = ({
+  authMiddleware,
+  notificationsController,
+}: Pick<RouteDependencies, "authMiddleware" | "notificationsController">): Router => {
+  const router: Router = express.Router();
 
-const router: Router = express.Router();
+  router.get("/", authMiddleware.verify(), notificationsController.list());
 
-router.get("/", authMiddleware.verify(), notificationsController.list());
+  router.patch(
+    "/read",
+    authMiddleware.verify(),
+    notificationsController.markAsRead()
+  );
 
-router.patch(
-  "/read",
-  authMiddleware.verify(),
-  notificationsController.markAsRead()
-);
+  router.patch(
+    "/read-all",
+    authMiddleware.verify(),
+    notificationsController.markAllAsRead()
+  );
 
-router.patch(
-  "/read-all",
-  authMiddleware.verify(),
-  notificationsController.markAllAsRead()
-);
+  return router;
+};
 
-export default router;
+export default createNotificationRoutes;

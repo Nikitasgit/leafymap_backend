@@ -1,7 +1,7 @@
-/**
- * Typed read models for Conversation query paths.
- * Produced by infrastructure Read Mappers (never raw Mongo docs).
- */
+import {
+  ImageReferenceReadModel,
+  ReadModelDate,
+} from "@src/domain/read-models/shared.read-models";
 
 export interface ConversationParticipantReadModel {
   id: string;
@@ -9,13 +9,7 @@ export interface ConversationParticipantReadModel {
   firstname?: string;
   lastname?: string;
   email?: string;
-  image?: {
-    urls?: {
-      thumbnail?: string;
-      medium?: string;
-      original?: string;
-    };
-  };
+  image?: ImageReferenceReadModel | string | null;
 }
 
 export interface ConversationLastMessageReadModel {
@@ -25,10 +19,10 @@ export interface ConversationLastMessageReadModel {
     | {
         type?: "place" | "event";
       };
-  createdAt: Date | string;
+  createdAt: ReadModelDate;
 }
 
-export interface ConversationInboxItem {
+export interface ConversationInboxItemReadModel {
   id: string;
   participants: ConversationParticipantReadModel[];
   lastMessage?: ConversationLastMessageReadModel;

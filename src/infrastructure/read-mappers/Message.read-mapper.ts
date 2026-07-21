@@ -1,5 +1,6 @@
 import {
-  MessageListItem,
+  MessageListItemReadModel,
+  MessagePartnershipReadModel,
   MessageSenderReadModel,
 } from "@src/domain/read-models/message.read-models";
 import { normalizeLeanDocument } from "@src/infrastructure/persistence/utils/normalizeLeanDocument";
@@ -12,9 +13,9 @@ interface NormalizedMessageDoc {
   sender?: NormalizedSender;
   content?: string;
   readBy?: string[];
-  partnership?: unknown;
-  createdAt?: Date;
-  updatedAt?: Date;
+  partnership?: MessagePartnershipReadModel | string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 /**
@@ -23,7 +24,7 @@ interface NormalizedMessageDoc {
  * expected by the API.
  */
 export class MessageReadMapper {
-  static toListItem(doc: unknown): MessageListItem {
+  static toListItem(doc: unknown): MessageListItemReadModel {
     const normalized = normalizeLeanDocument<NormalizedMessageDoc>(doc);
 
     return {
@@ -33,12 +34,12 @@ export class MessageReadMapper {
       content: normalized.content,
       readBy: normalized.readBy ?? [],
       partnership: normalized.partnership,
-      createdAt: normalized.createdAt ?? new Date(),
-      updatedAt: normalized.updatedAt ?? new Date(),
+      createdAt: normalized.createdAt,
+      updatedAt: normalized.updatedAt,
     };
   }
 
-  static toListItems(docs: unknown[]): MessageListItem[] {
+  static toListItems(docs: unknown[]): MessageListItemReadModel[] {
     return docs.map((doc) => MessageReadMapper.toListItem(doc));
   }
 

@@ -1,20 +1,26 @@
 import express, { Router } from "express";
-import { cradle } from "@src/di/container";
+import type { RouteDependencies } from "@src/api/routes/routeDependencies";
 
-const { placesController, authMiddleware, rateLimiterMiddleware } = cradle;
+const createPlaceRoutes = ({
+  placesController,
+  authMiddleware,
+  rateLimiterMiddleware,
+}: Pick<RouteDependencies, "placesController" | "authMiddleware" | "rateLimiterMiddleware">): Router => {
+  const router: Router = express.Router();
 
-const router: Router = express.Router();
+  router.post("/", authMiddleware.verify(), placesController.create());
+  router.put("/:placeId", authMiddleware.verify(), placesController.update());
+  router.delete(
+    "/:placeId",
+    authMiddleware.verify(),
+    rateLimiterMiddleware.strict(),
+    placesController.delete()
+  );
+  router.get("/search", placesController.list());
+  router.get("/in-view", placesController.getInView());
+  router.get("/:placeId", placesController.getById());
 
-router.post("/", authMiddleware.verify(), placesController.create());
-router.put("/:placeId", authMiddleware.verify(), placesController.update());
-router.delete(
-  "/:placeId",
-  authMiddleware.verify(),
-  rateLimiterMiddleware.strict(),
-  placesController.delete()
-);
-router.get("/search", placesController.list());
-router.get("/in-view", placesController.getInView());
-router.get("/:placeId", placesController.getById());
+  return router;
+};
 
-export default router;
+export default createPlaceRoutes;

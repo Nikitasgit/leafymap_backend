@@ -11,6 +11,7 @@ import PartnershipModel, {
 } from "@src/infrastructure/persistence/schemas/Partnership.schema";
 import { PartnershipListItemReadModel } from "@src/domain/read-models/partnership.read-models";
 import { PartnershipReadMapper } from "@src/infrastructure/read-mappers/Partnership.read-mapper";
+import { assertPersistedId } from "@src/infrastructure/persistence/utils/assertPersistedId";
 import { FilterQuery, Types } from "mongoose";
 
 type PartnershipDocumentWithId = PartnershipDocumentProps & {
@@ -36,6 +37,48 @@ const USER_LIST_POPULATE = [
   },
 ];
 
+export function buildPartnershipUserQuery(
+  filters: PartnershipUserListFilters
+): FilterQuery<PartnershipDocumentProps> {
+  const query: FilterQuery<PartnershipDocumentProps> = { deleted: false };
+  const andConditions: FilterQuery<PartnershipDocumentProps>[] = [];
+
+  if (filters.asCollaborator === true) {
+    query.collaborator = new Types.ObjectId(filters.userId);
+  } else if (filters.asInitiator === true) {
+    query.initiator = new Types.ObjectId(filters.userId);
+  } else {
+    andConditions.push({
+      $or: [
+        { initiator: new Types.ObjectId(filters.userId) },
+        { collaborator: new Types.ObjectId(filters.userId) },
+      ],
+    });
+  }
+
+  if (filters.status) {
+    query.status = filters.status;
+  } else if (!filters.currentUserId) {
+    query.status = "accepted";
+  }
+
+  if (filters.currentUserId) {
+    andConditions.push({
+      $or: [
+        { status: "accepted" },
+        { initiator: new Types.ObjectId(filters.currentUserId) },
+        { collaborator: new Types.ObjectId(filters.currentUserId) },
+      ],
+    });
+  }
+
+  if (andConditions.length > 0) {
+    query.$and = andConditions;
+  }
+
+  return query;
+}
+
 class MongoosePartnershipRepository implements IPartnershipRepository {
   async save(partnership: Partnership): Promise<PartnershipId> {
     const document = await PartnershipModel.create(
@@ -53,11 +96,9 @@ class MongoosePartnershipRepository implements IPartnershipRepository {
   }
 
   async update(partnership: Partnership): Promise<void> {
-    if (!partnership.id) {
-      return;
-    }
+    const id = assertPersistedId("partnership", partnership.id);
     await PartnershipModel.updateOne(
-      { _id: partnership.id },
+      { _id: id },
       {
         status: partnership.status,
         deleted: partnership.deleted,
@@ -89,7 +130,7 @@ class MongoosePartnershipRepository implements IPartnershipRepository {
   async findListForUser(
     filters: PartnershipUserListFilters
   ): Promise<PartnershipListItemReadModel[]> {
-    const query = this.buildUserQuery(filters);
+    const query = buildPartnershipUserQuery(filters);
     const partnerships = await PartnershipModel.find(query)
       .select("_id initiator collaborator status deleted updatedAt")
       .populate(USER_LIST_POPULATE)
@@ -106,51 +147,6 @@ class MongoosePartnershipRepository implements IPartnershipRepository {
     }).exec();
   }
 
-  private buildUserQuery(
-    filters: PartnershipUserListFilters
-  ): FilterQuery<PartnershipDocumentProps> {
-    const query: FilterQuery<PartnershipDocumentProps> = {
-      deleted: false,
-    };
-    const andConditions: FilterQuery<PartnershipDocumentProps>[] = [];
-
-    if (filters.asCollaborator === true) {
-      query.collaborator = new Types.ObjectId(filters.userId);
-    } else if (filters.asInitiator === true) {
-      query.initiator = new Types.ObjectId(filters.userId);
-    } else {
-      andConditions.push({
-        $or: [
-          { initiator: new Types.ObjectId(filters.userId) },
-          { collaborator: new Types.ObjectId(filters.userId) },
-        ],
-      });
-    }
-
-    if (filters.status) {
-      query.status = filters.status;
-    } else if (!filters.currentUserId) {
-      query.status = "accepted";
-    }
-
-    if (filters.currentUserId) {
-      andConditions.push({
-        $or: [
-          { status: "accepted" },
-          { initiator: new Types.ObjectId(filters.currentUserId) },
-          { collaborator: new Types.ObjectId(filters.currentUserId) },
-        ],
-      });
-    } else if (filters.status) {
-      andConditions.push({ status: "accepted" });
-    }
-
-    if (andConditions.length > 0) {
-      query.$and = andConditions;
-    }
-
-    return query;
-  }
 }
 
 export default MongoosePartnershipRepository;

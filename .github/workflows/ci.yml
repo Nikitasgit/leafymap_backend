@@ -2,9 +2,9 @@ name: Backend CI
 
 on:
   push:
-    branches: [main]
+    branches: [develop, main]
   pull_request:
-    branches: [main]
+    branches: [develop, main]
 
 env:
   CI: true
@@ -42,3 +42,6 @@ jobs:
 
       - name: Integration tests
         run: npm run test:integration
+
+      - name: Coverage baseline
+        run: npm run test:coverage -- --runInBand --watchman=false

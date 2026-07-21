@@ -1,4 +1,8 @@
 import { ReviewReferenceType } from "@src/domain/value-objects/ReviewReferenceType.vo";
+import {
+  ImageReferenceReadModel,
+  LocationReadModel,
+} from "@src/domain/read-models/shared.read-models";
 
 /**
  * Typed read models for Review query paths.
@@ -8,15 +12,15 @@ import { ReviewReferenceType } from "@src/domain/value-objects/ReviewReferenceTy
 export interface ReviewAuthorReadModel {
   id: string;
   username?: string;
-  image?: { urls?: unknown };
+  image?: ImageReferenceReadModel | string | null;
 }
 
 export interface ReviewPlaceReferenceReadModel {
   id: string;
-  location?: unknown;
+  location?: LocationReadModel;
   user?: {
     username?: string;
-    image?: { urls?: unknown };
+    image?: ImageReferenceReadModel | string | null;
   } | null;
 }
 

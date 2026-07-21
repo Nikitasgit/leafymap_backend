@@ -39,8 +39,8 @@ describe("MongooseEventBookingRepository", () => {
     const found = await repository.findConfirmedByEventAndUser(eventId, userId);
 
     expect(found?.id).toBe(id);
-    expect(found?.eventId).toBe(eventId);
-    expect(found?.userId).toBe(userId);
+    expect(found?.event).toBe(eventId);
+    expect(found?.user).toBe(userId);
     expect(found?.seats).toBe(2);
     expect(found?.status).toBe("confirmed");
   });

@@ -1,9 +1,10 @@
 import { Event } from "@src/domain/entities/Event.entity";
 import {
+  AdminEventSummaryReadModel,
   EventDetailsReadModel,
   EventListItemReadModel,
+  EventScheduleSummaryReadModel,
 } from "@src/domain/read-models/event.read-models";
-import { EventStatus } from "@src/domain/value-objects/EventStatus.vo";
 import { LifecycleStatus } from "@src/domain/value-objects/LifecycleStatus.vo";
 import {
   EventDateRange,
@@ -47,21 +48,12 @@ export interface LifecycleEventSlice {
   lifecycleStatus: LifecycleStatus;
 }
 
-export interface AdminEventSummary {
-  id: string;
-  name: string;
-  status: EventStatus;
-  lifecycleStatus: LifecycleStatus;
-  deleted: boolean;
-  createdAt: Date;
-}
-
 export interface IEventRepository {
   save(event: Event): Promise<EventId>;
   findById(id: EventId): Promise<Event | null>;
   update(event: Event): Promise<void>;
 
-  findDetailById(id: EventId): Promise<EventDetailsReadModel | null>;
+  findDetailsById(id: EventId): Promise<EventDetailsReadModel | null>;
   findList(filters: EventListFilters): Promise<EventListItemReadModel[]>;
   findInView(filters: EventInViewFilters): Promise<EventListItemReadModel[]>;
 
@@ -82,12 +74,15 @@ export interface IEventRepository {
   findScheduleById(id: EventId): Promise<EventPeriod[] | null>;
   updateSchedule(id: EventId, schedule: EventPeriod[]): Promise<void>;
 
-  findByAuthorAdmin(userId: UserId, limit?: number): Promise<AdminEventSummary[]>;
+  findByAuthorAdmin(
+    userId: UserId,
+    limit?: number
+  ): Promise<AdminEventSummaryReadModel[]>;
   findByPlaceInDateRange(
     placeId: PlaceId,
     start: Date,
     end: Date
-  ): Promise<EventListItemReadModel[]>;
+  ): Promise<EventScheduleSummaryReadModel[]>;
 
   findOwnerId(id: EventId): Promise<UserId | null>;
 }

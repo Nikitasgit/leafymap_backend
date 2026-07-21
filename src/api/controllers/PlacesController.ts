@@ -1,6 +1,7 @@
 import { RequestHandler } from "express";
 import {
   getPlaceByIdQuerySchema,
+  getPlacesInViewQuerySchema,
   getPlacesQuerySchema,
   newPlaceSchema,
   updatePlaceSchema,
@@ -11,15 +12,13 @@ import {
   requireObjectIdParam,
   validateOrThrow,
 } from "@src/api/http/controllerFactory";
-import { MAX_PLACE_IDS } from "@src/application/dtos/places/getPlacesInView.dto";
-import { GetPlacesInViewInput } from "@src/application/dtos/places/getPlacesInView.dto";
 import type CreatePlaceUseCase from "@src/application/usecases/places/CreatePlace.usecase";
 import type DeletePlaceUseCase from "@src/application/usecases/places/DeletePlace.usecase";
 import type GetPlaceByIdUseCase from "@src/application/usecases/places/GetPlaceById.usecase";
 import type GetPlacesUseCase from "@src/application/usecases/places/GetPlaces.usecase";
 import type GetPlacesInViewUseCase from "@src/application/usecases/places/GetPlacesInView.usecase";
 import type UpdatePlaceUseCase from "@src/application/usecases/places/UpdatePlace.usecase";
-import { ERROR_CODES, ForbiddenError, ValidationError } from "@src/shared/errors";
+import { ForbiddenError } from "@src/shared/errors";
 
 class PlacesController extends BaseHttpController {
   constructor(
@@ -88,57 +87,10 @@ class PlacesController extends BaseHttpController {
 
   getInView(): RequestHandler {
     return this.handler({
-      execute: async (req) => {
-        const { ne, sw, ids, filters: clientFilters, limit } = req.query;
-
-        const parsedLimit = limit ? parseInt(limit as string, 10) : undefined;
-
-        const idsParam =
-          typeof ids === "string" && ids.trim()
-            ? ids
-                .split(",")
-                .map((id) => id.trim())
-                .filter(Boolean)
-            : undefined;
-
-        if (idsParam && idsParam.length > MAX_PLACE_IDS) {
-          throw new ValidationError(
-            { ids: `Too many ids (max ${MAX_PLACE_IDS})` },
-            ERROR_CODES.VALIDATION_ERROR,
-            `Too many ids (max ${MAX_PLACE_IDS})`
-          );
-        }
-
-        const inputFilters: GetPlacesInViewInput = {
-          ids: idsParam,
-          clientFilters:
-            typeof clientFilters === "string" ? clientFilters : undefined,
-          limit: parsedLimit,
-        };
-
-        if (!idsParam?.length) {
-          if (!ne || !sw || typeof ne !== "string" || typeof sw !== "string") {
-            throw new ValidationError(
-              { coordinates: "Missing required coordinates" },
-              ERROR_CODES.VALIDATION_ERROR,
-              "Missing required coordinates"
-            );
-          }
-
-          try {
-            inputFilters.ne = JSON.parse(ne);
-            inputFilters.sw = JSON.parse(sw);
-          } catch {
-            throw new ValidationError(
-              { coordinates: "Invalid coordinate format" },
-              ERROR_CODES.VALIDATION_ERROR,
-              "Invalid coordinate format"
-            );
-          }
-        }
-
-        return this.getPlacesInViewUseCase.execute(inputFilters);
-      },
+      execute: (req) =>
+        this.getPlacesInViewUseCase.execute(
+          validateOrThrow(getPlacesInViewQuerySchema, req.query)
+        ),
       successMessage: "Places fetched successfully",
     });
   }

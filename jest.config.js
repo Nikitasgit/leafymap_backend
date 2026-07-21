@@ -17,6 +17,13 @@ module.exports = {
     "!**/__tests__/**",
     "!**/node_modules/**",
   ],
+  coverageThreshold: {
+    global: {
+      statements: 32,
+      branches: 27,
+      lines: 33,
+    },
+  },
   moduleFileExtensions: ["ts", "js", "json"],
   moduleNameMapper: {
     "^@src/(.*)$": "<rootDir>/src/$1",

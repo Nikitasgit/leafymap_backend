@@ -1,16 +1,11 @@
-/**
- * Typed read models for EventBooking query paths.
- * Produced by infrastructure Read Mappers (never raw Mongo docs).
- */
+import {
+  ImageReferenceReadModel,
+  LocationReadModel,
+  ReadModelDate,
+} from "@src/domain/read-models/shared.read-models";
+import { EventBookingStatus } from "@src/domain/value-objects/EventBookingStatus.vo";
 
-export interface EventBookingImageReadModel {
-  id: string;
-  urls?: {
-    original?: string | null;
-    medium?: string | null;
-    thumbnail?: string | null;
-  };
-}
+export type EventBookingImageReadModel = ImageReferenceReadModel;
 
 export interface EventBookingUserReadModel {
   id: string;
@@ -26,7 +21,7 @@ export interface EventBookingCategoryReadModel {
 
 export interface EventBookingPlaceReadModel {
   id: string;
-  location?: unknown;
+  location?: LocationReadModel;
 }
 
 export interface EventBookingEventReadModel {
@@ -36,7 +31,6 @@ export interface EventBookingEventReadModel {
   place?: EventBookingPlaceReadModel | string | null;
   user?: EventBookingUserReadModel | string;
   eventCategory?: EventBookingCategoryReadModel | string;
-  [key: string]: unknown;
 }
 
 /** List view returned by findConfirmedByEvent and findConfirmedByUser. */
@@ -45,11 +39,10 @@ export interface EventBookingListItemReadModel {
   event?: EventBookingEventReadModel | string;
   user?: EventBookingUserReadModel | string;
   seats?: number;
-  status?: string;
-  cancelledAt?: string | Date | null;
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
-  [key: string]: unknown;
+  status?: EventBookingStatus;
+  cancelledAt?: ReadModelDate | null;
+  createdAt?: ReadModelDate;
+  updatedAt?: ReadModelDate;
 }
 
 /** Shape returned when the current user asks for their booking on one event. */
@@ -58,7 +51,7 @@ export interface MyEventBookingReadModel {
   event: string;
   user: string;
   seats: number;
-  status: string;
+  status: EventBookingStatus;
   cancelledAt?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;

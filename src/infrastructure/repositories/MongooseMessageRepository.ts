@@ -3,7 +3,7 @@ import {
   FindMessagesByConversationParams,
   IMessageRepository,
 } from "@src/domain/interfaces/IMessageRepository";
-import { MessageListItem } from "@src/domain/read-models/message.read-models";
+import { MessageListItemReadModel } from "@src/domain/read-models/message.read-models";
 import {
   ConversationId,
   MessageId,
@@ -14,6 +14,7 @@ import MessageModel, {
   MessageDocumentProps,
 } from "@src/infrastructure/persistence/schemas/Message.schema";
 import { MessageReadMapper } from "@src/infrastructure/read-mappers/Message.read-mapper";
+import { assertPersistedId } from "@src/infrastructure/persistence/utils/assertPersistedId";
 import { FilterQuery, Types } from "mongoose";
 
 const SENDER_POPULATE = {
@@ -87,7 +88,9 @@ class MongooseMessageRepository implements IMessageRepository {
     return MessageMapper.toDomain(document);
   }
 
-  async findPopulatedById(id: MessageId): Promise<MessageListItem | null> {
+  async findPopulatedById(
+    id: MessageId
+  ): Promise<MessageListItemReadModel | null> {
     const document = await MessageModel.findById(id)
       .populate(SENDER_POPULATE)
       .lean<LeanMessageDoc>();
@@ -99,7 +102,7 @@ class MongooseMessageRepository implements IMessageRepository {
 
   async findByConversation(
     params: FindMessagesByConversationParams
-  ): Promise<MessageListItem[]> {
+  ): Promise<MessageListItemReadModel[]> {
     const query: FilterQuery<MessageDocumentProps> = {
       conversation: new Types.ObjectId(params.conversationId),
     };
@@ -120,11 +123,9 @@ class MongooseMessageRepository implements IMessageRepository {
   }
 
   async update(message: Message): Promise<void> {
-    if (!message.id) {
-      throw new Error("Cannot update message without id");
-    }
+    const id = assertPersistedId("message", message.id);
     await MessageModel.updateOne(
-      { _id: new Types.ObjectId(message.id) },
+      { _id: new Types.ObjectId(id) },
       { $set: MessageMapper.toPersistence(message) }
     ).exec();
   }

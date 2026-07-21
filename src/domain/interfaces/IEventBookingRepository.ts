@@ -1,5 +1,8 @@
 import { EventBooking } from "@src/domain/entities/EventBooking.entity";
-import { EventBookingListItemReadModel } from "@src/domain/read-models/eventBooking.read-models";
+import {
+  EventBookingListItemReadModel,
+  MyEventBookingReadModel,
+} from "@src/domain/read-models/eventBooking.read-models";
 import {
   EventBookingId,
   EventId,
@@ -16,7 +19,7 @@ export interface IEventBookingRepository {
   findConfirmedByEventAndUser(
     eventId: EventId,
     userId: UserId
-  ): Promise<EventBooking | null>;
+  ): Promise<MyEventBookingReadModel | null>;
 
   sumConfirmedSeats(
     eventId: EventId,

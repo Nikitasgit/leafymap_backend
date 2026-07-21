@@ -5,23 +5,18 @@
 
 import { NotificationAction } from "@src/domain/value-objects/NotificationAction.vo";
 import { NotificationReferenceType } from "@src/domain/value-objects/NotificationReferenceType.vo";
+import { ImageReferenceReadModel } from "@src/domain/read-models/shared.read-models";
 
 export interface NotificationSenderReadModel {
   id: string;
   username?: string;
   firstname?: string;
   lastname?: string;
-  image?: {
-    urls?: {
-      original?: string;
-      thumbnail?: string;
-      medium?: string;
-    };
-  };
+  image?: ImageReferenceReadModel | string | null;
   googlePictureUrl?: string;
 }
 
-export interface NotificationListItem {
+export interface NotificationListItemReadModel {
   id: string;
   action: NotificationAction;
   reference: string;

@@ -1,16 +1,16 @@
-/**
- * Typed read models for EventInvitation query paths.
- * Produced by infrastructure Read Mappers (never raw Mongo docs).
- */
+import {
+  ImageReferenceReadModel,
+  ReadModelDate,
+} from "@src/domain/read-models/shared.read-models";
+import {
+  EventDateRangeReadModel,
+  EventPeriodReadModel,
+} from "@src/domain/read-models/event.read-models";
+import { EventInvitationStatus } from "@src/domain/value-objects/EventInvitationStatus.vo";
+import { EventStatus } from "@src/domain/value-objects/EventStatus.vo";
+import { LifecycleStatus } from "@src/domain/value-objects/LifecycleStatus.vo";
 
-export interface EventInvitationImageReadModel {
-  id: string;
-  urls?: {
-    original?: string | null;
-    medium?: string | null;
-    thumbnail?: string | null;
-  };
-}
+export type EventInvitationImageReadModel = ImageReferenceReadModel;
 
 export interface EventInvitationUserCategoryReadModel {
   id: string;
@@ -31,10 +31,10 @@ export interface EventInvitationEventReadModel {
   name?: string;
   description?: string;
   image?: EventInvitationImageReadModel | string | null;
-  schedule?: unknown;
-  status?: string;
-  lifecycleStatus?: string;
-  dateRange?: unknown;
+  schedule?: EventPeriodReadModel[];
+  status?: EventStatus;
+  lifecycleStatus?: LifecycleStatus;
+  dateRange?: EventDateRangeReadModel;
 }
 
 /** List view returned by findListByEvent and findListForUser. */
@@ -43,8 +43,7 @@ export interface EventInvitationListItemReadModel {
   initiator?: EventInvitationUserReadModel | string;
   collaborator?: EventInvitationUserReadModel | string;
   event?: EventInvitationEventReadModel | string;
-  status?: string;
+  status?: EventInvitationStatus;
   deleted?: boolean;
-  updatedAt?: string | Date;
-  [key: string]: unknown;
+  updatedAt?: ReadModelDate;
 }

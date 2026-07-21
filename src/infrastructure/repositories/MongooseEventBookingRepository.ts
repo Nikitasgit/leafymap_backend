@@ -9,8 +9,12 @@ import { EventBookingMapper } from "@src/infrastructure/mappers/EventBooking.map
 import EventBookingModel, {
   EventBookingDocumentProps,
 } from "@src/infrastructure/persistence/schemas/EventBooking.schema";
-import { EventBookingListItemReadModel } from "@src/domain/read-models/eventBooking.read-models";
+import {
+  EventBookingListItemReadModel,
+  MyEventBookingReadModel,
+} from "@src/domain/read-models/eventBooking.read-models";
 import { EventBookingReadMapper } from "@src/infrastructure/read-mappers/EventBooking.read-mapper";
+import { assertPersistedId } from "@src/infrastructure/persistence/utils/assertPersistedId";
 import { Types } from "mongoose";
 
 type EventBookingDocumentWithId = EventBookingDocumentProps & {
@@ -34,11 +38,9 @@ class MongooseEventBookingRepository implements IEventBookingRepository {
   }
 
   async update(booking: EventBooking): Promise<void> {
-    if (!booking.id) {
-      return;
-    }
+    const id = assertPersistedId("event booking", booking.id);
     await EventBookingModel.updateOne(
-      { _id: booking.id },
+      { _id: id },
       {
         seats: booking.seats,
         status: booking.status,
@@ -64,7 +66,7 @@ class MongooseEventBookingRepository implements IEventBookingRepository {
   async findConfirmedByEventAndUser(
     eventId: EventId,
     userId: UserId
-  ): Promise<EventBooking | null> {
+  ): Promise<MyEventBookingReadModel | null> {
     const document = await EventBookingModel.findOne({
       event: new Types.ObjectId(eventId),
       user: new Types.ObjectId(userId),
@@ -74,7 +76,7 @@ class MongooseEventBookingRepository implements IEventBookingRepository {
     if (!document) {
       return null;
     }
-    return EventBookingMapper.toDomain(document as EventBookingDocumentWithId);
+    return EventBookingReadMapper.toMyEventBooking(document);
   }
 
   async sumConfirmedSeats(

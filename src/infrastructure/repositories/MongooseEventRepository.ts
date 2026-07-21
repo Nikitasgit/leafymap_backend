@@ -1,5 +1,4 @@
 import {
-  AdminEventSummary,
   EventInViewFilters,
   EventListFilters,
   IEventRepository,
@@ -8,8 +7,10 @@ import {
 } from "@src/domain/interfaces/IEventRepository";
 import { Event } from "@src/domain/entities/Event.entity";
 import {
+  AdminEventSummaryReadModel,
   EventDetailsReadModel,
   EventListItemReadModel,
+  EventScheduleSummaryReadModel,
 } from "@src/domain/read-models/event.read-models";
 import {
   EventDateRange,
@@ -26,52 +27,40 @@ import { EventReadMapper } from "@src/infrastructure/read-mappers/Event.read-map
 import EventModel, {
   EventDocumentProps,
 } from "@src/infrastructure/persistence/schemas/Event.schema";
-import { PopulateParser } from "@src/infrastructure/persistence/utils/PopulateParser";
-import { FilterQuery, Types } from "mongoose";
+import { assertPersistedId } from "@src/infrastructure/persistence/utils/assertPersistedId";
+import { buildSoftDeleteUpdate } from "@src/infrastructure/persistence/utils/buildSoftDeleteUpdate";
+import { imageUrlsPopulate } from "@src/infrastructure/persistence/utils/populatePresets";
+import { FilterQuery, PipelineStage, PopulateOptions, Types } from "mongoose";
 
 type EventDocumentWithId = EventDocumentProps & { _id: Types.ObjectId };
 
-const LIST_PROJECT = [
-  "_id",
-  "name",
-  "image",
-  "eventCategory",
-  "eventCategory.name",
-  "place",
-  "user",
-  "location",
-  "online",
-  "description",
-  "status",
-  "lifecycleStatus",
-  "schedule",
-  "dateRange",
-  "isBookable",
-  "capacity",
-  "maxSeatsPerBooking",
-  "image._id",
-  "image.urls",
-  "place._id",
-  "place.location",
-  "place.user",
-  "place.user.username",
-  "user._id",
-  "user.username",
-  "user.image",
-  "user.image.urls",
+const EVENT_LIST_SELECT =
+  "_id name image eventCategory place user location online description status lifecycleStatus schedule dateRange isBookable capacity maxSeatsPerBooking";
+
+export const EVENT_LIST_POPULATE: PopulateOptions[] = [
+  imageUrlsPopulate,
+  { path: "eventCategory", select: "name" },
+  {
+    path: "place",
+    select: "_id location user",
+    populate: { path: "user", select: "username" },
+  },
+  {
+    path: "user",
+    select: "_id username image",
+    populate: imageUrlsPopulate,
+  },
 ];
 
-const DETAIL_PROJECT = [
-  ...LIST_PROJECT,
-  "rating",
-  "createdAt",
-  "updatedAt",
-  "deleted",
-  "schedule.timeSlots.collaborators",
-  "schedule.timeSlots.collaborators._id",
-  "schedule.timeSlots.collaborators.username",
-  "schedule.timeSlots.collaborators.image",
-  "schedule.timeSlots.collaborators.image.urls",
+const EVENT_DETAIL_SELECT =
+  `${EVENT_LIST_SELECT} rating createdAt updatedAt deleted`;
+const EVENT_DETAIL_POPULATE: PopulateOptions[] = [
+  ...EVENT_LIST_POPULATE,
+  {
+    path: "schedule.timeSlots.collaborators",
+    select: "_id username image",
+    populate: imageUrlsPopulate,
+  },
 ];
 
 class MongooseEventRepository implements IEventRepository {
@@ -93,29 +82,20 @@ class MongooseEventRepository implements IEventRepository {
   }
 
   async update(event: Event): Promise<void> {
-    if (!event.id) {
-      return;
-    }
+    const id = assertPersistedId("event", event.id);
     await EventModel.findByIdAndUpdate(
-      event.id,
+      id,
       EventMapper.toPersistence(event)
     ).exec();
   }
 
-  async findDetailById(
+  async findDetailsById(
     id: EventId
   ): Promise<EventDetailsReadModel | null> {
-    let query = EventModel.findById(id);
-    const { selectFields, populateConfig } =
-      PopulateParser.parseProjectFields(DETAIL_PROJECT);
-    if (selectFields.length > 0) {
-      query = query.select(selectFields.join(" "));
-    }
-    query = PopulateParser.applyPopulate(
-      query,
-      populateConfig
-    ) as typeof query;
-    const event = await query.lean();
+    const event = await EventModel.findById(id)
+      .select(EVENT_DETAIL_SELECT)
+      .populate(EVENT_DETAIL_POPULATE)
+      .lean();
     return event ? EventReadMapper.toDetail(event) : null;
   }
 
@@ -160,24 +140,17 @@ class MongooseEventRepository implements IEventRepository {
       mongooseQuery = mongooseQuery.limit(100);
     }
 
-    const { selectFields, populateConfig } =
-      PopulateParser.parseProjectFields(LIST_PROJECT);
-    if (selectFields.length > 0) {
-      mongooseQuery = mongooseQuery.select(selectFields.join(" "));
-    }
-    mongooseQuery = PopulateParser.applyPopulate(
-      mongooseQuery,
-      populateConfig
-    ) as typeof mongooseQuery;
-
-    const events = await mongooseQuery.lean();
+    const events = await mongooseQuery
+      .select(EVENT_LIST_SELECT)
+      .populate(EVENT_LIST_POPULATE)
+      .lean();
     return EventReadMapper.toListItems(events);
   }
 
   async findInView(
     filters: EventInViewFilters
   ): Promise<EventListItemReadModel[]> {
-    const pipeline: Record<string, unknown>[] = [
+    const pipeline: PipelineStage[] = [
       {
         $match: {
           deleted: { $ne: true },
@@ -294,7 +267,7 @@ class MongooseEventRepository implements IEventRepository {
     );
 
     return EventReadMapper.toListItems(
-      await EventModel.aggregate(pipeline as never[]).exec()
+      await EventModel.aggregate(pipeline).exec()
     );
   }
 
@@ -338,27 +311,13 @@ class MongooseEventRepository implements IEventRepository {
     id: EventId,
     params: SoftDeleteEventParams
   ): Promise<void> {
-    if (params.deleted) {
-      await EventModel.updateOne(
-        { _id: id },
-        {
-          $set: {
-            deleted: true,
-            deletedAt: new Date(),
-            deletedBy: new Types.ObjectId(params.adminId),
-            deleteReason: params.reason,
-          },
-        }
-      ).exec();
-      return;
-    }
-
     await EventModel.updateOne(
       { _id: id },
-      {
-        $set: { deleted: false },
-        $unset: { deletedAt: 1, deletedBy: 1, deleteReason: 1 },
-      }
+      buildSoftDeleteUpdate({
+        deleted: params.deleted,
+        adminId: params.adminId,
+        reason: params.reason,
+      })
     ).exec();
   }
 
@@ -411,28 +370,21 @@ class MongooseEventRepository implements IEventRepository {
   async findByAuthorAdmin(
     userId: UserId,
     limit = 50
-  ): Promise<AdminEventSummary[]> {
+  ): Promise<AdminEventSummaryReadModel[]> {
     const events = await EventModel.find({ user: userId })
       .select("_id name status lifecycleStatus deleted createdAt")
       .sort({ createdAt: -1 })
       .limit(limit)
       .lean();
 
-    return events.map((event) => ({
-      id: event._id.toString(),
-      name: event.name,
-      status: event.status,
-      lifecycleStatus: event.lifecycleStatus,
-      deleted: event.deleted ?? false,
-      createdAt: event.createdAt ?? new Date(),
-    }));
+    return EventReadMapper.toAdminSummaries(events);
   }
 
   async findByPlaceInDateRange(
     placeId: PlaceId,
     start: Date,
     end: Date
-  ): Promise<EventListItemReadModel[]> {
+  ): Promise<EventScheduleSummaryReadModel[]> {
     const query: FilterQuery<EventDocumentProps> = {
       place: new Types.ObjectId(placeId),
       deleted: false,
@@ -461,25 +413,11 @@ class MongooseEventRepository implements IEventRepository {
       ],
     };
 
-    let mongooseQuery = EventModel.find(query);
-    const { selectFields, populateConfig } = PopulateParser.parseProjectFields([
-      "_id",
-      "name",
-      "schedule",
-      "status",
-      "deleted",
-      "image.urls",
-    ]);
-    if (selectFields.length > 0) {
-      mongooseQuery = mongooseQuery.select(selectFields.join(" "));
-    }
-    mongooseQuery = PopulateParser.applyPopulate(
-      mongooseQuery,
-      populateConfig
-    ) as typeof mongooseQuery;
-
-    const events = await mongooseQuery.lean();
-    return EventReadMapper.toListItems(events);
+    const events = await EventModel.find(query)
+      .select("_id name schedule status deleted image")
+      .populate(imageUrlsPopulate)
+      .lean();
+    return EventReadMapper.toScheduleSummaries(events);
   }
 
   async findOwnerId(id: EventId): Promise<UserId | null> {

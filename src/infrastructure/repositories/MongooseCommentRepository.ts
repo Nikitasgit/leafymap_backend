@@ -18,9 +18,16 @@ import { CommentReadMapper } from "@src/infrastructure/read-mappers/Comment.read
 import CommentModel, {
   CommentDocumentProps,
 } from "@src/infrastructure/persistence/schemas/Comment.schema";
+import { assertPersistedId } from "@src/infrastructure/persistence/utils/assertPersistedId";
+import { buildSoftDeleteUpdate } from "@src/infrastructure/persistence/utils/buildSoftDeleteUpdate";
+import { userWithImagePopulate } from "@src/infrastructure/persistence/utils/populatePresets";
 import { Types } from "mongoose";
 
 type CommentDocumentWithId = CommentDocumentProps & { _id: Types.ObjectId };
+export const COMMENT_AUTHOR_POPULATE = userWithImagePopulate(
+  "author",
+  "_id username image"
+);
 
 class MongooseCommentRepository implements ICommentRepository {
   async save(comment: Comment): Promise<CommentId> {
@@ -39,11 +46,9 @@ class MongooseCommentRepository implements ICommentRepository {
   }
 
   async update(comment: Comment): Promise<void> {
-    if (!comment.id) {
-      return;
-    }
+    const id = assertPersistedId("comment", comment.id);
     await CommentModel.updateOne(
-      { _id: comment.id },
+      { _id: id },
       {
         content: comment.content,
         updatedAt: comment.updatedAt,
@@ -71,7 +76,7 @@ class MongooseCommentRepository implements ICommentRepository {
 
     const documents = await CommentModel.find(filter)
       .select("_id author content reference referenceType createdAt updatedAt")
-      .populate({ path: "author", select: "_id username image.urls" })
+      .populate(COMMENT_AUTHOR_POPULATE)
       .sort({ createdAt: -1 })
       .lean();
 
@@ -124,21 +129,14 @@ class MongooseCommentRepository implements ICommentRepository {
     id: CommentId,
     params: SoftDeleteCommentParams
   ): Promise<void> {
-    const update = params.deleted
-      ? {
-          deleted: true,
-          deletedAt: new Date(),
-          deletedBy: new Types.ObjectId(params.adminId),
-          deleteReason: params.reason,
-        }
-      : {
-          deleted: false,
-          deletedAt: undefined,
-          deletedBy: undefined,
-          deleteReason: undefined,
-        };
-
-    await CommentModel.updateOne({ _id: id }, update).exec();
+    await CommentModel.updateOne(
+      { _id: id },
+      buildSoftDeleteUpdate({
+        deleted: params.deleted,
+        adminId: params.adminId,
+        reason: params.reason,
+      })
+    ).exec();
   }
 }
 

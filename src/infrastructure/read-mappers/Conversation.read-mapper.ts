@@ -1,5 +1,5 @@
 import {
-  ConversationInboxItem,
+  ConversationInboxItemReadModel,
   ConversationLastMessageReadModel,
   ConversationParticipantReadModel,
 } from "@src/domain/read-models/conversation.read-models";
@@ -21,7 +21,10 @@ interface NormalizedConversationDoc {
  * read model expected by the API.
  */
 export class ConversationReadMapper {
-  static toInboxItem(doc: unknown, unreadCount: number): ConversationInboxItem {
+  static toInboxItem(
+    doc: unknown,
+    unreadCount: number
+  ): ConversationInboxItemReadModel {
     const normalized = normalizeLeanDocument<NormalizedConversationDoc>(doc);
 
     return {
@@ -58,6 +61,9 @@ export class ConversationReadMapper {
     if (!lastMessage || typeof lastMessage === "string") {
       return undefined;
     }
+    if (!(lastMessage.createdAt instanceof Date) && typeof lastMessage.createdAt !== "string") {
+      throw new Error("Conversation last message read model is missing createdAt");
+    }
 
     let partnership: ConversationLastMessageReadModel["partnership"];
     if (typeof lastMessage.partnership === "string") {
@@ -74,7 +80,7 @@ export class ConversationReadMapper {
     return {
       content: lastMessage.content as string | undefined,
       partnership,
-      createdAt: (lastMessage.createdAt as Date | string) ?? new Date(),
+      createdAt: lastMessage.createdAt as Date | string,
     };
   }
 }

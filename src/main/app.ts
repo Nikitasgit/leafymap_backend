@@ -1,23 +1,23 @@
 import express from "express";
 import errorHandler from "@src/api/http/errorHandler";
-import userRoutes from "@src/api/routes/user.routes";
-import categoryRoutes from "@src/api/routes/category.routes";
-import authRoutes from "@src/api/routes/auth.routes";
-import placeRoutes from "@src/api/routes/place.routes";
-import eventRoutes from "@src/api/routes/event.routes";
-import partnershipRoutes from "@src/api/routes/partnership.routes";
-import eventInvitationRoutes from "@src/api/routes/eventInvitation.routes";
-import eventBookingRoutes from "@src/api/routes/eventBooking.routes";
+import createUserRoutes from "@src/api/routes/user.routes";
+import createCategoryRoutes from "@src/api/routes/category.routes";
+import createAuthRoutes from "@src/api/routes/auth.routes";
+import createPlaceRoutes from "@src/api/routes/place.routes";
+import createEventRoutes from "@src/api/routes/event.routes";
+import createPartnershipRoutes from "@src/api/routes/partnership.routes";
+import createEventInvitationRoutes from "@src/api/routes/eventInvitation.routes";
+import createEventBookingRoutes from "@src/api/routes/eventBooking.routes";
 import cookieParser from "cookie-parser";
-import imageRoutes from "@src/api/routes/image.routes";
-import reviewRoutes from "@src/api/routes/review.routes";
-import commentRoutes from "@src/api/routes/comment.routes";
-import messageRoutes from "@src/api/routes/message.routes";
-import notificationRoutes from "@src/api/routes/notification.routes";
-import followRoutes from "@src/api/routes/follow.routes";
-import favoriteRoutes from "@src/api/routes/favorite.routes";
-import productRoutes from "@src/api/routes/product.routes";
-import adminRoutes from "@src/api/routes/admin.routes";
+import createImageRoutes from "@src/api/routes/image.routes";
+import createReviewRoutes from "@src/api/routes/review.routes";
+import createCommentRoutes from "@src/api/routes/comment.routes";
+import createMessageRoutes from "@src/api/routes/message.routes";
+import createNotificationRoutes from "@src/api/routes/notification.routes";
+import createFollowRoutes from "@src/api/routes/follow.routes";
+import createFavoriteRoutes from "@src/api/routes/favorite.routes";
+import createProductRoutes from "@src/api/routes/product.routes";
+import createAdminRoutes from "@src/api/routes/admin.routes";
 import cors from "cors";
 import helmet from "helmet";
 import { cradle } from "@src/di/container";
@@ -85,23 +85,135 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // Apply rate limiting to all API routes
 app.use("/api/", rateLimiterMiddleware.api());
 
-app.use("/api/users", userRoutes);
-app.use("/api/categories", categoryRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/places", placeRoutes);
-app.use("/api/events", eventRoutes);
-app.use("/api/images", imageRoutes);
-app.use("/api/partnerships", partnershipRoutes);
-app.use("/api/event-invitations", eventInvitationRoutes);
-app.use("/api/event-bookings", eventBookingRoutes);
-app.use("/api/reviews", reviewRoutes);
-app.use("/api/comments", commentRoutes);
-app.use("/api/messages", messageRoutes);
-app.use("/api/notifications", notificationRoutes);
-app.use("/api/follows", followRoutes);
-app.use("/api/favorites", favoriteRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/admin", adminRoutes);
+app.use(
+  "/api/users",
+  createUserRoutes({
+    usersController: cradle.usersController,
+    authMiddleware: cradle.authMiddleware,
+    rateLimiterMiddleware: cradle.rateLimiterMiddleware,
+  })
+);
+app.use(
+  "/api/categories",
+  createCategoryRoutes({
+    categoriesController: cradle.categoriesController,
+  })
+);
+app.use(
+  "/api/auth",
+  createAuthRoutes({
+    authController: cradle.authController,
+    authMiddleware: cradle.authMiddleware,
+    rateLimiterMiddleware: cradle.rateLimiterMiddleware,
+  })
+);
+app.use(
+  "/api/places",
+  createPlaceRoutes({
+    placesController: cradle.placesController,
+    authMiddleware: cradle.authMiddleware,
+    rateLimiterMiddleware: cradle.rateLimiterMiddleware,
+  })
+);
+app.use(
+  "/api/events",
+  createEventRoutes({
+    eventsController: cradle.eventsController,
+    authMiddleware: cradle.authMiddleware,
+    rateLimiterMiddleware: cradle.rateLimiterMiddleware,
+  })
+);
+app.use(
+  "/api/images",
+  createImageRoutes({
+    imagesController: cradle.imagesController,
+    authMiddleware: cradle.authMiddleware,
+    uploadMiddleware: cradle.uploadMiddleware,
+    rateLimiterMiddleware: cradle.rateLimiterMiddleware,
+  })
+);
+app.use(
+  "/api/partnerships",
+  createPartnershipRoutes({
+    partnershipsController: cradle.partnershipsController,
+    authMiddleware: cradle.authMiddleware,
+  })
+);
+app.use(
+  "/api/event-invitations",
+  createEventInvitationRoutes({
+    eventInvitationsController: cradle.eventInvitationsController,
+    authMiddleware: cradle.authMiddleware,
+  })
+);
+app.use(
+  "/api/event-bookings",
+  createEventBookingRoutes({
+    eventBookingsController: cradle.eventBookingsController,
+    authMiddleware: cradle.authMiddleware,
+  })
+);
+app.use(
+  "/api/reviews",
+  createReviewRoutes({
+    reviewsController: cradle.reviewsController,
+    authMiddleware: cradle.authMiddleware,
+    rateLimiterMiddleware: cradle.rateLimiterMiddleware,
+  })
+);
+app.use(
+  "/api/comments",
+  createCommentRoutes({
+    commentsController: cradle.commentsController,
+    authMiddleware: cradle.authMiddleware,
+    rateLimiterMiddleware: cradle.rateLimiterMiddleware,
+  })
+);
+app.use(
+  "/api/messages",
+  createMessageRoutes({
+    messagesController: cradle.messagesController,
+    authMiddleware: cradle.authMiddleware,
+    rateLimiterMiddleware: cradle.rateLimiterMiddleware,
+  })
+);
+app.use(
+  "/api/notifications",
+  createNotificationRoutes({
+    notificationsController: cradle.notificationsController,
+    authMiddleware: cradle.authMiddleware,
+  })
+);
+app.use(
+  "/api/follows",
+  createFollowRoutes({
+    followsController: cradle.followsController,
+    authMiddleware: cradle.authMiddleware,
+  })
+);
+app.use(
+  "/api/favorites",
+  createFavoriteRoutes({
+    favoritesController: cradle.favoritesController,
+    authMiddleware: cradle.authMiddleware,
+  })
+);
+app.use(
+  "/api/products",
+  createProductRoutes({
+    productsController: cradle.productsController,
+    authMiddleware: cradle.authMiddleware,
+  })
+);
+app.use(
+  "/api/admin",
+  createAdminRoutes({
+    adminMiddleware: cradle.adminMiddleware,
+    authMiddleware: cradle.authMiddleware,
+    adminUsersController: cradle.adminUsersController,
+    adminResourcesController: cradle.adminResourcesController,
+  })
+);
 
 app.use(errorHandler);
 

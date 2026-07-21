@@ -16,6 +16,7 @@ import {
   ProductListItemReadModel,
 } from "@src/domain/read-models/product.read-models";
 import { ProductReadMapper } from "@src/infrastructure/read-mappers/Product.read-mapper";
+import { assertPersistedId } from "@src/infrastructure/persistence/utils/assertPersistedId";
 import { FilterQuery, Types } from "mongoose";
 
 type ProductDocumentWithId = ProductDocumentProps & {
@@ -63,11 +64,9 @@ class MongooseProductRepository implements IProductRepository {
   }
 
   async update(product: Product): Promise<void> {
-    if (!product.id) {
-      return;
-    }
+    const id = assertPersistedId("product", product.id);
     await ProductModel.updateOne(
-      { _id: product.id },
+      { _id: id },
       {
         productCategory: new Types.ObjectId(product.productCategoryId),
         updatedAt: product.updatedAt,

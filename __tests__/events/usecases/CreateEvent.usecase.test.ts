@@ -12,7 +12,7 @@ const createMockEventRepository = (): jest.Mocked<IEventRepository> =>
     save: jest.fn(),
     findById: jest.fn(),
     update: jest.fn(),
-    findDetailById: jest.fn(),
+    findDetailsById: jest.fn(),
     findList: jest.fn(),
     findInView: jest.fn(),
     findAllForLifecycleUpdate: jest.fn(),

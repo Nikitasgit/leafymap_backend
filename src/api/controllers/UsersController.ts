@@ -1,5 +1,8 @@
 import { RequestHandler } from "express";
-import { getUsersQuerySchema, newCreatorSchema } from "@src/api/dto/users/user.dto";
+import {
+  getUsersQuerySchema,
+  updateUserSchema,
+} from "@src/api/dto/users/user.dto";
 import { BaseHttpController } from "@src/api/http/BaseHttpController";
 import {
   requireAuth,
@@ -59,17 +62,9 @@ class UsersController extends BaseHttpController {
   update(): RequestHandler {
     return this.handler({
       execute: async (req, res) => {
-        let updateData = req.body as Record<string, unknown>;
-        if (req.body.userType === "creator") {
-          const parsed = validateOrThrow(newCreatorSchema, req.body);
-          updateData = Object.fromEntries(
-            Object.entries(parsed).filter(([, v]) => v !== undefined)
-          );
-        }
-
         const result = await this.updateUserUseCase.execute({
           userId: requireAuth(req).id,
-          updateData,
+          updateData: validateOrThrow(updateUserSchema, req.body),
         });
 
         if (result.token) {

@@ -3,7 +3,7 @@ import {
   ExistsRecentSimilarParams,
   INotificationRepository,
 } from "@src/domain/interfaces/INotificationRepository";
-import { NotificationListItem } from "@src/domain/read-models/notification.read-models";
+import { NotificationListItemReadModel } from "@src/domain/read-models/notification.read-models";
 import { NotificationAction } from "@src/domain/value-objects/NotificationAction.vo";
 import {
   NotificationId,
@@ -57,7 +57,7 @@ class MongooseNotificationRepository implements INotificationRepository {
   async findRecentForReceiver(
     receiverId: UserId,
     options?: { limit?: number }
-  ): Promise<NotificationListItem[]> {
+  ): Promise<NotificationListItemReadModel[]> {
     const documents = await NotificationModel.find({
       receiver: new Types.ObjectId(receiverId),
     })

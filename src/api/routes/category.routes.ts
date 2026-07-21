@@ -1,10 +1,14 @@
 import express, { Router } from "express";
-import { cradle } from "@src/di/container";
+import type { RouteDependencies } from "@src/api/routes/routeDependencies";
 
-const { categoriesController } = cradle;
+const createCategoryRoutes = ({
+  categoriesController,
+}: Pick<RouteDependencies, "categoriesController">): Router => {
+  const router: Router = express.Router();
 
-const router: Router = express.Router();
+  router.get("/", categoriesController.list());
 
-router.get("/", categoriesController.list());
+  return router;
+};
 
-export default router;
+export default createCategoryRoutes;

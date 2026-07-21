@@ -1,5 +1,5 @@
 import { Notification } from "@src/domain/entities/Notification.entity";
-import { NotificationListItem } from "@src/domain/read-models/notification.read-models";
+import { NotificationListItemReadModel } from "@src/domain/read-models/notification.read-models";
 import { NotificationAction } from "@src/domain/value-objects/NotificationAction.vo";
 import { NotificationReferenceType } from "@src/domain/value-objects/NotificationReferenceType.vo";
 import {
@@ -23,7 +23,7 @@ export interface INotificationRepository {
   findRecentForReceiver(
     receiverId: UserId,
     options?: { limit?: number }
-  ): Promise<NotificationListItem[]>;
+  ): Promise<NotificationListItemReadModel[]>;
   markAsReadByAction(
     receiverId: UserId,
     action: NotificationAction

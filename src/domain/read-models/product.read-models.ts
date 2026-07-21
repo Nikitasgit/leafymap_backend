@@ -21,7 +21,6 @@ export interface ProductListItemReadModel {
   user?: string;
   createdAt?: string | Date;
   updatedAt?: string | Date;
-  [key: string]: unknown;
 }
 
 /** Detail view: currently identical in shape to the list view. */

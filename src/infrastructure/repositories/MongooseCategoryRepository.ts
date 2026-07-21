@@ -1,7 +1,7 @@
 import {
-  CategoriesResult,
   ICategoryRepository,
 } from "@src/domain/interfaces/ICategoryRepository";
+import { CategoriesResultReadModel } from "@src/domain/read-models/category.read-models";
 import { CategoryReadMapper } from "@src/infrastructure/read-mappers/Category.read-mapper";
 import CategoryTypeModel from "@src/infrastructure/persistence/schemas/CategoryType.schema";
 import UserCategoryModel from "@src/infrastructure/persistence/schemas/UserCategory.schema";
@@ -10,7 +10,7 @@ import ProductCategoryModel from "@src/infrastructure/persistence/schemas/Produc
 import EventCategoryModel from "@src/infrastructure/persistence/schemas/EventCategory.schema";
 
 class MongooseCategoryRepository implements ICategoryRepository {
-  async findAll(): Promise<CategoriesResult> {
+  async findAll(): Promise<CategoriesResultReadModel> {
     const [
       categoryTypes,
       userCategories,

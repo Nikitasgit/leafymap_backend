@@ -75,25 +75,20 @@ class UploadImagesUseCase {
     const imageIds = await this.imageRepository.saveMany(imagesToSave);
     const createdImages = await this.imageRepository.findByIds(imageIds);
 
-    const images = await Promise.all(
-      createdImages.map(async (image) => {
-        const signedUrls = await this.imageStorage.signUrls(image.urls);
-        return {
-          id: image.id!,
-          urls: signedUrls,
-          signedUrls,
-          user: image.userId,
-          reference: image.referenceId,
-          referenceType: image.referenceType,
-          type: image.type,
-          originalName: image.originalName,
-          size: image.size,
-          mimetype: image.mimetype,
-          createdAt: image.createdAt,
-          updatedAt: image.updatedAt,
-        };
-      })
-    );
+    const images = createdImages.map((image) => ({
+      id: image.id!,
+      urls: image.urls,
+      signedUrls: image.urls,
+      user: image.userId,
+      reference: image.referenceId,
+      referenceType: image.referenceType,
+      type: image.type,
+      originalName: image.originalName,
+      size: image.size,
+      mimetype: image.mimetype,
+      createdAt: image.createdAt,
+      updatedAt: image.updatedAt,
+    }));
 
     return { images, count: images.length };
   }

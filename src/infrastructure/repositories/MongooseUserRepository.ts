@@ -15,109 +15,66 @@ import { UserReadMapper } from "@src/infrastructure/read-mappers/User.read-mappe
 import UserModel, {
   UserDocumentProps,
 } from "@src/infrastructure/persistence/schemas/User.schema";
-import { PopulateParser } from "@src/infrastructure/persistence/utils/PopulateParser";
-import { FilterQuery, Types } from "mongoose";
+import { assertPersistedId } from "@src/infrastructure/persistence/utils/assertPersistedId";
+import { imageUrlsPopulate } from "@src/infrastructure/persistence/utils/populatePresets";
+import { FilterQuery, PopulateOptions, Types } from "mongoose";
 
 type UserDocumentWithId = UserDocumentProps & { _id: Types.ObjectId };
 
-const DEFAULT_VIEW_PROJECT = [
-  "_id",
-  "firstname",
-  "lastname",
-  "username",
-  "userType",
-  "email",
-  "website",
-  "phone",
-  "description",
-  "country",
-  "followers",
-  "place._id",
-  "place.placeCategory.name",
-  "place.location",
-  "image.urls",
-  "googlePictureUrl",
-  "userCategory.name",
-  "userCategory.type",
-  "userCategory.type.name",
-];
+interface UserDetailsQueryConfig {
+  select: string;
+  populate: PopulateOptions[];
+}
 
-const PROFILE_VIEW_PROJECT = [
-  "_id",
-  "firstname",
-  "lastname",
-  "username",
-  "userType",
-  "email",
-  "website",
-  "phone",
-  "description",
-  "country",
-  "followers",
-  "place._id",
-  "image.urls",
-  "googlePictureUrl",
-  "userCategory.name",
-  "userCategory.type",
-  "userCategory.type.name",
-];
+const USER_CATEGORY_POPULATE: PopulateOptions = {
+  path: "userCategory",
+  select: "name type",
+  populate: { path: "type", select: "name" },
+};
 
-const CURRENT_VIEW_PROJECT = [
-  "_id",
-  "email",
-  "username",
-  "firstname",
-  "lastname",
-  "userType",
-  "role",
-  "acceptedCGU",
-  "website",
-  "phone",
-  "description",
-  "country",
-  "address",
-  "followers",
-  "place",
-  "image.urls",
-  "googlePictureUrl",
-  "place.location",
-  "place.placeCategory",
-  "place.rating",
-  "userCategory",
-  "userCategory.name",
-  "bannedAt",
-  "banReason",
-  "banDuration",
-  "banExpiresAt",
-  "lastLogin",
-  "preferences",
-];
-
-const ADMIN_VIEW_PROJECT = [
-  "_id",
-  "email",
-  "username",
-  "firstname",
-  "lastname",
-  "userType",
-  "role",
-  "deleted",
-  "bannedAt",
-  "banReason",
-  "banDuration",
-  "banExpiresAt",
-  "lastLogin",
-  "createdAt",
-  "updatedAt",
-  "place",
-  "image.urls",
-];
-
-const USER_DETAILS_VIEW_PROJECTS: Record<UserDetailsView, string[]> = {
-  default: DEFAULT_VIEW_PROJECT,
-  profile: PROFILE_VIEW_PROJECT,
-  current: CURRENT_VIEW_PROJECT,
-  admin: ADMIN_VIEW_PROJECT,
+export const USER_DETAILS_QUERY_CONFIGS: Record<
+  UserDetailsView,
+  UserDetailsQueryConfig
+> = {
+  default: {
+    select:
+      "_id firstname lastname username userType email website phone description country followers place image googlePictureUrl userCategory",
+    populate: [
+      {
+        path: "place",
+        select: "_id placeCategory location",
+        populate: { path: "placeCategory", select: "name" },
+      },
+      imageUrlsPopulate,
+      USER_CATEGORY_POPULATE,
+    ],
+  },
+  profile: {
+    select:
+      "_id firstname lastname username userType email website phone description country followers place image googlePictureUrl userCategory",
+    populate: [
+      { path: "place", select: "_id" },
+      imageUrlsPopulate,
+      USER_CATEGORY_POPULATE,
+    ],
+  },
+  current: {
+    select:
+      "_id email username firstname lastname userType role acceptedCGU website phone description country address followers place image googlePictureUrl userCategory bannedAt banReason banDuration banExpiresAt lastLogin preferences",
+    populate: [
+      {
+        path: "place",
+        select: "location placeCategory rating",
+      },
+      imageUrlsPopulate,
+      { path: "userCategory", select: "name" },
+    ],
+  },
+  admin: {
+    select:
+      "_id email username firstname lastname userType role deleted bannedAt banReason banDuration banExpiresAt lastLogin createdAt updatedAt place image",
+    populate: [imageUrlsPopulate],
+  },
 };
 
 const USER_LIST_POPULATE = [
@@ -141,9 +98,7 @@ class MongooseUserRepository implements IUserRepository {
   }
 
   async update(user: User): Promise<void> {
-    if (!user.id) {
-      return;
-    }
+    const id = assertPersistedId("user", user.id);
 
     const persistence = UserMapper.toProfilePersistence(user);
     const auth = UserMapper.toAuthPersistence(user);
@@ -185,7 +140,7 @@ class MongooseUserRepository implements IUserRepository {
       mongoUpdate.$unset = unset;
     }
 
-    await UserModel.updateOne({ _id: user.id }, mongoUpdate).exec();
+    await UserModel.updateOne({ _id: id }, mongoUpdate).exec();
   }
 
   async findById(id: UserId): Promise<User | null> {
@@ -256,18 +211,11 @@ class MongooseUserRepository implements IUserRepository {
       filter.deleted = false;
     }
 
-    const project = USER_DETAILS_VIEW_PROJECTS[options?.view ?? "default"];
-    const { selectFields, populateConfig } =
-      PopulateParser.parseProjectFields(project);
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let query: any = UserModel.findOne(filter);
-    if (selectFields.length > 0) {
-      query = query.select(selectFields.join(" "));
-    }
-    query = PopulateParser.applyPopulate(query, populateConfig);
-
-    const document = await query.lean();
+    const config = USER_DETAILS_QUERY_CONFIGS[options?.view ?? "default"];
+    const document = await UserModel.findOne(filter)
+      .select(config.select)
+      .populate(config.populate)
+      .lean();
     if (!document) {
       return null;
     }

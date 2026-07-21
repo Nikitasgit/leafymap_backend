@@ -11,26 +11,10 @@ class GetMyEventBookingForEventUseCase {
   async execute(
     params: GetMyEventBookingForEventInput
   ): Promise<MyEventBookingReadModel | null> {
-    const booking =
-      await this.eventBookingRepository.findConfirmedByEventAndUser(
-        EventId.from(params.eventId),
-        UserId.from(params.userId)
-      );
-
-    if (!booking || !booking.id) {
-      return null;
-    }
-
-    return {
-      id: booking.id,
-      event: booking.eventId,
-      user: booking.userId,
-      seats: booking.seats,
-      status: booking.status,
-      cancelledAt: booking.cancelledAt,
-      createdAt: booking.createdAt,
-      updatedAt: booking.updatedAt,
-    };
+    return this.eventBookingRepository.findConfirmedByEventAndUser(
+      EventId.from(params.eventId),
+      UserId.from(params.userId)
+    );
   }
 }
 

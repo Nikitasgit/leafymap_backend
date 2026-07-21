@@ -1,18 +1,12 @@
-/**
- * Typed read models for Event query paths.
- * Produced by infrastructure Read Mappers (never raw Mongo docs).
- */
+import {
+  ImageReferenceReadModel,
+  LocationReadModel,
+  ReadModelDate,
+} from "@src/domain/read-models/shared.read-models";
+import { EventStatus } from "@src/domain/value-objects/EventStatus.vo";
+import { LifecycleStatus } from "@src/domain/value-objects/LifecycleStatus.vo";
 
-export interface EventImageUrlsReadModel {
-  original?: string | null;
-  medium?: string | null;
-  thumbnail?: string | null;
-}
-
-export interface EventImageReadModel {
-  id: string;
-  urls?: EventImageUrlsReadModel;
-}
+export type EventImageReadModel = ImageReferenceReadModel;
 
 export interface EventUserReadModel {
   id: string;
@@ -22,7 +16,7 @@ export interface EventUserReadModel {
 
 export interface EventPlaceReadModel {
   id: string;
-  location?: unknown;
+  location?: LocationReadModel;
   user?: EventUserReadModel | string;
 }
 
@@ -39,22 +33,22 @@ export interface EventCollaboratorReadModel {
 
 export interface EventTimeSlotReadModel {
   id?: string;
-  title?: string;
-  startTime?: string;
-  endTime?: string;
-  collaborators?: Array<EventCollaboratorReadModel | string>;
+  title: string;
+  startTime: string;
+  endTime: string;
+  collaborators: Array<EventCollaboratorReadModel | string>;
 }
 
 export interface EventPeriodReadModel {
   id?: string;
-  startDate?: string | Date;
-  endDate?: string | Date;
+  startDate: ReadModelDate;
+  endDate: ReadModelDate;
   timeSlots?: EventTimeSlotReadModel[];
 }
 
 export interface EventDateRangeReadModel {
-  firstDate?: string | Date;
-  latestDate?: string | Date;
+  firstDate?: ReadModelDate;
+  latestDate?: ReadModelDate;
 }
 
 /** Shared fields for list and detail event reads. */
@@ -66,24 +60,41 @@ export interface EventListItemReadModel {
   eventCategory?: EventCategoryReadModel | string;
   place?: EventPlaceReadModel | string | null;
   user?: EventUserReadModel | string;
-  location?: unknown;
+  location?: LocationReadModel | null;
   online?: boolean;
-  status?: string;
-  lifecycleStatus?: string;
+  status?: EventStatus;
+  lifecycleStatus?: LifecycleStatus;
   schedule?: EventPeriodReadModel[];
   dateRange?: EventDateRangeReadModel;
   isBookable?: boolean;
   capacity?: number | null;
   maxSeatsPerBooking?: number;
-  [key: string]: unknown;
 }
 
 /** Detail view: list fields plus rating, timestamps, booking aggregates. */
 export interface EventDetailsReadModel extends EventListItemReadModel {
   rating?: number;
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
+  createdAt?: ReadModelDate;
+  updatedAt?: ReadModelDate;
   deleted?: boolean;
   bookedSeats?: number;
   remainingSeats?: number | null;
+}
+
+export interface EventScheduleSummaryReadModel {
+  id: string;
+  name: string;
+  schedule: EventPeriodReadModel[];
+  image?: EventImageReadModel | string | null;
+  status?: EventStatus;
+  deleted?: boolean;
+}
+
+export interface AdminEventSummaryReadModel {
+  id: string;
+  name: string;
+  status: EventStatus;
+  lifecycleStatus: LifecycleStatus;
+  deleted: boolean;
+  createdAt: Date;
 }

@@ -1,5 +1,5 @@
 import { Message } from "@src/domain/entities/Message.entity";
-import { MessageListItem } from "@src/domain/read-models/message.read-models";
+import { MessageListItemReadModel } from "@src/domain/read-models/message.read-models";
 import {
   ConversationId,
   MessageId,
@@ -15,10 +15,10 @@ export interface FindMessagesByConversationParams {
 export interface IMessageRepository {
   save(message: Message): Promise<MessageId>;
   findById(id: MessageId): Promise<Message | null>;
-  findPopulatedById(id: MessageId): Promise<MessageListItem | null>;
+  findPopulatedById(id: MessageId): Promise<MessageListItemReadModel | null>;
   findByConversation(
     params: FindMessagesByConversationParams
-  ): Promise<MessageListItem[]>;
+  ): Promise<MessageListItemReadModel[]>;
   update(message: Message): Promise<void>;
   delete(id: MessageId): Promise<void>;
   markConversationAsRead(

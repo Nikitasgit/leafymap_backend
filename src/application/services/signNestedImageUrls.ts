@@ -1,24 +1,23 @@
 import { IImageStorage } from "@src/domain/interfaces/IImageStorage";
 import { ImageUrls } from "@src/domain/value-objects/ImageUrls.vo";
-import { Types } from "mongoose";
 
 const S3_URL_PATTERN =
   /^https:\/\/[^/]+\.s3\.[a-z0-9-]+\.amazonaws\.com\//i;
 
-const isObjectId = (value: unknown): value is Types.ObjectId =>
-  value instanceof Types.ObjectId ||
-  (typeof value === "object" &&
-    value !== null &&
-    (value as { _bsontype?: string })._bsontype === "ObjectId" &&
-    typeof (value as { toString(): string }).toString === "function");
+const isPlainObject = (value: unknown): value is Record<string, unknown> => {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    Array.isArray(value) ||
+    value instanceof Date ||
+    value instanceof Buffer
+  ) {
+    return false;
+  }
 
-const isPlainObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" &&
-  value !== null &&
-  !Array.isArray(value) &&
-  !(value instanceof Date) &&
-  !(value instanceof Buffer) &&
-  !isObjectId(value);
+  const prototype = Object.getPrototypeOf(value) as object | null;
+  return prototype === Object.prototype || prototype === null;
+};
 
 const isImageUrls = (value: unknown): value is ImageUrls => {
   if (!isPlainObject(value)) {
@@ -64,12 +63,6 @@ export const signNestedImageUrls = async <T>(
 
     if (typeof node === "string") {
       return isS3ObjectUrl(node) ? signSingleUrl(node) : node;
-    }
-
-    // Lean Mongo docs carry ObjectIds; reconstructing them via Object.entries
-    // yields {} because the hex id is not an enumerable own property.
-    if (isObjectId(node)) {
-      return node.toString();
     }
 
     if (Array.isArray(node)) {

@@ -1,4 +1,5 @@
 import { CommentReferenceType } from "@src/domain/value-objects/CommentReferenceType.vo";
+import { ImageReferenceReadModel } from "@src/domain/read-models/shared.read-models";
 
 /**
  * Typed read models for Comment query paths.
@@ -8,7 +9,7 @@ import { CommentReferenceType } from "@src/domain/value-objects/CommentReference
 export interface CommentAuthorReadModel {
   id: string;
   username?: string;
-  image?: { urls?: unknown };
+  image?: ImageReferenceReadModel | string | null;
 }
 
 export interface CommentListItemReadModel {

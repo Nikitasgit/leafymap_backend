@@ -8,7 +8,34 @@ import {
 } from "@src/domain/value-objects/ObjectId.vo";
 import { UserAddress } from "@src/domain/value-objects/UserAddress.vo";
 import { UserPreferences } from "@src/domain/value-objects/UserPreferences.vo";
-import { ERROR_CODES, NotFoundError } from "@src/shared/errors";
+import {
+  ERROR_CODES,
+  NotFoundError,
+  ValidationError,
+} from "@src/shared/errors";
+
+const toUserPreferences = (value: unknown): UserPreferences | undefined => {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (typeof value !== "object" || value === null) {
+    throw new ValidationError({ preferences: "Invalid user preferences" });
+  }
+
+  const emailNotifications =
+    "emailNotifications" in value ? value.emailNotifications : undefined;
+  if (
+    emailNotifications !== undefined &&
+    typeof emailNotifications !== "boolean"
+  ) {
+    throw new ValidationError({
+      "preferences.emailNotifications":
+        "Invalid email notification preference",
+    });
+  }
+
+  return UserPreferences.from({ emailNotifications });
+};
 
 class UpdateUserUseCase {
   constructor(
@@ -24,28 +51,10 @@ class UpdateUserUseCase {
       throw new NotFoundError(ERROR_CODES.USER_NOT_FOUND, "User not found");
     }
 
-    const {
-      password: _password,
-      email: _email,
-      acceptedCGU: _acceptedCGU,
-      acceptedAt: _acceptedAt,
-      deleted: _deleted,
-      role: _role,
-      bannedAt: _bannedAt,
-      banReason: _banReason,
-      banDuration: _banDuration,
-      banExpiresAt: _banExpiresAt,
-      lastLogin: _lastLogin,
-      id: _id,
-      createdAt: _createdAt,
-      updatedAt: _updatedAt,
-      place: _place,
-      followers: _followers,
-      ...raw
-    } = params.updateData;
+    const { updateData } = params;
 
-    let firstname = raw.firstname;
-    let lastname = raw.lastname;
+    let firstname = updateData.firstname;
+    let lastname = updateData.lastname;
     if (firstname) {
       firstname = firstname.toLowerCase().trim();
     }
@@ -53,45 +62,32 @@ class UpdateUserUseCase {
       lastname = lastname.toLowerCase().trim();
     }
 
-    if (
-      raw.preferences !== undefined &&
-      (raw.preferences === null || typeof raw.preferences !== "object")
-    ) {
-      throw new Error("Invalid user preferences");
-    }
-    if (
-      raw.preferences?.emailNotifications !== undefined &&
-      typeof raw.preferences.emailNotifications !== "boolean"
-    ) {
-      throw new Error("Invalid email notification preference");
-    }
-
     const updated = existing.updateProfile({
       firstname,
       lastname,
-      username: raw.username,
-      userCategoryId: raw.userCategory
-        ? UserCategoryId.from(raw.userCategory)
+      username: updateData.username,
+      userCategoryId: updateData.userCategory
+        ? UserCategoryId.from(updateData.userCategory)
         : undefined,
-      website: raw.website,
-      phone: raw.phone,
-      userType: raw.userType,
-      description: raw.description,
-      country: raw.country,
-      address: raw.address ? UserAddress.from(raw.address) : undefined,
-      imageId: raw.image ? ImageId.from(raw.image) : undefined,
-      interestIds: raw.interests
-        ? raw.interests.map((id) => UserCategoryId.from(id))
+      website: updateData.website,
+      phone: updateData.phone,
+      userType: updateData.userType,
+      description: updateData.description,
+      country: updateData.country,
+      address: updateData.address
+        ? UserAddress.from(updateData.address)
         : undefined,
-      googlePictureUrl: raw.googlePictureUrl,
-      preferences: raw.preferences
-        ? UserPreferences.from(raw.preferences)
+      imageId: updateData.image ? ImageId.from(updateData.image) : undefined,
+      interestIds: updateData.interests
+        ? updateData.interests.map((id) => UserCategoryId.from(id))
         : undefined,
+      googlePictureUrl: updateData.googlePictureUrl,
+      preferences: toUserPreferences(updateData.preferences),
     });
 
     await this.userRepository.update(updated);
 
-    if (raw.userType) {
+    if (updateData.userType && updateData.userType !== existing.userType) {
       const reloaded = await this.userRepository.findById(userId);
       if (reloaded) {
         return {
