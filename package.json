@@ -12,12 +12,14 @@
     "watch": "tsc -w",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:integration": "jest --testPathPatterns=__tests__/.*/infrastructure --testPathIgnorePatterns=/node_modules/",
+    "test:integration": "jest --runInBand --testPathPatterns=__tests__/.*/infrastructure --testPathIgnorePatterns=/node_modules/",
+    "test:coverage": "jest --coverage",
+    "test:all": "npm test -- --runInBand --watchman=false && npm run test:integration -- --watchman=false && npm run test:coverage -- --runInBand --watchman=false",
     "create:admin": "ts-node -r tsconfig-paths/register scripts/create-admin.ts",
     "seed:categories": "ts-node -r tsconfig-paths/register scripts/seed-categories.ts",
     "knip": "knip",
     "lint": "eslint .",
-    "lint:ci": "eslint . --max-warnings 79",
+    "lint:ci": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {

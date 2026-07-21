@@ -1,5 +1,5 @@
 import { Conversation } from "@src/domain/entities/Conversation.entity";
-import { ConversationInboxItem } from "@src/domain/read-models/conversation.read-models";
+import { ConversationInboxItemReadModel } from "@src/domain/read-models/conversation.read-models";
 import {
   ConversationId,
   MessageId,
@@ -14,7 +14,7 @@ export interface IConversationRepository {
     otherUserId: UserId
   ): Promise<Conversation | null>;
   findIdsForUser(userId: UserId): Promise<ConversationId[]>;
-  findInboxForUser(userId: UserId): Promise<ConversationInboxItem[]>;
+  findInboxForUser(userId: UserId): Promise<ConversationInboxItemReadModel[]>;
   updateLastMessage(
     conversationId: ConversationId,
     messageId: MessageId

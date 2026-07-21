@@ -1,13 +1,24 @@
 import { Types } from "mongoose";
 import SoftDeleteAdminResourceUseCase from "@src/application/usecases/admin/SoftDeleteAdminResource.usecase";
+import { ICommentRepository } from "@src/domain/interfaces/ICommentRepository";
+import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
+import { IImageRepository } from "@src/domain/interfaces/IImageRepository";
+import { IPlaceRepository } from "@src/domain/interfaces/IPlaceRepository";
+import { IReviewRepository } from "@src/domain/interfaces/IReviewRepository";
 import { EventId, PlaceId, UserId } from "@src/domain/value-objects/ObjectId.vo";
 
-const createContentRepository = () =>
+type ContentRepository = IEventRepository &
+  IPlaceRepository &
+  IImageRepository &
+  IReviewRepository &
+  ICommentRepository;
+
+const createContentRepository = (): ContentRepository =>
   ({
     findById: jest.fn().mockResolvedValue({ id: "exists" }),
     updateOne: jest.fn(),
     softDelete: jest.fn(),
-  }) as any;
+  }) as unknown as ContentRepository;
 
 describe("SoftDeleteAdminResourceUseCase", () => {
   it("soft deletes events via domain softDelete", async () => {

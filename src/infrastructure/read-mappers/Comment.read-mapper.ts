@@ -11,15 +11,16 @@ import { normalizeLeanDocument } from "@src/infrastructure/persistence/utils/nor
  */
 export class CommentReadMapper {
   static toListItem(doc: unknown): CommentListItemReadModel {
-    const normalized = normalizeLeanDocument<
-      CommentListItemReadModel & { createdAt?: Date; updatedAt?: Date }
-    >(doc);
+    const normalized = normalizeLeanDocument<CommentListItemReadModel>(doc);
 
     return {
-      ...normalized,
+      id: normalized.id,
       author: CommentReadMapper.mapAuthor(normalized.author),
-      createdAt: normalized.createdAt ?? new Date(),
-      updatedAt: normalized.updatedAt ?? new Date(),
+      content: normalized.content,
+      reference: normalized.reference,
+      referenceType: normalized.referenceType,
+      createdAt: normalized.createdAt,
+      updatedAt: normalized.updatedAt,
     };
   }
 
@@ -28,14 +29,15 @@ export class CommentReadMapper {
   }
 
   static toAdminSummary(doc: unknown): AdminCommentSummaryReadModel {
-    const normalized = normalizeLeanDocument<
-      AdminCommentSummaryReadModel & { createdAt?: Date }
-    >(doc);
+    const normalized =
+      normalizeLeanDocument<AdminCommentSummaryReadModel>(doc);
 
     return {
-      ...normalized,
-      deleted: normalized.deleted ?? false,
-      createdAt: normalized.createdAt ?? new Date(),
+      id: normalized.id,
+      content: normalized.content,
+      referenceType: normalized.referenceType,
+      deleted: normalized.deleted,
+      createdAt: normalized.createdAt,
     };
   }
 

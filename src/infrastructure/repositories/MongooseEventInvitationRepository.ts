@@ -13,6 +13,7 @@ import EventInvitationModel, {
 import EventModel from "@src/infrastructure/persistence/schemas/Event.schema";
 import { EventInvitationListItemReadModel } from "@src/domain/read-models/eventInvitation.read-models";
 import { EventInvitationReadMapper } from "@src/infrastructure/read-mappers/EventInvitation.read-mapper";
+import { assertPersistedId } from "@src/infrastructure/persistence/utils/assertPersistedId";
 import { FilterQuery, Types } from "mongoose";
 
 type EventInvitationDocumentWithId = EventInvitationDocumentProps & {
@@ -82,11 +83,9 @@ class MongooseEventInvitationRepository implements IEventInvitationRepository {
   }
 
   async update(invitation: EventInvitation): Promise<void> {
-    if (!invitation.id) {
-      return;
-    }
+    const id = assertPersistedId("event invitation", invitation.id);
     await EventInvitationModel.updateOne(
-      { _id: invitation.id },
+      { _id: id },
       {
         status: invitation.status,
         deleted: invitation.deleted,

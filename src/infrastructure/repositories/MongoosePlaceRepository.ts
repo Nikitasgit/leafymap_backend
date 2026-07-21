@@ -18,21 +18,27 @@ import PlaceModel, {
   PlaceDocumentProps,
 } from "@src/infrastructure/persistence/schemas/Place.schema";
 import { PlaceReadMapper } from "@src/infrastructure/read-mappers/Place.read-mapper";
+import { assertPersistedId } from "@src/infrastructure/persistence/utils/assertPersistedId";
+import { buildSoftDeleteUpdate } from "@src/infrastructure/persistence/utils/buildSoftDeleteUpdate";
+import { imageUrlsPopulate } from "@src/infrastructure/persistence/utils/populatePresets";
 import { FilterQuery, PipelineStage, Types } from "mongoose";
 
 type PlaceDocumentWithId = PlaceDocumentProps & { _id: Types.ObjectId };
 
-const PLACE_DETAILS_POPULATE = [
+export const PLACE_DETAILS_POPULATE = [
   { path: "placeCategory", select: "name" },
   {
     path: "user",
     select:
-      "description username website firstname lastname image.urls userCategory",
-    populate: {
-      path: "userCategory",
-      select: "name type",
-      populate: { path: "type", select: "name" },
-    },
+      "description username website firstname lastname image userCategory",
+    populate: [
+      imageUrlsPopulate,
+      {
+        path: "userCategory",
+        select: "name type",
+        populate: { path: "type", select: "name" },
+      },
+    ],
   },
 ];
 
@@ -50,12 +56,10 @@ class MongoosePlaceRepository implements IPlaceRepository {
   }
 
   async update(place: Place): Promise<void> {
-    if (!place.id) {
-      return;
-    }
+    const id = assertPersistedId("place", place.id);
     const persistence = PlaceMapper.toPersistence(place);
     await PlaceModel.updateOne(
-      { _id: place.id },
+      { _id: id },
       {
         location: persistence.location,
         placeCategory: persistence.placeCategory,
@@ -114,9 +118,7 @@ class MongoosePlaceRepository implements IPlaceRepository {
     query: PlacesInViewQuery
   ): Promise<PlaceListItemReadModel[]> {
     const pipeline = this.buildInViewPipeline(query);
-    const documents = await PlaceModel.aggregate(
-      pipeline as unknown as PipelineStage[]
-    ).exec();
+    const documents = await PlaceModel.aggregate(pipeline).exec();
     return PlaceReadMapper.toListItems(documents);
   }
 
@@ -156,18 +158,16 @@ class MongoosePlaceRepository implements IPlaceRepository {
   async softDelete(id: PlaceId, update: PlaceSoftDeleteUpdate): Promise<void> {
     await PlaceModel.updateOne(
       { _id: id },
-      {
+      buildSoftDeleteUpdate({
         deleted: update.deleted,
+        adminId: update.deletedBy,
         deletedAt: update.deletedAt,
-        deletedBy: update.deletedBy
-          ? new Types.ObjectId(update.deletedBy)
-          : undefined,
-        deleteReason: update.deleteReason,
-      }
+        reason: update.deleteReason,
+      })
     ).exec();
   }
 
-  private buildInViewPipeline(query: PlacesInViewQuery): Record<string, unknown>[] {
+  private buildInViewPipeline(query: PlacesInViewQuery): PipelineStage[] {
     const {
       placeTypes,
       placeCategories,
@@ -176,7 +176,7 @@ class MongoosePlaceRepository implements IPlaceRepository {
       productCategoryIds = [],
     } = query.clientFilters;
 
-    const pipeline: Record<string, unknown>[] = [];
+    const pipeline: PipelineStage[] = [];
 
     if (query.ids?.length) {
       pipeline.push({

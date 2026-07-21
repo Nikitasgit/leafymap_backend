@@ -13,7 +13,7 @@ class GetEventByIdUseCase {
 
   async execute(params: GetEventByIdInput): Promise<EventDetailsReadModel> {
     const eventId = EventId.from(params.eventId);
-    const event = await this.eventRepository.findDetailById(eventId);
+    const event = await this.eventRepository.findDetailsById(eventId);
 
     if (!event || event.deleted) {
       throw new NotFoundError(ERROR_CODES.EVENT_NOT_FOUND, "Event not found");

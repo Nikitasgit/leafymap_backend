@@ -1,5 +1,5 @@
 import {
-  NotificationListItem,
+  NotificationListItemReadModel,
   NotificationSenderReadModel,
 } from "@src/domain/read-models/notification.read-models";
 import { normalizeLeanDocument } from "@src/infrastructure/persistence/utils/normalizeLeanDocument";
@@ -8,13 +8,13 @@ type NormalizedSender = string | (Record<string, unknown> & { id: string });
 
 interface NormalizedNotificationDoc {
   id: string;
-  action: NotificationListItem["action"];
+  action: NotificationListItemReadModel["action"];
   reference: string;
-  referenceType: NotificationListItem["referenceType"];
+  referenceType: NotificationListItemReadModel["referenceType"];
   read?: boolean;
   readAt?: Date;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
   sender?: NormalizedSender;
 }
 
@@ -24,7 +24,7 @@ interface NormalizedNotificationDoc {
  * expected by the API.
  */
 export class NotificationReadMapper {
-  static toListItem(doc: unknown): NotificationListItem {
+  static toListItem(doc: unknown): NotificationListItemReadModel {
     const normalized = normalizeLeanDocument<NormalizedNotificationDoc>(doc);
 
     return {
@@ -34,13 +34,13 @@ export class NotificationReadMapper {
       referenceType: normalized.referenceType,
       read: normalized.read,
       readAt: normalized.readAt,
-      createdAt: normalized.createdAt ?? new Date(),
-      updatedAt: normalized.updatedAt ?? new Date(),
+      createdAt: normalized.createdAt,
+      updatedAt: normalized.updatedAt,
       sender: NotificationReadMapper.mapSender(normalized.sender),
     };
   }
 
-  static toListItems(docs: unknown[]): NotificationListItem[] {
+  static toListItems(docs: unknown[]): NotificationListItemReadModel[] {
     return docs.map((doc) => NotificationReadMapper.toListItem(doc));
   }
 

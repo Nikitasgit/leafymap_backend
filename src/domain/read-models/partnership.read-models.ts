@@ -1,16 +1,10 @@
-/**
- * Typed read models for Partnership query paths.
- * Produced by infrastructure Read Mappers (never raw Mongo docs).
- */
+import {
+  ImageReferenceReadModel,
+  ReadModelDate,
+} from "@src/domain/read-models/shared.read-models";
+import { PartnershipStatus } from "@src/domain/value-objects/PartnershipStatus.vo";
 
-export interface PartnershipUserImageReadModel {
-  id: string;
-  urls?: {
-    original?: string | null;
-    medium?: string | null;
-    thumbnail?: string | null;
-  };
-}
+export type PartnershipUserImageReadModel = ImageReferenceReadModel;
 
 export interface PartnershipUserCategoryReadModel {
   id: string;
@@ -29,8 +23,7 @@ export interface PartnershipListItemReadModel {
   id: string;
   initiator?: PartnershipUserReadModel | string;
   collaborator?: PartnershipUserReadModel | string;
-  status?: string;
+  status?: PartnershipStatus;
   deleted?: boolean;
-  updatedAt?: string | Date;
-  [key: string]: unknown;
+  updatedAt?: ReadModelDate;
 }

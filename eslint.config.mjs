@@ -45,9 +45,64 @@ export default defineConfig(
     },
   },
   {
+    files: ["src/domain/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              regex:
+                "^(?:@src/|(?:\\.\\./)+)(?:application|api|infrastructure|main|di)(?:/|$)",
+              message:
+                "Le domaine ne peut pas dépendre des couches application, api, infrastructure, main ou di.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/application/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              regex:
+                "^(?:@src/|(?:\\.\\./)+)(?:api|infrastructure|main|di)(?:/|$)",
+              message:
+                "La couche application ne peut pas dépendre des couches api, infrastructure, main ou di.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/api/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              regex:
+                "^(?:@src/|(?:\\.\\./)+)(?:infrastructure|main|di)(?:/|$)",
+              message:
+                "La couche api ne peut pas dépendre des couches infrastructure, main ou di.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: [
       "src/infrastructure/**/*.ts",
       "__tests__/infrastructure/**/*.ts",
+      "__tests__/**/infrastructure/**/*.ts",
       "scripts/**/*.ts",
     ],
     rules: {

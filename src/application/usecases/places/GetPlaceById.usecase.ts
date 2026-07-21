@@ -1,33 +1,16 @@
 import { IEventRepository } from "@src/domain/interfaces/IEventRepository";
-import { PlaceDetailsReadModel } from "@src/domain/read-models/place.read-models";
+import {
+  PlaceDefaultScheduleReadModel,
+  PlaceDetailsReadModel,
+} from "@src/domain/read-models/place.read-models";
 import { IPlaceRepository } from "@src/domain/interfaces/IPlaceRepository";
 import { PlaceId } from "@src/domain/value-objects/ObjectId.vo";
-import {
-  PlaceDaySchedule,
-  PlaceDefaultSchedule,
-} from "@src/domain/value-objects/PlaceSchedule.vo";
 import { ERROR_CODES, NotFoundError } from "@src/shared/errors";
 import { GetPlaceByIdInput } from "@src/application/dtos/places/getPlaceById.dto";
 import {
-  EventForSchedule,
-  EventForScheduleGrouping,
   getCurrentWeekRange,
   groupEventsByDay,
 } from "@src/application/usecases/places/placeScheduleWithEvents";
-
-interface PlaceDayScheduleWithEvents extends PlaceDaySchedule {
-  events?: EventForSchedule[];
-}
-
-interface PlaceDefaultScheduleWithEvents {
-  monday: PlaceDayScheduleWithEvents;
-  tuesday: PlaceDayScheduleWithEvents;
-  wednesday: PlaceDayScheduleWithEvents;
-  thursday: PlaceDayScheduleWithEvents;
-  friday: PlaceDayScheduleWithEvents;
-  saturday: PlaceDayScheduleWithEvents;
-  sunday: PlaceDayScheduleWithEvents;
-}
 
 class GetPlaceByIdUseCase {
   constructor(
@@ -52,7 +35,7 @@ class GetPlaceByIdUseCase {
       return place;
     }
 
-    const defaultSchedule = place.defaultSchedule as PlaceDefaultSchedule;
+    const defaultSchedule = place.defaultSchedule;
     const weekRange = getCurrentWeekRange();
     const events = await this.eventRepository.findByPlaceInDateRange(
       placeId,
@@ -60,11 +43,9 @@ class GetPlaceByIdUseCase {
       weekRange.end
     );
 
-    const eventsByDay = groupEventsByDay(
-      events as unknown as EventForScheduleGrouping[]
-    );
+    const eventsByDay = groupEventsByDay(events);
 
-    const enrichedSchedule: PlaceDefaultScheduleWithEvents = {
+    const enrichedSchedule: PlaceDefaultScheduleReadModel = {
       monday: { ...defaultSchedule.monday, events: eventsByDay.monday },
       tuesday: { ...defaultSchedule.tuesday, events: eventsByDay.tuesday },
       wednesday: {

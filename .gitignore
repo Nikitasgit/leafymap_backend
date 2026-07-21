@@ -3,4 +3,5 @@
 .env.prod
 node_modules
 dist
+coverage
 logs

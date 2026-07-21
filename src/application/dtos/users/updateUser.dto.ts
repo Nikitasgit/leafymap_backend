@@ -24,6 +24,5 @@ export interface UpdateUserInput {
     preferences?: {
       emailNotifications?: boolean;
     };
-    [key: string]: unknown;
   };
 }

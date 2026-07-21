@@ -9,5 +9,12 @@ export interface CategoryItemReadModel {
   name?: string;
   type?: { id: string; name?: string } | string;
   types?: Array<{ id: string; name?: string } | string>;
-  [key: string]: unknown;
+}
+
+export interface CategoriesResultReadModel {
+  categoryTypes: CategoryItemReadModel[];
+  userCategories: CategoryItemReadModel[];
+  placeCategories: CategoryItemReadModel[];
+  productCategories: CategoryItemReadModel[];
+  eventCategories: CategoryItemReadModel[];
 }

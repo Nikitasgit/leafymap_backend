@@ -1,4 +1,3 @@
-import { Types } from "mongoose";
 import { signNestedImageUrls } from "@src/application/services/signNestedImageUrls";
 import { IImageStorage } from "@src/domain/interfaces/IImageStorage";
 
@@ -18,18 +17,17 @@ describe("signNestedImageUrls", () => {
     jest.clearAllMocks();
   });
 
-  it("stringifies ObjectIds instead of collapsing them to {}", async () => {
-    const id = new Types.ObjectId();
-    const nestedId = new Types.ObjectId();
+  it("preserves dates and buffers", async () => {
+    const createdAt = new Date("2026-07-21T08:00:00.000Z");
+    const contents = Buffer.from("image");
 
     const result = await signNestedImageUrls(imageStorage, {
-      id: id,
-      place: { id: nestedId, name: "atelier" },
+      createdAt,
+      contents,
     });
 
-    expect(result.id).toBe(id.toString());
-    expect(result.place.id).toBe(nestedId.toString());
-    expect(result.place.name).toBe("atelier");
+    expect(result.createdAt).toBe(createdAt);
+    expect(result.contents).toBe(contents);
     expect(imageStorage.signUrl).not.toHaveBeenCalled();
   });
 
@@ -64,6 +62,26 @@ describe("signNestedImageUrls", () => {
     expect(result.collaborators[0].image).toBe(`${thumbnail}?signed=1`);
     expect(result.collaborators[1].image).toBe(`${thumbnail}?signed=1`);
     expect(result.name).toBe("keep-me");
+  });
+
+  it("signs duplicate urls and signedUrls only once per URL", async () => {
+    const urls = {
+      original: "https://linkal.s3.eu-west-3.amazonaws.com/original/a.jpg",
+      thumbnail: "https://linkal.s3.eu-west-3.amazonaws.com/thumbnail/a.jpg",
+      medium: "https://linkal.s3.eu-west-3.amazonaws.com/medium/a.jpg",
+    };
+
+    const result = await signNestedImageUrls(imageStorage, {
+      images: [{ urls, signedUrls: urls }],
+    });
+
+    expect(imageStorage.signUrl).toHaveBeenCalledTimes(3);
+    expect(result.images[0].urls).toEqual({
+      original: `${urls.original}?signed=1`,
+      thumbnail: `${urls.thumbnail}?signed=1`,
+      medium: `${urls.medium}?signed=1`,
+    });
+    expect(result.images[0].signedUrls).toEqual(result.images[0].urls);
   });
 
   it("leaves non-S3 strings untouched", async () => {

@@ -14,8 +14,12 @@ import { ImageMapper } from "@src/infrastructure/mappers/Image.mapper";
 import ImageModel, {
   ImageDocumentProps,
 } from "@src/infrastructure/persistence/schemas/Image.schema";
-import { ImageAdminSummaryReadModel } from "@src/domain/read-models/image.read-models";
+import {
+  ImageAdminSummaryReadModel,
+  ImageListItemReadModel,
+} from "@src/domain/read-models/image.read-models";
 import { ImageReadMapper } from "@src/infrastructure/read-mappers/Image.read-mapper";
+import { buildSoftDeleteUpdate } from "@src/infrastructure/persistence/utils/buildSoftDeleteUpdate";
 import { FilterQuery, Types } from "mongoose";
 
 type ImageDocumentWithId = ImageDocumentProps & { _id: Types.ObjectId };
@@ -51,7 +55,7 @@ class MongooseImageRepository implements IImageRepository {
     );
   }
 
-  async findList(filters: ImageListFilters): Promise<Image[]> {
+  async findList(filters: ImageListFilters): Promise<ImageListItemReadModel[]> {
     const query = this.buildListQuery(filters);
     let mongooseQuery = ImageModel.find(query).sort({ createdAt: -1 });
 
@@ -60,9 +64,7 @@ class MongooseImageRepository implements IImageRepository {
     }
 
     const documents = await mongooseQuery.lean();
-    return (documents as ImageDocumentWithId[]).map((doc) =>
-      ImageMapper.toDomain(doc)
-    );
+    return ImageReadMapper.toListItems(documents);
   }
 
   async findIdsByReferences(
@@ -119,14 +121,15 @@ class MongooseImageRepository implements IImageRepository {
   }
 
   async softDelete(id: ImageId, update: ImageSoftDeleteUpdate): Promise<void> {
-    await ImageModel.findByIdAndUpdate(id, {
-      deleted: update.deleted,
-      deletedAt: update.deletedAt,
-      deletedBy: update.deletedBy
-        ? new Types.ObjectId(update.deletedBy)
-        : undefined,
-      deleteReason: update.deleteReason,
-    }).exec();
+    await ImageModel.findByIdAndUpdate(
+      id,
+      buildSoftDeleteUpdate({
+        deleted: update.deleted,
+        adminId: update.deletedBy,
+        deletedAt: update.deletedAt,
+        reason: update.deleteReason,
+      })
+    ).exec();
   }
 
   private buildListQuery(

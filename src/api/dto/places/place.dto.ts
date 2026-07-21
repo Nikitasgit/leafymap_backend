@@ -1,5 +1,9 @@
 import { z } from "zod";
 import { objectIdString } from "@src/api/dto/common.dto";
+import {
+  GetPlacesInViewInput,
+  MAX_PLACE_IDS,
+} from "@src/application/dtos/places/getPlacesInView.dto";
 
 export const placeCategorySchema = objectIdString;
 
@@ -83,3 +87,85 @@ export const getPlaceByIdQuerySchema = z.object({
     .optional()
     .transform((v) => v === "true"),
 });
+
+const placeIdsCsvSchema = z
+  .string()
+  .optional()
+  .transform((value) => {
+    if (!value?.trim()) {
+      return undefined;
+    }
+    return value
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean);
+  });
+
+const placesInViewLimitSchema = z
+  .string()
+  .optional()
+  .transform((value) => (value ? parseInt(value, 10) : undefined));
+
+const coordinateArraySchema = z.array(z.number());
+
+const parseCoordinateArray = (value: string): number[] | undefined => {
+  try {
+    const parsed = coordinateArraySchema.safeParse(JSON.parse(value));
+    return parsed.success ? parsed.data : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+export const getPlacesInViewQuerySchema = z
+  .object({
+    ne: z.string().optional(),
+    sw: z.string().optional(),
+    ids: placeIdsCsvSchema,
+    filters: z.string().optional(),
+    limit: placesInViewLimitSchema,
+  })
+  .transform((query, ctx): GetPlacesInViewInput => {
+    if (query.ids && query.ids.length > MAX_PLACE_IDS) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["ids"],
+        message: `Too many ids (max ${MAX_PLACE_IDS})`,
+      });
+      return z.NEVER;
+    }
+
+    const result: GetPlacesInViewInput = {
+      ids: query.ids,
+      clientFilters: query.filters,
+      limit: query.limit,
+    };
+
+    if (query.ids?.length) {
+      return result;
+    }
+
+    if (!query.ne || !query.sw) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["coordinates"],
+        message: "Missing required coordinates",
+      });
+      return z.NEVER;
+    }
+
+    const ne = parseCoordinateArray(query.ne);
+    const sw = parseCoordinateArray(query.sw);
+    if (!ne || !sw) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["coordinates"],
+        message: "Invalid coordinate format",
+      });
+      return z.NEVER;
+    }
+
+    result.ne = ne;
+    result.sw = sw;
+    return result;
+  });

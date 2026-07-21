@@ -1,7 +1,8 @@
-/**
- * Typed read models for Place query paths.
- * Produced by infrastructure Read Mappers (never raw Mongo docs).
- */
+import {
+  ImageReferenceReadModel,
+  LocationReadModel,
+  ReadModelDate,
+} from "@src/domain/read-models/shared.read-models";
 
 export interface PlaceCategoryReadModel {
   id: string;
@@ -26,28 +27,35 @@ export interface PlaceUserReadModel {
   website?: string;
   firstname?: string;
   lastname?: string;
-  image?: { urls?: { thumbnail?: string | null } } | string | null;
+  image?: ImageReferenceReadModel | string | null;
   userCategory?: PlaceUserCategoryReadModel | string;
 }
 
 export interface PlaceTimeSlotReadModel {
-  startTime?: string;
-  endTime?: string;
+  startTime: string;
+  endTime: string;
+}
+
+export interface PlaceScheduleEventReadModel {
+  id: string;
+  name: string;
+  image?: ImageReferenceReadModel | null;
 }
 
 export interface PlaceDayScheduleReadModel {
-  open?: boolean;
-  timeSlots?: PlaceTimeSlotReadModel[];
+  open: boolean;
+  timeSlots: PlaceTimeSlotReadModel[];
+  events?: PlaceScheduleEventReadModel[];
 }
 
 export interface PlaceDefaultScheduleReadModel {
-  monday?: PlaceDayScheduleReadModel;
-  tuesday?: PlaceDayScheduleReadModel;
-  wednesday?: PlaceDayScheduleReadModel;
-  thursday?: PlaceDayScheduleReadModel;
-  friday?: PlaceDayScheduleReadModel;
-  saturday?: PlaceDayScheduleReadModel;
-  sunday?: PlaceDayScheduleReadModel;
+  monday: PlaceDayScheduleReadModel;
+  tuesday: PlaceDayScheduleReadModel;
+  wednesday: PlaceDayScheduleReadModel;
+  thursday: PlaceDayScheduleReadModel;
+  friday: PlaceDayScheduleReadModel;
+  saturday: PlaceDayScheduleReadModel;
+  sunday: PlaceDayScheduleReadModel;
 }
 
 export interface PlaceCustomDateReadModel {
@@ -59,18 +67,16 @@ export interface PlaceCustomDateReadModel {
 /** Shared fields for list and in-view place reads. */
 export interface PlaceListItemReadModel {
   id: string;
-  location?: unknown;
+  location?: LocationReadModel;
   rating?: number;
   placeCategory?: PlaceCategoryReadModel | string;
   user?: PlaceUserReadModel | string;
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
-  [key: string]: unknown;
-}
-
-/** Detail view: list fields plus schedule and soft-delete metadata. */
-export interface PlaceDetailsReadModel extends PlaceListItemReadModel {
   defaultSchedule?: PlaceDefaultScheduleReadModel;
   customDates?: PlaceCustomDateReadModel[];
   deleted?: boolean;
+  createdAt?: ReadModelDate;
+  updatedAt?: ReadModelDate;
 }
+
+/** Detail view: list fields plus schedule and soft-delete metadata. */
+export type PlaceDetailsReadModel = PlaceListItemReadModel;

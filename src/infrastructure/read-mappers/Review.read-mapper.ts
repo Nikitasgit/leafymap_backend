@@ -13,17 +13,18 @@ import { normalizeLeanDocument } from "@src/infrastructure/persistence/utils/nor
  */
 export class ReviewReadMapper {
   static toListItem(doc: unknown): ReviewListItemReadModel {
-    const normalized = normalizeLeanDocument<
-      ReviewListItemReadModel & { createdAt?: Date; updatedAt?: Date }
-    >(doc);
+    const normalized = normalizeLeanDocument<ReviewListItemReadModel>(doc);
 
     return {
-      ...normalized,
+      id: normalized.id,
       author: ReviewReadMapper.mapAuthor(normalized.author),
+      rating: normalized.rating,
+      comment: normalized.comment,
       reference: ReviewReadMapper.mapReference(normalized.reference),
-      certified: normalized.certified ?? false,
-      createdAt: normalized.createdAt ?? new Date(),
-      updatedAt: normalized.updatedAt ?? new Date(),
+      referenceType: normalized.referenceType,
+      certified: normalized.certified,
+      createdAt: normalized.createdAt,
+      updatedAt: normalized.updatedAt,
     };
   }
 
@@ -32,14 +33,16 @@ export class ReviewReadMapper {
   }
 
   static toAdminSummary(doc: unknown): AdminReviewSummaryReadModel {
-    const normalized = normalizeLeanDocument<
-      AdminReviewSummaryReadModel & { createdAt?: Date }
-    >(doc);
+    const normalized =
+      normalizeLeanDocument<AdminReviewSummaryReadModel>(doc);
 
     return {
-      ...normalized,
-      deleted: normalized.deleted ?? false,
-      createdAt: normalized.createdAt ?? new Date(),
+      id: normalized.id,
+      rating: normalized.rating,
+      comment: normalized.comment,
+      referenceType: normalized.referenceType,
+      deleted: normalized.deleted,
+      createdAt: normalized.createdAt,
     };
   }
 
@@ -70,11 +73,14 @@ export class ReviewReadMapper {
       return reference;
     }
     if (!reference?.id) {
-      return String(reference);
+      throw new Error("Review reference read model is missing id");
     }
 
     const rawUser = reference.user as
-      | { username?: string; image?: { urls?: unknown } }
+      | {
+          username?: string;
+          image?: ReviewAuthorReadModel["image"];
+        }
       | string
       | null
       | undefined;

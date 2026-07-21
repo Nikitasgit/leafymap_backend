@@ -1,4 +1,4 @@
-import { MessageListItem } from "@src/domain/read-models/message.read-models";
+import { MessageListItemReadModel } from "@src/domain/read-models/message.read-models";
 
 export interface GetMessagesInput {
   conversationId: string;
@@ -8,5 +8,5 @@ export interface GetMessagesInput {
 }
 
 export interface GetMessagesResult {
-  messages: MessageListItem[];
+  messages: MessageListItemReadModel[];
 }

@@ -1,4 +1,5 @@
 import { Types } from "mongoose";
+import { UpdateUserInput } from "@src/application/dtos/users/updateUser.dto";
 import UpdateUserUseCase from "@src/application/usecases/users/UpdateUser.usecase";
 import { User } from "@src/domain/entities/User.entity";
 import { IJwtTokenIssuer } from "@src/domain/interfaces/IJwtTokenIssuer";
@@ -53,6 +54,30 @@ describe("UpdateUserUseCase", () => {
     expect(userRepository.update).toHaveBeenCalled();
   });
 
+  it("normalizes names and builds profile value objects", async () => {
+    const userId = mockObjectId();
+    userRepository.findById.mockResolvedValue(buildUser(userId));
+
+    await useCase.execute({
+      userId,
+      updateData: {
+        firstname: " Alice ",
+        lastname: " MARTIN ",
+        address: { street: "rue des Fleurs", code: "75001" },
+        preferences: { emailNotifications: true },
+      },
+    });
+
+    const updatedUser = userRepository.update.mock.calls[0][0];
+    expect(updatedUser.firstname).toBe("alice");
+    expect(updatedUser.lastname).toBe("martin");
+    expect(updatedUser.address).toMatchObject({
+      street: "rue des Fleurs",
+      code: "75001",
+    });
+    expect(updatedUser.preferences.emailNotifications).toBe(true);
+  });
+
   it("returns a token when userType changes", async () => {
     const userId = mockObjectId();
     const user = buildUser(userId);
@@ -72,6 +97,34 @@ describe("UpdateUserUseCase", () => {
 
     expect(result).toEqual({ token: "new-token" });
     expect(jwtTokenIssuer.issue).toHaveBeenCalled();
+  });
+
+  it("does not issue a token when userType is unchanged", async () => {
+    const userId = mockObjectId();
+    userRepository.findById.mockResolvedValue(buildUser(userId));
+
+    const result = await useCase.execute({
+      userId,
+      updateData: { userType: "guest" },
+    });
+
+    expect(result).toEqual({});
+    expect(jwtTokenIssuer.issue).not.toHaveBeenCalled();
+  });
+
+  it("returns a validation error for malformed runtime preferences", async () => {
+    const userId = mockObjectId();
+    userRepository.findById.mockResolvedValue(buildUser(userId));
+    const malformedInput: UpdateUserInput = JSON.parse(
+      JSON.stringify({
+        userId,
+        updateData: { preferences: { emailNotifications: "yes" } },
+      })
+    );
+
+    await expect(useCase.execute(malformedInput)).rejects.toMatchObject({
+      code: ERROR_CODES.VALIDATION_ERROR,
+    });
   });
 
   it("throws when the user is not found", async () => {

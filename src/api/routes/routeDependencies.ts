@@ -1,0 +1,47 @@
+import type AdminResourcesController from "@src/api/controllers/AdminResourcesController";
+import type AdminUsersController from "@src/api/controllers/AdminUsersController";
+import type AuthController from "@src/api/controllers/AuthController";
+import type CategoriesController from "@src/api/controllers/CategoriesController";
+import type CommentsController from "@src/api/controllers/CommentsController";
+import type EventBookingsController from "@src/api/controllers/EventBookingsController";
+import type EventInvitationsController from "@src/api/controllers/EventInvitationsController";
+import type EventsController from "@src/api/controllers/EventsController";
+import type FavoritesController from "@src/api/controllers/FavoritesController";
+import type FollowsController from "@src/api/controllers/FollowsController";
+import type ImagesController from "@src/api/controllers/ImagesController";
+import type MessagesController from "@src/api/controllers/MessagesController";
+import type NotificationsController from "@src/api/controllers/NotificationsController";
+import type PartnershipsController from "@src/api/controllers/PartnershipsController";
+import type PlacesController from "@src/api/controllers/PlacesController";
+import type ProductsController from "@src/api/controllers/ProductsController";
+import type ReviewsController from "@src/api/controllers/ReviewsController";
+import type UsersController from "@src/api/controllers/UsersController";
+import type AdminMiddleware from "@src/api/middlewares/admin.middleware";
+import type AuthMiddleware from "@src/api/middlewares/auth.middleware";
+import type RateLimiterMiddleware from "@src/api/middlewares/rateLimiter.middleware";
+import type UploadMiddleware from "@src/api/middlewares/upload.middleware";
+
+export interface RouteDependencies {
+  adminMiddleware: AdminMiddleware;
+  adminResourcesController: AdminResourcesController;
+  adminUsersController: AdminUsersController;
+  authController: AuthController;
+  authMiddleware: AuthMiddleware;
+  categoriesController: CategoriesController;
+  commentsController: CommentsController;
+  eventBookingsController: EventBookingsController;
+  eventInvitationsController: EventInvitationsController;
+  eventsController: EventsController;
+  favoritesController: FavoritesController;
+  followsController: FollowsController;
+  imagesController: ImagesController;
+  messagesController: MessagesController;
+  notificationsController: NotificationsController;
+  partnershipsController: PartnershipsController;
+  placesController: PlacesController;
+  productsController: ProductsController;
+  rateLimiterMiddleware: RateLimiterMiddleware;
+  reviewsController: ReviewsController;
+  uploadMiddleware: UploadMiddleware;
+  usersController: UsersController;
+}

@@ -1,16 +1,9 @@
-/**
- * Typed read models for User query paths.
- * Produced by infrastructure Read Mappers (never raw Mongo docs).
- */
+import {
+  ImageReferenceReadModel,
+  LocationReadModel,
+} from "@src/domain/read-models/shared.read-models";
 
-export interface UserImageReadModel {
-  id: string;
-  urls?: {
-    original?: string | null;
-    medium?: string | null;
-    thumbnail?: string | null;
-  };
-}
+export type UserImageReadModel = ImageReferenceReadModel;
 
 export interface UserCategoryTypeReadModel {
   id: string;
@@ -30,7 +23,7 @@ export interface UserPlaceCategoryReadModel {
 
 export interface UserPlaceReadModel {
   id: string;
-  location?: unknown;
+  location?: LocationReadModel;
   rating?: number;
   placeCategory?: UserPlaceCategoryReadModel | string;
 }
@@ -63,7 +56,6 @@ export interface UserListItemReadModel {
   image?: UserImageReadModel | string | null;
   googlePictureUrl?: string;
   userCategory?: UserCategoryReadModel | string;
-  [key: string]: unknown;
 }
 
 /**

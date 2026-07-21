@@ -1,3 +1,6 @@
+import { EventScheduleSummaryReadModel } from "@src/domain/read-models/event.read-models";
+import { ImageReferenceReadModel } from "@src/domain/read-models/shared.read-models";
+
 type WeekDay =
   | "monday"
   | "tuesday"
@@ -10,21 +13,7 @@ type WeekDay =
 export interface EventForSchedule {
   id: string;
   name: string;
-  image?: Record<string, unknown> | null;
-}
-
-interface SchedulePeriod {
-  startDate: Date | string;
-  endDate?: Date | string;
-}
-
-export interface EventForScheduleGrouping {
-  id: string | { toString(): string };
-  name: string;
-  schedule: SchedulePeriod[];
-  image?: { toString(): string } | Record<string, unknown> | null;
-  deleted?: boolean;
-  status?: "cancelled" | "full" | "available";
+  image?: ImageReferenceReadModel | null;
 }
 
 function getDayOfWeek(date: Date): WeekDay {
@@ -67,25 +56,13 @@ function getDatesBetween(startDate: Date, endDate: Date): Date[] {
   return dates;
 }
 
-/** True for unpopulated ObjectId-like refs (not a populated image document). */
-function isObjectIdLike(value: object): boolean {
-  if ("_bsontype" in value) {
-    return true;
-  }
-  const keys = Object.keys(value);
-  return (
-    keys.length > 0 &&
-    keys.every((k) => k === "id" || k === "buffer" || k === "_bsontype")
-  );
-}
-
 function resolveEventImage(
-  image: EventForScheduleGrouping["image"]
-): Record<string, unknown> | null {
-  if (!image || typeof image !== "object" || isObjectIdLike(image)) {
+  image: EventScheduleSummaryReadModel["image"]
+): ImageReferenceReadModel | null {
+  if (!image || typeof image === "string") {
     return null;
   }
-  return image as Record<string, unknown>;
+  return image;
 }
 
 /**
@@ -93,7 +70,7 @@ function resolveEventImage(
  * Pure helper — no I/O.
  */
 export function groupEventsByDay(
-  events: EventForScheduleGrouping[]
+  events: EventScheduleSummaryReadModel[]
 ): Record<WeekDay, EventForSchedule[]> {
   const eventsByDay: Record<WeekDay, EventForSchedule[]> = {
     monday: [],
@@ -128,11 +105,9 @@ export function groupEventsByDay(
 
         dates.forEach((date) => {
           const dayOfWeek = getDayOfWeek(date);
-          const eventId =
-            typeof event.id === "string" ? event.id : event.id.toString();
-          if (!eventsByDay[dayOfWeek].some((e) => e.id === eventId)) {
+          if (!eventsByDay[dayOfWeek].some((e) => e.id === event.id)) {
             eventsByDay[dayOfWeek].push({
-              id: eventId,
+              id: event.id,
               name: event.name,
               image: resolveEventImage(event.image),
             });

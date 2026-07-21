@@ -21,12 +21,6 @@ const urls = {
   medium: "https://example.com/medium.jpg",
 };
 
-const signedUrls = {
-  original: "https://signed.example.com/original.jpg",
-  thumbnail: "https://signed.example.com/thumb.jpg",
-  medium: "https://signed.example.com/medium.jpg",
-};
-
 describe("UploadImagesUseCase", () => {
   let imageRepository: jest.Mocked<IImageRepository>;
   let imageStorage: jest.Mocked<IImageStorage>;
@@ -51,7 +45,7 @@ describe("UploadImagesUseCase", () => {
     imageStorage = {
       upload: jest.fn().mockResolvedValue(urls),
       signUrl: jest.fn(),
-      signUrls: jest.fn().mockResolvedValue(signedUrls),
+      signUrls: jest.fn(),
       deleteUrls: jest.fn(),
     };
     ownershipChecker = {
@@ -102,7 +96,10 @@ describe("UploadImagesUseCase", () => {
     expect(ownershipChecker.assertOwnedBy).toHaveBeenCalled();
     expect(imageStorage.upload).toHaveBeenCalled();
     expect(result.count).toBe(1);
-    expect(result.images[0].signedUrls).toEqual(signedUrls);
+    expect(result.images[0].urls).toEqual(urls);
+    expect(result.images[0].signedUrls).toEqual(urls);
+    expect(imageStorage.signUrl).not.toHaveBeenCalled();
+    expect(imageStorage.signUrls).not.toHaveBeenCalled();
   });
 
   it("keeps only one file for profile/cover types", async () => {

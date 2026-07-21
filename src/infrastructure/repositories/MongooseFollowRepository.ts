@@ -8,7 +8,17 @@ import { FollowId, UserId } from "@src/domain/value-objects/ObjectId.vo";
 import { FollowMapper } from "@src/infrastructure/mappers/Follow.mapper";
 import { FollowReadMapper } from "@src/infrastructure/read-mappers/Follow.read-mapper";
 import FollowModel from "@src/infrastructure/persistence/schemas/Follow.schema";
+import { userWithImagePopulate } from "@src/infrastructure/persistence/utils/populatePresets";
 import { Types } from "mongoose";
+
+export const FOLLOWER_POPULATE = userWithImagePopulate(
+  "follower",
+  "_id username firstname lastname image userType"
+);
+export const FOLLOWING_POPULATE = userWithImagePopulate(
+  "following",
+  "_id username firstname lastname image userType"
+);
 
 class MongooseFollowRepository implements IFollowRepository {
   async save(follow: Follow): Promise<FollowId> {
@@ -53,10 +63,7 @@ class MongooseFollowRepository implements IFollowRepository {
       following: new Types.ObjectId(userId),
     })
       .select("_id follower")
-      .populate({
-        path: "follower",
-        select: "_id username firstname lastname image.urls userType",
-      })
+      .populate(FOLLOWER_POPULATE)
       .sort({ createdAt: -1 })
       .lean();
 
@@ -70,10 +77,7 @@ class MongooseFollowRepository implements IFollowRepository {
       follower: new Types.ObjectId(userId),
     })
       .select("_id following")
-      .populate({
-        path: "following",
-        select: "_id username firstname lastname image.urls userType",
-      })
+      .populate(FOLLOWING_POPULATE)
       .sort({ createdAt: -1 })
       .lean();
 

@@ -107,7 +107,6 @@ export const locationSchema = new Schema<PlaceLocationDocument>(
     coordinates: {
       type: [Number],
       required: true,
-      index: "2dsphere",
     },
     label: { type: String, required: true },
     id: { type: String, required: true },

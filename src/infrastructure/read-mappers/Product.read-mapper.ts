@@ -4,13 +4,9 @@ import {
 } from "@src/domain/read-models/product.read-models";
 import { normalizeLeanDocument } from "@src/infrastructure/persistence/utils/normalizeLeanDocument";
 
-/**
- * Hybrid read mapper: normalizeLeanDocument handles `_id` → `id` and ObjectId → string,
- * then we reshape the result into the typed read model expected by the API.
- */
 export class ProductReadMapper {
   static toListItem(doc: unknown): ProductListItemReadModel {
-    return normalizeLeanDocument<ProductListItemReadModel>(doc);
+    return ProductReadMapper.map(doc);
   }
 
   static toListItems(docs: unknown[]): ProductListItemReadModel[] {
@@ -18,6 +14,17 @@ export class ProductReadMapper {
   }
 
   static toDetail(doc: unknown): ProductDetailsReadModel {
-    return normalizeLeanDocument<ProductDetailsReadModel>(doc);
+    return ProductReadMapper.map(doc);
+  }
+
+  private static map(doc: unknown): ProductListItemReadModel {
+    const product = normalizeLeanDocument<ProductListItemReadModel>(doc);
+    return {
+      id: product.id,
+      productCategory: product.productCategory,
+      user: product.user,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+    };
   }
 }

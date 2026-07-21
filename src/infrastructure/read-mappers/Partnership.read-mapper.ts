@@ -1,13 +1,18 @@
 import { PartnershipListItemReadModel } from "@src/domain/read-models/partnership.read-models";
 import { normalizeLeanDocument } from "@src/infrastructure/persistence/utils/normalizeLeanDocument";
 
-/**
- * Hybrid read mapper: normalizeLeanDocument handles `_id` → `id` and ObjectId → string
- * (including on populated initiator/collaborator subdocuments).
- */
 export class PartnershipReadMapper {
   static toListItem(doc: unknown): PartnershipListItemReadModel {
-    return normalizeLeanDocument<PartnershipListItemReadModel>(doc);
+    const partnership =
+      normalizeLeanDocument<PartnershipListItemReadModel>(doc);
+    return {
+      id: partnership.id,
+      initiator: partnership.initiator,
+      collaborator: partnership.collaborator,
+      status: partnership.status,
+      deleted: partnership.deleted,
+      updatedAt: partnership.updatedAt,
+    };
   }
 
   static toListItems(docs: unknown[]): PartnershipListItemReadModel[] {

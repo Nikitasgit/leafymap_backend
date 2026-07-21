@@ -10,7 +10,7 @@ import ImageProcessingService, {
   ProcessedImageUrls,
 } from "./imageProcessingService";
 
-export { ProcessedImageUrls };
+export type { ProcessedImageUrls };
 
 class AwsService {
   private s3: S3Client;
