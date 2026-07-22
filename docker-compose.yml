@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: leafymap-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: leafymap
+      POSTGRES_PASSWORD: leafymap
+      POSTGRES_DB: leafymap
+    volumes:
+      - leafymap_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  leafymap_postgres_data:

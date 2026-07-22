@@ -18,6 +18,7 @@ import createFollowRoutes from "@src/api/routes/follow.routes";
 import createFavoriteRoutes from "@src/api/routes/favorite.routes";
 import createProductRoutes from "@src/api/routes/product.routes";
 import createAdminRoutes from "@src/api/routes/admin.routes";
+import createAnnouncementRoutes from "@src/api/routes/announcement.routes";
 import cors from "cors";
 import helmet from "helmet";
 import { cradle } from "@src/di/container";
@@ -206,12 +207,19 @@ app.use(
   })
 );
 app.use(
+  "/api/announcements",
+  createAnnouncementRoutes({
+    announcementsController: cradle.announcementsController,
+  })
+);
+app.use(
   "/api/admin",
   createAdminRoutes({
     adminMiddleware: cradle.adminMiddleware,
     authMiddleware: cradle.authMiddleware,
     adminUsersController: cradle.adminUsersController,
     adminResourcesController: cradle.adminResourcesController,
+    announcementsController: cradle.announcementsController,
   })
 );
 

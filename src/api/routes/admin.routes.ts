@@ -6,7 +6,15 @@ const createAdminRoutes = ({
   authMiddleware,
   adminUsersController,
   adminResourcesController,
-}: Pick<RouteDependencies, "adminMiddleware" | "authMiddleware" | "adminUsersController" | "adminResourcesController">): Router => {
+  announcementsController,
+}: Pick<
+  RouteDependencies,
+  | "adminMiddleware"
+  | "authMiddleware"
+  | "adminUsersController"
+  | "adminResourcesController"
+  | "announcementsController"
+>): Router => {
   const router: Router = express.Router();
 
   router.use(authMiddleware.verify(), adminMiddleware.requireAdmin());
@@ -18,6 +26,17 @@ const createAdminRoutes = ({
   router.patch("/users/:userId/unban", adminUsersController.unban());
   router.patch("/users/:userId/delete", adminUsersController.delete());
   router.patch("/users/:userId/restore", adminUsersController.restore());
+
+  router.get("/announcements", announcementsController.listAdmin());
+  router.post("/announcements", announcementsController.create());
+  router.get("/announcements/:id", announcementsController.getById());
+  router.patch("/announcements/:id", announcementsController.update());
+  router.post("/announcements/:id/publish", announcementsController.publish());
+  router.post("/announcements/:id/archive", announcementsController.archive());
+  router.post(
+    "/announcements/:id/delete",
+    announcementsController.softDelete()
+  );
 
   router.patch(
     "/:resource/:resourceId/delete",

@@ -29,6 +29,7 @@ import MongoosePlaceRepository from "@src/infrastructure/repositories/MongoosePl
 import MongooseProductRepository from "@src/infrastructure/repositories/MongooseProductRepository";
 import MongooseReviewRepository from "@src/infrastructure/repositories/MongooseReviewRepository";
 import MongooseUserRepository from "@src/infrastructure/repositories/MongooseUserRepository";
+import PrismaAnnouncementRepository from "@src/infrastructure/repositories/PrismaAnnouncementRepository";
 import type { Cradle } from "@src/di/cradle";
 
 export const registerInfrastructureModule = (
@@ -53,6 +54,7 @@ export const registerInfrastructureModule = (
     followRepository: asClass(MongooseFollowRepository).singleton(),
     reviewRepository: asClass(MongooseReviewRepository).singleton(),
     productRepository: asClass(MongooseProductRepository).singleton(),
+    announcementRepository: asClass(PrismaAnnouncementRepository).singleton(),
 
     userPlaceLinker: asClass(UserPlaceLinkerAdapter).singleton(),
     realtimePublisher: asClass(SocketMessageRealtimePublisher).singleton(),

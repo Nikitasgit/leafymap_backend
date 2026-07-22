@@ -1,5 +1,6 @@
 import type AdminResourcesController from "@src/api/controllers/AdminResourcesController";
 import type AdminUsersController from "@src/api/controllers/AdminUsersController";
+import type AnnouncementsController from "@src/api/controllers/AnnouncementsController";
 import type AuthController from "@src/api/controllers/AuthController";
 import type CategoriesController from "@src/api/controllers/CategoriesController";
 import type CommentsController from "@src/api/controllers/CommentsController";
@@ -25,6 +26,7 @@ export interface RouteDependencies {
   adminMiddleware: AdminMiddleware;
   adminResourcesController: AdminResourcesController;
   adminUsersController: AdminUsersController;
+  announcementsController: AnnouncementsController;
   authController: AuthController;
   authMiddleware: AuthMiddleware;
   categoriesController: CategoriesController;
