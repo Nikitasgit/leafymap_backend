@@ -18,6 +18,7 @@ import { registerPlacesModule } from "@src/di/modules/places";
 import { registerProductsModule } from "@src/di/modules/products";
 import { registerReviewsModule } from "@src/di/modules/reviews";
 import { registerUsersModule } from "@src/di/modules/users";
+import { registerAnnouncementsModule } from "@src/di/modules/announcements";
 
 export type { Cradle };
 
@@ -45,6 +46,7 @@ export const createAppContainer = (): AwilixContainer<Cradle> => {
   registerPartnershipsModule(container);
   registerProductsModule(container);
   registerReviewsModule(container);
+  registerAnnouncementsModule(container);
 
   return container;
 };

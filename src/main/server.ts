@@ -3,6 +3,7 @@ import "tsconfig-paths/register";
 import dns from "node:dns";
 import app from "@src/main/app";
 import connectDB from "@src/infrastructure/persistence/db";
+import { connectPrisma } from "@src/infrastructure/persistence/prisma";
 import { createServer } from "http";
 import { cradle } from "@src/di/container";
 import EventsCronService from "@src/infrastructure/cron/EventsCronService";
@@ -39,6 +40,7 @@ eventsCronService.start();
 
 async function bootstrap(): Promise<void> {
   await connectDB();
+  await connectPrisma();
 
   httpServer.listen(PORT, () => {
     console.log(

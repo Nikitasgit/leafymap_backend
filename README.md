@@ -106,13 +106,16 @@ leafymap_backend/
 └── (configs : package.json, tsconfig, jest, eslint…)
 ```
 
-### Domaines : Favorites, Follows, Comments, Reviews, Events, EventBookings, EventInvitations, Partnerships, Products, Categories, Images, Places, Users, Auth, Admin, Notifications, Messages
+### Domaines : Favorites, Follows, Comments, Reviews, Events, EventBookings, EventInvitations, Partnerships, Products, Categories, Images, Places, Users, Auth, Admin, Notifications, Messages, Announcements (Postgres/Prisma)
 
 Flux d'écriture :
 
 ```
 Route → Controller → UseCase → Domain Entity / Port → Mongoose Repository / Adapter
 ```
+
+Les **annonces plateforme** suivent le même flux, mais avec un repository **Prisma**
+sur PostgreSQL (CMS relationnel, indépendant de MongoDB).
 
 Les lectures suivent un **CQRS-lite** : les mutations reconstituent des entités
 riches, tandis que les queries retournent des read models dédiés. Les repositories
@@ -393,6 +396,7 @@ toute URL S3 imbriquée. `AwsImageStorageAdapter.signUrls` / `signUrl` délègue
 PORT=3000
 NODE_ENV=development|production
 MONGODB_URI=mongodb://...
+DATABASE_URL=postgresql://leafymap:leafymap@localhost:5432/leafymap?schema=public
 JWT_SECRET=your_secret_key
 AWS_ACCESS_KEY_ID=...
 AWS_SECRET_ACCESS_KEY=...
@@ -406,6 +410,23 @@ AWS_BUCKET_NAME=...
 - **Connexion** : Configurée dans `src/infrastructure/persistence/db.ts`
 - **Indexes** : 2dsphere pour géolocalisation
 
+### PostgreSQL (Prisma — annonces CMS)
+
+- **ORM** : Prisma (`prisma/schema.prisma`)
+- **Connexion** : `DATABASE_URL` via `src/infrastructure/persistence/prisma.ts`
+- **Docker local** :
+
+```bash
+# Depuis leafymap_backend/ (Docker Desktop doit être démarré)
+docker compose up -d
+npx prisma migrate deploy
+# ou en dev :
+npx prisma migrate dev
+```
+
+Le compose démarre Postgres 16 sur le port `5432` (`leafymap` / `leafymap` / db `leafymap`).
+Voir aussi `env.example`.
+
 ### AWS S3
 
 - **SDK** : @aws-sdk/client-s3 v3
@@ -416,6 +437,7 @@ AWS_BUCKET_NAME=...
 
 - **Express** : Framework web
 - **Mongoose** : ODM MongoDB
+- **Prisma** : ORM PostgreSQL (annonces plateforme)
 - **Zod** : Validation de schémas
 - **JWT** : Authentification
 - **Bcrypt** : Hashage des mots de passe

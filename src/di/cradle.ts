@@ -3,6 +3,14 @@ import type AdminMiddleware from "@src/api/middlewares/admin.middleware";
 import type RateLimiterMiddleware from "@src/api/middlewares/rateLimiter.middleware";
 import type UploadMiddleware from "@src/api/middlewares/upload.middleware";
 import type BanAdminUserUseCase from "@src/application/usecases/admin/BanAdminUser.usecase";
+import type ArchiveAnnouncementUseCase from "@src/application/usecases/announcements/ArchiveAnnouncement.usecase";
+import type CreateAnnouncementUseCase from "@src/application/usecases/announcements/CreateAnnouncement.usecase";
+import type GetActiveAnnouncementsUseCase from "@src/application/usecases/announcements/GetActiveAnnouncements.usecase";
+import type GetAnnouncementByIdUseCase from "@src/application/usecases/announcements/GetAnnouncementById.usecase";
+import type ListAdminAnnouncementsUseCase from "@src/application/usecases/announcements/ListAdminAnnouncements.usecase";
+import type PublishAnnouncementUseCase from "@src/application/usecases/announcements/PublishAnnouncement.usecase";
+import type SoftDeleteAnnouncementUseCase from "@src/application/usecases/announcements/SoftDeleteAnnouncement.usecase";
+import type UpdateAnnouncementUseCase from "@src/application/usecases/announcements/UpdateAnnouncement.usecase";
 import type GetAdminUserContentUseCase from "@src/application/usecases/admin/GetAdminUserContent.usecase";
 import type GetAdminUserUseCase from "@src/application/usecases/admin/GetAdminUser.usecase";
 import type RestoreAdminResourceUseCase from "@src/application/usecases/admin/RestoreAdminResource.usecase";
@@ -21,6 +29,7 @@ import type SignInUseCase from "@src/application/usecases/auth/SignIn.usecase";
 import type VerifyEmailUseCase from "@src/application/usecases/auth/VerifyEmail.usecase";
 import type AdminResourcesController from "@src/api/controllers/AdminResourcesController";
 import type AdminUsersController from "@src/api/controllers/AdminUsersController";
+import type AnnouncementsController from "@src/api/controllers/AnnouncementsController";
 import type AuthController from "@src/api/controllers/AuthController";
 import type CategoriesController from "@src/api/controllers/CategoriesController";
 import type CommentsController from "@src/api/controllers/CommentsController";
@@ -107,6 +116,7 @@ import type GetUserByIdUseCase from "@src/application/usecases/users/GetUserById
 import type GetUserProfileUseCase from "@src/application/usecases/users/GetUserProfile.usecase";
 import type GetUsersUseCase from "@src/application/usecases/users/GetUsers.usecase";
 import type UpdateUserUseCase from "@src/application/usecases/users/UpdateUser.usecase";
+import type { IAnnouncementRepository } from "@src/domain/interfaces/IAnnouncementRepository";
 import type { IAuthEmailSender } from "@src/domain/interfaces/IAuthEmailSender";
 import type { ICascadeDeleter } from "@src/domain/interfaces/ICascadeDeleter";
 import type { ICategoryRepository } from "@src/domain/interfaces/ICategoryRepository";
@@ -169,6 +179,7 @@ export interface Cradle {
   followRepository: IFollowRepository;
   reviewRepository: IReviewRepository;
   productRepository: IProductRepository;
+  announcementRepository: IAnnouncementRepository;
 
   // Shared adapters / ports
   userPlaceLinker: IUserPlaceLinker;
@@ -341,4 +352,15 @@ export interface Cradle {
   updateUserUseCase: UpdateUserUseCase;
   deleteAccountUseCase: DeleteAccountUseCase;
   usersController: UsersController;
+
+  // Announcements
+  createAnnouncementUseCase: CreateAnnouncementUseCase;
+  updateAnnouncementUseCase: UpdateAnnouncementUseCase;
+  publishAnnouncementUseCase: PublishAnnouncementUseCase;
+  archiveAnnouncementUseCase: ArchiveAnnouncementUseCase;
+  softDeleteAnnouncementUseCase: SoftDeleteAnnouncementUseCase;
+  getAnnouncementByIdUseCase: GetAnnouncementByIdUseCase;
+  listAdminAnnouncementsUseCase: ListAdminAnnouncementsUseCase;
+  getActiveAnnouncementsUseCase: GetActiveAnnouncementsUseCase;
+  announcementsController: AnnouncementsController;
 }

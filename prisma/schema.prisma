@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AnnouncementStatus {
+  draft
+  published
+  archived
+}
+
+enum AnnouncementLocale {
+  fr
+  en
+}
+
+model Announcement {
+  id           String                    @id @default(cuid())
+  slug         String                    @unique
+  status       AnnouncementStatus        @default(draft)
+  priority     Int                       @default(0)
+  startsAt     DateTime?
+  endsAt       DateTime?
+  deletedAt    DateTime?
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+  translations AnnouncementTranslation[]
+
+  @@index([status, startsAt, endsAt])
+  @@index([deletedAt])
+}
+
+model AnnouncementTranslation {
+  id             String             @id @default(cuid())
+  announcementId String
+  announcement   Announcement       @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  locale         AnnouncementLocale
+  title          String
+  body           String
+  ctaLabel       String?
+  ctaHref        String?
+
+  @@unique([announcementId, locale])
+}
