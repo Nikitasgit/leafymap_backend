@@ -12,7 +12,8 @@ export const ERROR_CODES = {
   AUTH_ACCOUNT_INACCESSIBLE: "AUTH_ACCOUNT_INACCESSIBLE",
   AUTH_USER_BANNED: "AUTH_USER_BANNED",
   AUTH_EMAIL_ALREADY_USED: "AUTH_EMAIL_ALREADY_USED",
-  AUTH_INVALID_EMAIL_VERIFICATION_TOKEN: "AUTH_INVALID_EMAIL_VERIFICATION_TOKEN",
+  AUTH_INVALID_EMAIL_VERIFICATION_TOKEN:
+    "AUTH_INVALID_EMAIL_VERIFICATION_TOKEN",
   AUTH_INVALID_RESET_PASSWORD_TOKEN: "AUTH_INVALID_RESET_PASSWORD_TOKEN",
   USER_NOT_FOUND: "USER_NOT_FOUND",
   USER_ALREADY_HAS_PLACE: "USER_ALREADY_HAS_PLACE",
@@ -79,7 +80,8 @@ export type ErrorCode =
   | (typeof ERROR_CODES)[keyof typeof ERROR_CODES]
   | (string & {});
 
-const isStableErrorCode = (value: string): boolean => /^[A-Z0-9_]+$/.test(value);
+const isStableErrorCode = (value: string): boolean =>
+  /^[A-Z0-9_]+$/.test(value);
 
 /**
  * Domain/application operational error with a stable code.
@@ -87,7 +89,6 @@ const isStableErrorCode = (value: string): boolean => /^[A-Z0-9_]+$/.test(value)
  */
 export class AppError extends Error {
   public readonly code: ErrorCode;
-
   public readonly data: unknown;
 
   constructor(
@@ -131,10 +132,7 @@ export class ValidationError extends AppError {
 }
 
 export class UnauthorizedError extends AppError {
-  constructor(
-    codeOrMessage?: ErrorCode,
-    message = "Non autorisé"
-  ) {
+  constructor(codeOrMessage?: ErrorCode, message = "Non autorisé") {
     const resolved = resolveCodeAndMessage(
       ERROR_CODES.UNAUTHORIZED,
       message,
@@ -146,10 +144,7 @@ export class UnauthorizedError extends AppError {
 }
 
 export class ForbiddenError extends AppError {
-  constructor(
-    codeOrMessage?: ErrorCode,
-    message = "Accès interdit"
-  ) {
+  constructor(codeOrMessage?: ErrorCode, message = "Accès interdit") {
     const resolved = resolveCodeAndMessage(
       ERROR_CODES.FORBIDDEN,
       message,
@@ -161,10 +156,7 @@ export class ForbiddenError extends AppError {
 }
 
 export class NotFoundError extends AppError {
-  constructor(
-    codeOrMessage?: ErrorCode,
-    message = "Ressource introuvable"
-  ) {
+  constructor(codeOrMessage?: ErrorCode, message = "Ressource introuvable") {
     const resolved = resolveCodeAndMessage(
       ERROR_CODES.NOT_FOUND,
       message,

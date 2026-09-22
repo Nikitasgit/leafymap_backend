@@ -20,7 +20,6 @@ export class NotificationMapper {
       action: NotificationAction.from(doc.action),
       referenceId: ReferenceId.from(doc.reference.toString()),
       referenceType: NotificationReferenceType.from(doc.referenceType),
-      read: doc.read === true,
       readAt: doc.readAt,
       message: doc.message,
       createdAt: doc.createdAt ?? new Date(),
@@ -38,7 +37,6 @@ export class NotificationMapper {
       action: notification.action,
       reference: new Types.ObjectId(notification.referenceId),
       referenceType: notification.referenceType,
-      read: notification.read,
       readAt: notification.readAt,
     };
   }

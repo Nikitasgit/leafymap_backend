@@ -81,7 +81,7 @@ describe("RegisterUseCase", () => {
     expect(userRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
         email: "new@test.com",
-        acceptedCGU: true,
+        acceptedAt: expect.any(Date),
         emailVerified: false,
       })
     );

@@ -3,7 +3,13 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import tseslint from "typescript-eslint";
 
 export default defineConfig(
-  globalIgnores(["dist/**", "node_modules/**", "coverage/**", "jest.config.js"]),
+  globalIgnores([
+    "dist/**",
+    "node_modules/**",
+    "coverage/**",
+    "jest.config.js",
+    "jest.fakerTransform.cjs",
+  ]),
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {

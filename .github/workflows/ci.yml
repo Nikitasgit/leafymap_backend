@@ -1,13 +1,10 @@
 name: Backend CI
-
 on:
   pull_request:
     branches: [main]
-
 env:
   CI: true
   JWT_SECRET: test-secret
-
 jobs:
   ci:
     name: Backend CI

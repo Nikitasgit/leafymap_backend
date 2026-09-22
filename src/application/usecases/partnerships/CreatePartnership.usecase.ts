@@ -28,11 +28,10 @@ class CreatePartnershipUseCase {
     const initiatorId = UserId.from(params.initiatorId);
     const collaboratorId = UserId.from(params.collaboratorId);
 
-    const existing =
-      await this.partnershipRepository.findExistingBetweenUsers(
-        initiatorId,
-        collaboratorId
-      );
+    const existing = await this.partnershipRepository.findExistingBetweenUsers(
+      initiatorId,
+      collaboratorId
+    );
 
     if (existing) {
       throw new ConflictError(

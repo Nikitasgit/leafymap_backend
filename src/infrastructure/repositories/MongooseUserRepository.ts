@@ -60,7 +60,7 @@ export const USER_DETAILS_QUERY_CONFIGS: Record<
   },
   current: {
     select:
-      "_id email username firstname lastname userType role acceptedCGU website phone description country address followers place image googlePictureUrl userCategory bannedAt banReason banDuration banExpiresAt lastLogin preferences",
+      "_id email username firstname lastname userType role acceptedAt website phone description country address followers place image googlePictureUrl userCategory bannedAt banReason banDuration banExpiresAt lastLogin preferences",
     populate: [
       {
         path: "place",

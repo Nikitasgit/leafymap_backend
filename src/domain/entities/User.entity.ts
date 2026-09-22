@@ -14,7 +14,6 @@ export type UserRole = "user" | "admin";
 export interface RegisterUserParams {
   email: string;
   passwordHash: string;
-  acceptedCGU: boolean;
   emailNotifications?: boolean;
   emailVerificationTokenHash: string;
   emailVerificationExpiresAt: Date;
@@ -54,7 +53,6 @@ export interface ReconstituteUserParams {
   followers: number;
   interestIds: UserCategoryId[];
   placeId?: PlaceId;
-  acceptedCGU?: boolean;
   acceptedAt?: Date;
   emailVerified?: boolean;
   emailVerificationTokenHash?: string;
@@ -114,8 +112,7 @@ type UserProps = {
   followers: number;
   interestIds: UserCategoryId[];
   placeId: PlaceId | undefined;
-  acceptedCGU: boolean;
-  acceptedAt: Date;
+  acceptedAt: Date | undefined;
   emailVerified: boolean;
   emailVerificationTokenHash: string | undefined;
   emailVerificationExpiresAt: Date | undefined;
@@ -154,8 +151,7 @@ export class User {
     public readonly followers: number,
     public readonly interestIds: UserCategoryId[],
     public readonly placeId: PlaceId | undefined,
-    public readonly acceptedCGU: boolean,
-    public readonly acceptedAt: Date,
+    public readonly acceptedAt: Date | undefined,
     public readonly emailVerified: boolean,
     public readonly emailVerificationTokenHash: string | undefined,
     public readonly emailVerificationExpiresAt: Date | undefined,
@@ -194,7 +190,6 @@ export class User {
       props.followers,
       props.interestIds,
       props.placeId,
-      props.acceptedCGU,
       props.acceptedAt,
       props.emailVerified,
       props.emailVerificationTokenHash,
@@ -235,7 +230,6 @@ export class User {
       followers: this.followers,
       interestIds: this.interestIds,
       placeId: this.placeId,
-      acceptedCGU: this.acceptedCGU,
       acceptedAt: this.acceptedAt,
       emailVerified: this.emailVerified,
       emailVerificationTokenHash: this.emailVerificationTokenHash,
@@ -278,7 +272,6 @@ export class User {
       followers: 0,
       interestIds: [],
       placeId: undefined,
-      acceptedCGU: params.acceptedCGU,
       acceptedAt: now,
       emailVerified: false,
       emailVerificationTokenHash: params.emailVerificationTokenHash,
@@ -322,8 +315,7 @@ export class User {
       followers: 0,
       interestIds: [],
       placeId: undefined,
-      acceptedCGU: false,
-      acceptedAt: new Date(0),
+      acceptedAt: undefined,
       emailVerified: true,
       emailVerificationTokenHash: undefined,
       emailVerificationExpiresAt: undefined,
@@ -363,8 +355,7 @@ export class User {
       followers: params.followers,
       interestIds: params.interestIds,
       placeId: params.placeId,
-      acceptedCGU: params.acceptedCGU ?? false,
-      acceptedAt: params.acceptedAt ?? new Date(0),
+      acceptedAt: params.acceptedAt,
       emailVerified: params.emailVerified !== false,
       emailVerificationTokenHash: params.emailVerificationTokenHash,
       emailVerificationExpiresAt: params.emailVerificationExpiresAt,
@@ -393,7 +384,9 @@ export class User {
       userType: params.userType ?? this.userType,
       address: params.address !== undefined ? params.address : this.address,
       description:
-        params.description !== undefined ? params.description : this.description,
+        params.description !== undefined
+          ? params.description
+          : this.description,
       country: params.country !== undefined ? params.country : this.country,
       imageId: params.imageId !== undefined ? params.imageId : this.imageId,
       interestIds: params.interestIds ?? this.interestIds,
@@ -425,11 +418,11 @@ export class User {
   }
 
   getBanMessage(): string {
-    const reason = this.banReason || "aucune raison communiquée";
+    const reason = this.banReason || "No reason";
     const until = this.banExpiresAt
-      ? ` jusqu'au ${this.banExpiresAt.toLocaleDateString("fr-FR")}`
+      ? ` Until ${this.banExpiresAt.toLocaleDateString("fr-FR")}`
       : "";
-    return `Votre compte a été banni${until}. Raison : ${reason}.`;
+    return `This account has been banned ${until}. Reason : ${reason}.`;
   }
 
   assertCanAuthenticate(options: AssertCanAuthenticateOptions = {}): void {
@@ -438,17 +431,20 @@ export class User {
     if (requireEmailVerified && this.emailVerified === false) {
       throw new ForbiddenError(
         ERROR_CODES.AUTH_EMAIL_NOT_VERIFIED,
-        "Veuillez vérifier votre adresse email avant de vous connecter. Consultez votre boîte de réception ou demandez un nouveau lien."
+        "Please verify you email address before login."
       );
     }
     if (this.deleted) {
       throw new ForbiddenError(
         ERROR_CODES.AUTH_ACCOUNT_INACCESSIBLE,
-        "Ce compte n'est plus accessible"
+        "This account was deleted."
       );
     }
     if (this.isBanActive()) {
-      throw new ForbiddenError(ERROR_CODES.AUTH_USER_BANNED, this.getBanMessage());
+      throw new ForbiddenError(
+        ERROR_CODES.AUTH_USER_BANNED,
+        this.getBanMessage()
+      );
     }
   }
 
@@ -461,9 +457,12 @@ export class User {
     });
   }
 
+  hasAcceptedCgu(): boolean {
+    return this.acceptedAt !== undefined;
+  }
+
   acceptCgu(emailNotifications?: boolean): User {
     return this.clone({
-      acceptedCGU: true,
       acceptedAt: new Date(),
       preferences: UserPreferences.from({
         emailNotifications: emailNotifications === true,

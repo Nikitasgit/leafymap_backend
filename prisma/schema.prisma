@@ -11,38 +11,46 @@ enum AnnouncementStatus {
   draft
   published
   archived
+
+  @@map("announcement_status")
 }
 
 enum AnnouncementLocale {
   fr
   en
+
+  @@map("announcement_locale")
 }
 
+/// Colonnes SQL en snake_case. Le code TypeScript reste en camelCase.
+/// La clé primaire reste `id` : on ne la renomme pas en id_announcement.
 model Announcement {
   id           String                    @id @default(cuid())
   slug         String                    @unique
   status       AnnouncementStatus        @default(draft)
   priority     Int                       @default(0)
-  startsAt     DateTime?
-  endsAt       DateTime?
-  deletedAt    DateTime?
-  createdAt    DateTime                  @default(now())
-  updatedAt    DateTime                  @updatedAt
+  startsAt     DateTime?                 @map("starts_at")
+  endsAt       DateTime?                 @map("ends_at")
+  deletedAt    DateTime?                 @map("deleted_at")
+  createdAt    DateTime                  @default(now()) @map("created_at")
+  updatedAt    DateTime                  @updatedAt @map("updated_at")
   translations AnnouncementTranslation[]
 
   @@index([status, startsAt, endsAt])
   @@index([deletedAt])
+  @@map("announcement")
 }
 
 model AnnouncementTranslation {
   id             String             @id @default(cuid())
-  announcementId String
+  announcementId String             @map("announcement_id")
   announcement   Announcement       @relation(fields: [announcementId], references: [id], onDelete: Cascade)
   locale         AnnouncementLocale
   title          String
   body           String
-  ctaLabel       String?
-  ctaHref        String?
+  ctaLabel       String?            @map("cta_label")
+  ctaHref        String?            @map("cta_href")
 
   @@unique([announcementId, locale])
+  @@map("announcement_translation")
 }

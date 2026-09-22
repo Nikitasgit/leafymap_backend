@@ -5,7 +5,6 @@ export const EVENT_INVITATION_STATUSES = [
   "accepted",
   "refused",
   "cancelled",
-  "completed",
 ] as const;
 
 export type EventInvitationStatus =

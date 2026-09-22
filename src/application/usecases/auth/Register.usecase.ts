@@ -18,7 +18,7 @@ class RegisterUseCase {
   ) {}
 
   async execute(params: RegisterInput): Promise<RegisterOutput> {
-    const { email, password, acceptedCGU, emailNotifications } = params;
+    const { email, password, emailNotifications } = params;
     const { token, tokenHash, expiresAt } = this.opaqueTokenFactory.generate();
 
     const existingUser = await this.userRepository.findByEmail(email);
@@ -42,7 +42,6 @@ class RegisterUseCase {
     const user = User.register({
       email,
       passwordHash,
-      acceptedCGU,
       emailNotifications,
       emailVerificationTokenHash: tokenHash,
       emailVerificationExpiresAt: expiresAt,

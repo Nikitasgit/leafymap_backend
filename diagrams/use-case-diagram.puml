@@ -1,0 +1,62 @@
+@startuml use-case-diagram
+skinparam shadowing false
+skinparam wrapWidth 180
+skinparam maxMessageSize 180
+
+title LeafyMap — cas d'utilisation (vue globale)
+
+actor "Visiteur\n(sans compte)" as Visitor
+actor "Guest\n(inscrit)" as Guest
+actor "Creator" as Creator
+actor "Admin" as Admin
+
+Visitor <|-- Guest
+Guest <|-- Creator
+
+actor "Google" as Google
+actor "AWS S3" as S3
+actor "Brevo" as Brevo
+actor "Mapbox" as Mapbox
+
+rectangle LeafyMap {
+  usecase "Rechercher créateurs,\nlieux et événements" as Search
+  usecase "Filtrer la recherche" as Filter
+  usecase "S'inscrire" as Register
+  usecase "Se connecter" as Login
+  usecase "Gérer ses favoris" as Favorites
+  usecase "Noter un lieu\nou un événement" as Review
+  usecase "S'inscrire à\nun événement" as Book
+  usecase "Devenir creator" as BecomeCreator
+  usecase "Gérer son lieu\net ses événements" as ManagePlace
+  usecase "Gérer les partenariats" as Partnerships
+  usecase "Modérer contenus\net utilisateurs" as Moderate
+
+  Filter ..> Search : <<extend>>
+}
+
+Visitor -- Search
+Visitor -- Register
+Visitor -- Login
+
+Guest -- Favorites
+Guest -- Review
+Guest -- Book
+Guest -- BecomeCreator
+Guest -- Partnerships
+
+Creator -- ManagePlace
+
+Admin -- Moderate
+
+Login -- Google
+Register -- Google
+Register -- Brevo
+Search -- Mapbox
+ManagePlace -- S3
+
+note bottom of Admin
+  Admin = rôle, pas un type de profil.
+  Un admin peut être guest ou creator.
+end note
+
+@enduml

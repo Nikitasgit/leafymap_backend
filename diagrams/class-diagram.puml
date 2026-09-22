@@ -1,0 +1,277 @@
+@startuml class-diagram
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide circle
+hide empty methods
+
+title LeafyMap — diagramme de classes (vue simplifiée)
+
+package "Utilisateurs" {
+  abstract class User {
+    - id : Long
+    - email : String
+    - username : String
+    - firstname : String
+    - lastname : String
+    - passwordHash : String
+    - emailVerified : Boolean
+    - acceptedAt : Date
+    - bannedAt : Date
+    - createdAt : Date
+    --
+    + updateProfile()
+    + getPublicInfo()
+  }
+
+  class Guest {
+    + createBooking(event : Event, seats : Integer) : EventBooking
+  }
+
+  class Creator {
+    + createEvent() : Event
+    + createPlace() : Place
+    + sendInvitation(event : Event, collaborator : Creator) : EventInvitation
+  }
+
+  class Admin {
+    + banUser(user : User)
+    + deleteContent()
+  }
+
+  class UserCategory {
+    - id : Long
+    - name : String
+  }
+}
+
+package "Lieux" {
+  class Place {
+    - id : Long
+    - label : String
+    - longitude : Double
+    - latitude : Double
+    - rating : Double
+    --
+    + updateDetails()
+  }
+
+  class PlaceCategory {
+    - id : Long
+    - name : String
+  }
+}
+
+package "Événements" {
+  class Event {
+    - id : Long
+    - name : String
+    - description : String
+    - online : Boolean
+    - isBookable : Boolean
+    - capacity : Integer
+    - maxSeatsPerBooking : Integer
+    - rating : Double
+    - status : EventStatus
+    - lifecycleStatus : LifecycleStatus
+    --
+    + update()
+    + areBookingsOpen() : Boolean
+  }
+
+  class EventPeriod {
+    - startDate : Date
+    - endDate : Date
+  }
+
+  class EventTimeSlot {
+    - title : String
+    - startTime : Time
+    - endTime : Time
+  }
+
+  class EventCategory {
+    - id : Long
+    - name : String
+  }
+
+  class EventBooking {
+    - id : Long
+    - seats : Integer
+    - status : BookingStatus
+    - cancelledAt : Date
+    --
+    + updateSeats(seats : Integer)
+    + cancel()
+  }
+
+  class EventInvitation {
+    - id : Long
+    - status : InvitationStatus
+    --
+    + accept()
+    + refuse()
+    + cancel()
+  }
+}
+
+package "Médias" {
+  class Image {
+    - id : Long
+    - originalUrl : String
+    - thumbnailUrl : String
+    - type : ImageType
+  }
+
+  class Notification {
+    - id : Long
+    - action : NotificationAction
+    - message : String
+    - readAt : Date
+    --
+    + markAsRead()
+  }
+}
+
+package "Services" {
+  interface INotification {
+    + notifyUser(receiver : User, action : NotificationAction)
+  }
+
+  interface IStorage {
+    + store() : Image
+    + signUrl(image : Image) : String
+    + delete(image : Image)
+  }
+
+  class EventService {
+    + createEvent(creator : Creator) : Event
+    + updateEvent(event : Event)
+    + deleteEvent(event : Event)
+    + getEvent(id : Long) : Event
+  }
+
+  class PlaceService {
+    + createPlace(creator : Creator) : Place
+    + updatePlace(place : Place)
+    + deletePlace(place : Place)
+  }
+
+  class EventBookingService {
+    + createBooking(user : User, event : Event, seats : Integer) : EventBooking
+    + updateBooking(booking : EventBooking, seats : Integer)
+    + cancelBooking(booking : EventBooking)
+  }
+
+  class EventInvitationService {
+    + sendInvitation(event : Event, collaborator : Creator) : EventInvitation
+    + acceptInvitation(invitation : EventInvitation)
+    + refuseInvitation(invitation : EventInvitation)
+    + cancelInvitation(invitation : EventInvitation)
+  }
+
+  class NotificationService {
+    + notifyUser(receiver : User, action : NotificationAction)
+    + createNotification(sender : User, receiver : User, action : NotificationAction) : Notification
+  }
+
+  class ImageService {
+    + store() : Image
+    + signUrl(image : Image) : String
+    + delete(image : Image)
+  }
+}
+
+enum EventStatus {
+  available
+  full
+  cancelled
+}
+
+enum LifecycleStatus {
+  unvalid
+  upcoming
+  ongoing
+  completed
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  cancelled
+}
+
+enum InvitationStatus {
+  pending
+  accepted
+  refused
+  cancelled
+}
+
+enum ImageType {
+  profile
+  cover
+  gallery
+}
+
+enum NotificationAction {
+  new_event
+  event_invitation
+  event_accepted
+  event_refused
+  event_booking_cancelled
+}
+
+User <|-- Guest
+User <|-- Creator
+User <|-- Admin
+
+User "0..*" --> "0..1" UserCategory : category
+User "0..1" --> "0..1" Image : avatar
+User "1" <-- "0..*" Image : uploadedBy
+
+Creator "1" --> "0..1" Place : owns
+Creator "1" --> "0..*" Event : creates
+
+PlaceCategory "1" <-- "0..*" Place
+Place "0..1" <-- "0..*" Event : hostedAt
+Place "0..1" <-- "0..*" Image : ofPlace
+
+EventCategory "1" <-- "0..*" Event
+Event "1" *-- "1..*" EventPeriod : schedule
+EventPeriod "1" *-- "0..*" EventTimeSlot : timeSlots
+Event "0..1" <-- "0..*" Image : ofEvent
+
+Event "1" <-- "0..*" EventBooking
+User "1" <-- "0..*" EventBooking : bookedBy
+
+Event "1" <-- "0..*" EventInvitation
+Creator "1" <-- "0..*" EventInvitation : initiator
+Creator "1" <-- "0..*" EventInvitation : collaborator
+
+User "1" <-- "0..*" Notification : sender
+User "1" <-- "0..*" Notification : receiver
+Event "0..1" <-- "0..*" Notification
+EventInvitation "0..1" <-- "0..*" Notification
+
+Guest ..> EventBookingService : uses
+Creator ..> EventService : uses
+Creator ..> PlaceService : uses
+Creator ..> EventInvitationService : uses
+
+EventService ..> Event
+PlaceService ..> Place
+EventBookingService ..> EventBooking
+EventInvitationService ..> EventInvitation
+NotificationService ..> Notification
+ImageService ..> Image
+
+EventService ..> INotification
+EventService ..> IStorage
+PlaceService ..> IStorage
+EventBookingService ..> INotification
+EventInvitationService ..> INotification
+
+INotification <|.. NotificationService
+IStorage <|.. ImageService
+
+@enduml

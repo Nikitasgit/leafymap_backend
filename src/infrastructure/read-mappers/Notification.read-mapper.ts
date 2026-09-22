@@ -11,7 +11,6 @@ interface NormalizedNotificationDoc {
   action: NotificationListItemReadModel["action"];
   reference: string;
   referenceType: NotificationListItemReadModel["referenceType"];
-  read?: boolean;
   readAt?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -32,7 +31,6 @@ export class NotificationReadMapper {
       action: normalized.action,
       reference: normalized.reference,
       referenceType: normalized.referenceType,
-      read: normalized.read,
       readAt: normalized.readAt,
       createdAt: normalized.createdAt,
       updatedAt: normalized.updatedAt,

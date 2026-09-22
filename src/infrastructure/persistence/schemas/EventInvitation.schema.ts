@@ -31,7 +31,7 @@ const eventInvitationSchema = new Schema<EventInvitationDocumentProps>(
     },
     status: {
       type: String,
-      enum: ["pending", "accepted", "refused", "cancelled", "completed"],
+      enum: ["pending", "accepted", "refused", "cancelled"],
       required: true,
       default: "pending",
     },

@@ -38,8 +38,7 @@ export interface UserDocumentProps {
   followers: number;
   interests?: Types.ObjectId[];
   place?: Types.ObjectId;
-  acceptedCGU: boolean;
-  acceptedAt: Date;
+  acceptedAt?: Date;
   emailVerified?: boolean;
   emailVerificationTokenHash?: string;
   emailVerificationExpiresAt?: Date;
@@ -101,8 +100,7 @@ const userSchema = new Schema<UserDocumentProps>(
     followers: { type: Number, default: 0 },
     interests: [{ type: Types.ObjectId, ref: "UserCategory" }],
     place: { type: Types.ObjectId, ref: "Place" },
-    acceptedCGU: { type: Boolean, required: true, default: false },
-    acceptedAt: { type: Date, required: true },
+    acceptedAt: { type: Date },
     emailVerified: { type: Boolean, default: true },
     emailVerificationTokenHash: { type: String },
     emailVerificationExpiresAt: { type: Date },

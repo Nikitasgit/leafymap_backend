@@ -32,7 +32,6 @@ const createUser = async (
     role: "user",
     deleted: false,
     followers: 0,
-    acceptedCGU: true,
     acceptedAt: new Date(),
     ...overrides,
   });

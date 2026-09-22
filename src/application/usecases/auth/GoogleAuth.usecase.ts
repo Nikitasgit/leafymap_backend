@@ -29,7 +29,7 @@ class GoogleAuthUseCase {
       lastname: user.lastname,
       userType: user.userType,
       role: user.role,
-      acceptedCGU: user.acceptedCGU,
+      acceptedAt: user.acceptedAt,
       googlePictureUrl: user.googlePictureUrl,
       deleted: user.deleted,
       bannedAt: user.bannedAt,
