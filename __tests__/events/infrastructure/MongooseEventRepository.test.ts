@@ -47,7 +47,6 @@ describe("MongooseEventRepository", () => {
       userType: "creator",
       role: "user",
       deleted: false,
-      acceptedCGU: true,
       acceptedAt: new Date(),
     });
     const collaborator = await UserModel.create({
@@ -57,7 +56,6 @@ describe("MongooseEventRepository", () => {
       userType: "guest",
       role: "user",
       deleted: false,
-      acceptedCGU: true,
       acceptedAt: new Date(),
     });
     const eventCategory = await EventCategoryModel.create({ name: "Market" });

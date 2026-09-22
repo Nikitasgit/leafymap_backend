@@ -1,5 +1,6 @@
 @startuml
 !pragma layout smetana
+!pragma useVerticalIf off
 
 skinparam shadowing false
 skinparam activityBackgroundColor #FEFECE
@@ -8,33 +9,32 @@ skinparam activityBorderColor #A80036
 |Utilisateur|
 start
 :Remplir le formulaire\nprofil creator;
+-right->
 
-|Systeme|
-:Verifier l'authentification\net les droits d'acces;
-
-if (Utilisateur connecte\net guest ?) then (non)
+|Système|
+if (Utilisateur connecté\net guest ?) then (non)
   :Refuser;
   stop
 else (oui)
 endif
 
-:Valider les donnees\n(newCreatorSchema);
+:Valider les données\n(newCreatorSchema);
 
-if (Donnees invalides ?) then (oui)
+if (Données invalides ?) then (oui)
   :Retourner erreur;
   stop
 else (non)
 endif
 
-:Mettre a jour le compte\n(userType = creator);
-:Generer un nouveau token\navec le role creator;
+:Mettre à jour le compte\n(userType = creator);
+:Générer un nouveau token\navec le userType creator;
 
-if (Creation d'un lieu\ndemandee ?) then (oui)
-  :Creer le lieu associe\nau compte;
+if (Création d'un lieu\ndemandée ?) then (oui)
+  :Créer le lieu associé au compte\n(appel API séparé);
 else (non)
 endif
 
-:Retourner succes;
+:Retourner succès;
 stop
 
 @enduml

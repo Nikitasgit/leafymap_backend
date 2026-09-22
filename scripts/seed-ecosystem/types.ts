@@ -40,7 +40,6 @@ export interface SeedUserDoc {
   followers: number;
   interests?: Types.ObjectId[];
   place?: Types.ObjectId;
-  acceptedCGU: true;
   acceptedAt: Date;
   emailVerified: true;
   deleted: false;

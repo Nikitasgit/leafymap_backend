@@ -42,7 +42,7 @@ describe("MongoosePlaceRepository", () => {
       userType: "creator",
       role: "user",
       deleted: false,
-      acceptedCGU: true,
+      followers: 0,
       acceptedAt: new Date(),
     });
     const category = await PlaceCategoryModel.create({

@@ -17,7 +17,6 @@ export interface CreateNotificationParams {
 
 export interface ReconstituteNotificationParams extends CreateNotificationParams {
   id: NotificationId;
-  read: boolean;
   readAt?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -31,7 +30,6 @@ export class Notification {
     public readonly action: NotificationAction,
     public readonly referenceId: ReferenceId,
     public readonly referenceType: NotificationReferenceType,
-    public readonly read: boolean,
     public readonly readAt: Date | undefined,
     public readonly message: string | undefined,
     public readonly createdAt: Date,
@@ -47,7 +45,6 @@ export class Notification {
       params.action,
       params.referenceId,
       params.referenceType,
-      false,
       undefined,
       params.message,
       now,
@@ -63,7 +60,6 @@ export class Notification {
       params.action,
       params.referenceId,
       params.referenceType,
-      params.read,
       params.readAt,
       params.message,
       params.createdAt,
@@ -75,8 +71,12 @@ export class Notification {
     return this.receiverId === userId;
   }
 
+  isRead(): boolean {
+    return this.readAt !== undefined;
+  }
+
   markAsRead(now = new Date()): Notification {
-    if (this.read) {
+    if (this.readAt) {
       return this;
     }
     return new Notification(
@@ -86,7 +86,6 @@ export class Notification {
       this.action,
       this.referenceId,
       this.referenceType,
-      true,
       now,
       this.message,
       this.createdAt,

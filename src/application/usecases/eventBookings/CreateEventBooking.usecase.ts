@@ -74,8 +74,9 @@ class CreateEventBookingUseCase {
     }
 
     if (typeof event.capacity === "number") {
-      const bookedSeats =
-        await this.eventBookingRepository.sumConfirmedSeats(eventId);
+      const bookedSeats = await this.eventBookingRepository.sumConfirmedSeats(
+        eventId
+      );
       if (bookedSeats + params.seats > event.capacity) {
         throw new ConflictError(
           ERROR_CODES.EVENT_BOOKING_NOT_ENOUGH_SEATS,

@@ -10,7 +10,7 @@ export interface GoogleAuthUserOutput {
   lastname?: string;
   userType: string;
   role: string;
-  acceptedCGU: boolean;
+  acceptedAt?: Date;
   googlePictureUrl?: string;
   deleted: boolean;
   bannedAt?: Date;

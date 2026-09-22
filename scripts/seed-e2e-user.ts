@@ -36,7 +36,6 @@ async function seedE2eUser() {
     existingUser.role = "user";
     existingUser.userType = "guest";
     existingUser.emailVerified = true;
-    existingUser.acceptedCGU = true;
     existingUser.acceptedAt = existingUser.acceptedAt ?? new Date();
     existingUser.deleted = false;
     existingUser.bannedAt = undefined;
@@ -53,7 +52,6 @@ async function seedE2eUser() {
     password: hashedPassword,
     role: "user",
     userType: "guest",
-    acceptedCGU: true,
     acceptedAt: new Date(),
     emailVerified: true,
     deleted: false,

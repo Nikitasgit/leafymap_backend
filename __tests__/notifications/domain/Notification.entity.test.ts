@@ -20,7 +20,6 @@ const buildNotification = (
     action: NotificationAction.from("new_follower"),
     referenceId: ReferenceId.from(mockObjectId()),
     referenceType: NotificationReferenceType.from("Follow"),
-    read: false,
     createdAt: new Date("2024-01-01"),
     updatedAt: new Date("2024-01-01"),
     ...overrides,
@@ -41,7 +40,7 @@ describe("Notification entity", () => {
     });
 
     expect(notification.id).toBeNull();
-    expect(notification.read).toBe(false);
+    expect(notification.isRead()).toBe(false);
     expect(notification.readAt).toBeUndefined();
     expect(notification.belongsToReceiver(receiverId)).toBe(true);
     expect(notification.belongsToReceiver(senderId)).toBe(false);
@@ -52,9 +51,9 @@ describe("Notification entity", () => {
     const notification = buildNotification();
     const read = notification.markAsRead(now);
 
-    expect(read.read).toBe(true);
+    expect(read.isRead()).toBe(true);
     expect(read.readAt).toEqual(now);
-    expect(notification.read).toBe(false);
+    expect(notification.isRead()).toBe(false);
 
     const again = read.markAsRead(new Date("2024-07-01"));
     expect(again).toBe(read);

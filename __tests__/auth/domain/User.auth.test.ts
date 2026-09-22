@@ -20,7 +20,6 @@ const buildUser = (
     preferences: UserPreferences.from({}),
     passwordHash: "hash",
     emailVerified: true,
-    acceptedCGU: true,
     acceptedAt: new Date(),
     createdAt: new Date("2024-01-01"),
     updatedAt: new Date("2024-01-01"),
@@ -32,7 +31,6 @@ describe("User auth domain", () => {
     const user = User.register({
       email: "new@test.com",
       passwordHash: "hashed",
-      acceptedCGU: true,
       emailNotifications: true,
       emailVerificationTokenHash: "token-hash",
       emailVerificationExpiresAt: new Date(Date.now() + 60_000),
@@ -41,6 +39,8 @@ describe("User auth domain", () => {
     expect(user.id).toBeNull();
     expect(user.emailVerified).toBe(false);
     expect(user.userType).toBe("guest");
+    expect(user.hasAcceptedCgu()).toBe(true);
+    expect(user.acceptedAt).toBeInstanceOf(Date);
     expect(user.preferences.emailNotifications).toBe(true);
     expect(user.emailVerificationTokenHash).toBe("token-hash");
   });

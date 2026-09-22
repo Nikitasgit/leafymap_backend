@@ -21,7 +21,6 @@ export interface NotificationListItemReadModel {
   action: NotificationAction;
   reference: string;
   referenceType: NotificationReferenceType;
-  read?: boolean;
   readAt?: Date;
   createdAt: Date;
   updatedAt: Date;

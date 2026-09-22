@@ -1,5 +1,8 @@
 import { RequestHandler } from "express";
-import { adminBanUserSchema, adminUserSearchSchema } from "@src/api/dto/admin/admin.dto";
+import {
+  adminBanUserSchema,
+  adminUserSearchSchema,
+} from "@src/api/dto/admin/admin.dto";
 import { BaseHttpController } from "@src/api/http/BaseHttpController";
 import {
   requireAuth,

@@ -22,7 +22,6 @@ const reconstituteUser = (
     deleted: false,
     followers: 0,
     interestIds: [],
-    acceptedCGU: false,
     emailVerified: true,
     preferences: UserPreferences.from({ emailNotifications: false }),
     createdAt: new Date("2026-01-01"),

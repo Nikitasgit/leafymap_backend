@@ -46,7 +46,6 @@ export class UserMapper {
         UserCategoryId.from(id.toString())
       ),
       placeId: toOptionalId(doc.place, PlaceId.from),
-      acceptedCGU: doc.acceptedCGU,
       acceptedAt: doc.acceptedAt,
       emailVerified: doc.emailVerified,
       emailVerificationTokenHash: doc.emailVerificationTokenHash,
@@ -70,7 +69,6 @@ export class UserMapper {
       userType: user.userType,
       role: user.role,
       deleted: user.deleted,
-      acceptedCGU: user.acceptedCGU,
       acceptedAt: user.acceptedAt,
       emailVerified: user.emailVerified,
       emailVerificationTokenHash: user.emailVerificationTokenHash,
@@ -143,8 +141,6 @@ export class UserMapper {
     unset: Record<string, 1>;
   } {
     const set: Record<string, unknown> = {
-      acceptedCGU: user.acceptedCGU,
-      acceptedAt: user.acceptedAt,
       emailVerified: user.emailVerified,
       deleted: user.deleted,
       preferences: {
@@ -156,6 +152,11 @@ export class UserMapper {
 
     if (user.passwordHash !== undefined) {
       set.password = user.passwordHash;
+    }
+    if (user.acceptedAt !== undefined) {
+      set.acceptedAt = user.acceptedAt;
+    } else {
+      unset.acceptedAt = 1;
     }
     if (user.lastLogin !== undefined) {
       set.lastLogin = user.lastLogin;

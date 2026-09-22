@@ -31,7 +31,6 @@ async function createAdmin() {
     password: hashedPassword,
     role: "admin",
     userType: "guest",
-    acceptedCGU: true,
     acceptedAt: new Date(),
     emailVerified: true,
     deleted: false,

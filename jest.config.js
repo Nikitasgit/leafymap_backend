@@ -10,7 +10,10 @@ module.exports = {
   ],
   transform: {
     "^.+\\.ts$": "ts-jest",
+    "^.+/node_modules/@faker-js/faker/.+\\.js$":
+      "<rootDir>/jest.fakerTransform.cjs",
   },
+  transformIgnorePatterns: ["/node_modules/(?!@faker-js/faker/)"],
   collectCoverageFrom: [
     "src/**/*.ts",
     "!**/*.d.ts",

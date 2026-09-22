@@ -16,7 +16,6 @@ export interface NotificationDocumentProps {
   action: NotificationAction;
   reference: Types.ObjectId;
   referenceType: NotificationReferenceType;
-  read?: boolean;
   readAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
@@ -52,10 +51,6 @@ const notificationSchema = new Schema<NotificationDocumentProps>(
       type: String,
       required: true,
       enum: [...NOTIFICATION_REFERENCE_TYPES],
-    },
-    read: {
-      type: Boolean,
-      default: false,
     },
     readAt: {
       type: Date,

@@ -21,7 +21,7 @@ export class UserReadMapper {
       ...UserReadMapper.mapListFields(user),
       role: user.role,
       deleted: user.deleted,
-      acceptedCGU: user.acceptedCGU,
+      acceptedAt: user.acceptedAt,
       address: user.address,
       preferences: user.preferences,
       bannedAt: user.bannedAt,

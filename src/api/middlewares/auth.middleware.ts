@@ -3,11 +3,7 @@ import { IJwtTokenIssuer } from "@src/domain/interfaces/IJwtTokenIssuer";
 import { IUserRepository } from "@src/domain/interfaces/IUserRepository";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
 import { CustomRequest } from "@src/api/types/custom";
-import {
-  AppError,
-  ERROR_CODES,
-  UnauthorizedError,
-} from "@src/shared/errors";
+import { AppError, ERROR_CODES, UnauthorizedError } from "@src/shared/errors";
 
 class AuthMiddleware {
   constructor(

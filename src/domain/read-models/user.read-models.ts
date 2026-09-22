@@ -65,7 +65,7 @@ export interface UserListItemReadModel {
 export interface UserDetailsReadModel extends UserListItemReadModel {
   role?: "user" | "admin";
   deleted?: boolean;
-  acceptedCGU?: boolean;
+  acceptedAt?: string | Date | null;
   address?: UserAddressReadModel;
   preferences?: UserPreferencesReadModel;
   bannedAt?: string | Date | null;

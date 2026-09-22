@@ -62,7 +62,7 @@ class MongooseNotificationRepository implements INotificationRepository {
       receiver: new Types.ObjectId(receiverId),
     })
       .select(
-        "_id action reference referenceType read readAt createdAt updatedAt sender"
+        "_id action reference referenceType readAt createdAt updatedAt sender"
       )
       .populate(SENDER_POPULATE)
       .sort({ createdAt: -1 })
@@ -80,7 +80,7 @@ class MongooseNotificationRepository implements INotificationRepository {
     const unread = await NotificationModel.find({
       receiver: receiverObjectId,
       action,
-      $or: [{ read: { $ne: true } }, { read: null }],
+      readAt: null,
     })
       .select("_id")
       .lean();
@@ -94,7 +94,7 @@ class MongooseNotificationRepository implements INotificationRepository {
         _id: { $in: unread.map((doc) => doc._id) },
         receiver: receiverObjectId,
       },
-      { $set: { read: true, readAt: new Date() } }
+      { $set: { readAt: new Date() } }
     );
 
     return updateResult.modifiedCount;
@@ -104,9 +104,9 @@ class MongooseNotificationRepository implements INotificationRepository {
     const updateResult = await NotificationModel.updateMany(
       {
         receiver: new Types.ObjectId(receiverId),
-        $or: [{ read: { $ne: true } }, { read: null }],
+        readAt: null,
       },
-      { $set: { read: true, readAt: new Date() } }
+      { $set: { readAt: new Date() } }
     );
     return updateResult.modifiedCount;
   }
