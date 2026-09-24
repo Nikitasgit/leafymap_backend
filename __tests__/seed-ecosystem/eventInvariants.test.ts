@@ -75,20 +75,25 @@ describe("seed-ecosystem safety", () => {
     );
   });
 
-  it("never allows a production host", () => {
+  it("refuses a production host unless the target is production", () => {
     expect(() =>
       assertAllowedTarget(
         "mongodb+srv://u:p@leafymap-production.abc.mongodb.net/leafymap",
         "staging",
-        { confirmStaging: true, nodeEnv: "development" }
+        {
+          confirmStaging: true,
+          confirmProduction: false,
+          nodeEnv: "development",
+        }
       )
     ).toThrow(/production/);
   });
 
-  it("refuses NODE_ENV=production", () => {
+  it("refuses NODE_ENV=production for non-production targets", () => {
     expect(() =>
       assertAllowedTarget("mongodb://localhost:27017/leafymap", "local", {
         confirmStaging: false,
+        confirmProduction: false,
         nodeEnv: "production",
       })
     ).toThrow(/NODE_ENV=production/);
@@ -99,15 +104,60 @@ describe("seed-ecosystem safety", () => {
       assertAllowedTarget(
         "mongodb+srv://u:p@leafymap-staging.abc.mongodb.net/db",
         "staging",
-        { confirmStaging: false, nodeEnv: "development" }
+        {
+          confirmStaging: false,
+          confirmProduction: false,
+          nodeEnv: "development",
+        }
       )
     ).toThrow(/confirm staging/);
+  });
+
+  it("requires --confirm production and a production host", () => {
+    expect(() =>
+      assertAllowedTarget(
+        "mongodb+srv://u:p@leafymap-production.abc.mongodb.net/leafymap",
+        "production",
+        {
+          confirmStaging: false,
+          confirmProduction: false,
+          nodeEnv: "development",
+        }
+      )
+    ).toThrow(/confirm production/);
+
+    expect(() =>
+      assertAllowedTarget(
+        "mongodb+srv://u:p@leafymap-staging.abc.mongodb.net/db",
+        "production",
+        {
+          confirmStaging: false,
+          confirmProduction: true,
+          nodeEnv: "development",
+        }
+      )
+    ).toThrow(/not a local or staging host/);
+  });
+
+  it("accepts a production host when explicitly confirmed", () => {
+    expect(() =>
+      assertAllowedTarget(
+        "mongodb+srv://u:p@leafymap-production.abc.mongodb.net/leafymap",
+        "production",
+        {
+          confirmStaging: false,
+          confirmProduction: true,
+          nodeEnv: "production",
+        }
+      )
+    ).not.toThrow();
   });
 
   it("accepts local docker mongo", () => {
     expect(() =>
       assertAllowedTarget("mongodb://mongo:27017/leafymap", "local", {
         confirmStaging: false,
+        confirmProduction: false,
         nodeEnv: "development",
       })
     ).not.toThrow();

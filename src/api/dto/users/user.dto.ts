@@ -11,6 +11,12 @@ import { objectIdString } from "@src/api/dto/common.dto";
 const emptyToUndefined = (val: unknown) =>
   val === "" || val === null ? undefined : val;
 
+const emptyToNull = (val: unknown) =>
+  val === "" || val === null ? null : val;
+
+const clearableOptionalName = (schema: z.ZodType<string | undefined>) =>
+  z.preprocess(emptyToNull, z.union([schema, z.null()]).optional());
+
 export const usernameSchema = z
   .string()
   .min(1, "Le nom est requis")
@@ -66,8 +72,8 @@ const additionalUpdateUserFieldsSchema = z
 
 const partialUpdateUserSchema = z
   .object({
-    firstname: z.preprocess(emptyToUndefined, firstnameSchema.optional()),
-    lastname: z.preprocess(emptyToUndefined, lastnameSchema.optional()),
+    firstname: clearableOptionalName(firstnameSchema),
+    lastname: clearableOptionalName(lastnameSchema),
     username: usernameSchema.optional(),
     userCategory: objectIdString.optional(),
     website: z.preprocess(emptyToUndefined, websiteSchema.optional()),

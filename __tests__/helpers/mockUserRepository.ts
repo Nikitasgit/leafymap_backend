@@ -9,6 +9,7 @@ export const createMockUserRepository = (): jest.Mocked<IUserRepository> => ({
   findByGoogleId: jest.fn(),
   findByEmailVerificationTokenHash: jest.fn(),
   findByResetPasswordTokenHash: jest.fn(),
+  findByTwoFactorChallengeHash: jest.fn(),
   findDetailsById: jest.fn(),
   findList: jest.fn(),
   findAdminByEmail: jest.fn(),

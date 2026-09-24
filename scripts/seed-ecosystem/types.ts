@@ -3,11 +3,12 @@ import type { ImageTheme } from "./config";
 import type { CityCluster } from "./config";
 import type { CreatorArchetype } from "./config";
 
-export type SeedTarget = "local" | "staging";
+export type SeedTarget = "local" | "staging" | "production";
 
 export interface SeedCliOptions {
   target: SeedTarget;
   confirmStaging: boolean;
+  confirmProduction: boolean;
   reset: boolean;
   skipImages: boolean;
   userCount: number;

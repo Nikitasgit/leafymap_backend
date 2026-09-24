@@ -98,6 +98,25 @@ describe("MongooseUserRepository", () => {
     ).resolves.toMatchObject({ id: user._id.toString(), deleted: true });
   });
 
+  it("removes a legal name when the profile clears it", async () => {
+    const created = await createUser("named@example.com", {
+      firstname: "alice",
+      lastname: "martin",
+    });
+    const user = await repository.findById(
+      UserId.from(created._id.toString()),
+    );
+    expect(user?.firstname).toBe("alice");
+
+    await repository.update(user!.updateProfile({ firstname: null }));
+
+    const reloaded = await repository.findById(
+      UserId.from(created._id.toString()),
+    );
+    expect(reloaded?.firstname).toBeUndefined();
+    expect(reloaded?.lastname).toBe("martin");
+  });
+
   it("filters user lists case-insensitively and excludes ids", async () => {
     const alice = await createUser("alice@example.com", {
       username: "AliceMaker",

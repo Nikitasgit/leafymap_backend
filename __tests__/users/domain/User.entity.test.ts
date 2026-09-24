@@ -39,6 +39,15 @@ describe("User entity", () => {
     expect(user.userType).toBe("guest");
   });
 
+  it("clears a legal name without changing the other", () => {
+    const user = buildUser({ firstname: "alice", lastname: "martin" });
+    const updated = user.updateProfile({ firstname: null });
+
+    expect(updated.firstname).toBeUndefined();
+    expect(updated.lastname).toBe("martin");
+    expect(user.firstname).toBe("alice");
+  });
+
   it("links and unlinks a place", () => {
     const user = buildUser();
     const placeId = PlaceId.from(mockObjectId());

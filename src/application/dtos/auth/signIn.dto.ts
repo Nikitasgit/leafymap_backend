@@ -9,9 +9,13 @@ export interface SignInUserOutput {
   username?: string;
   userType: string;
   role: string;
+  acceptedAt?: Date;
+  twoFactorEnabled?: boolean;
 }
 
 export interface SignInOutput {
-  user: SignInUserOutput;
-  token: string;
+  user?: SignInUserOutput;
+  token?: string;
+  twoFactorRequired?: boolean;
+  challengeToken?: string;
 }

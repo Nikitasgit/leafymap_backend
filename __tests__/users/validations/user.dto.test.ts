@@ -44,6 +44,25 @@ describe("updateUserSchema", () => {
     });
 
     expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).not.toHaveProperty("firstname");
+      expect(result.data).not.toHaveProperty("lastname");
+    }
+  });
+
+  it("treats an empty legal name as a clear", () => {
+    const result = updateUserSchema.safeParse({
+      firstname: "",
+      lastname: "Martin",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toMatchObject({
+        firstname: null,
+        lastname: "Martin",
+      });
+    }
   });
 
   it("rejects protected and unknown fields", () => {

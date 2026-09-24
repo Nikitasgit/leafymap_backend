@@ -84,6 +84,21 @@ describe("User auth domain", () => {
     expect(verified.emailVerificationExpiresAt).toBeUndefined();
   });
 
+  it("confirms TOTP and later disables it", () => {
+    const pending = buildUser().startTotpSetup("secret");
+    expect(pending.totpEnabled).toBe(false);
+    expect(pending.totpSecret).toBe("secret");
+
+    const enabled = pending.confirmTotp(["hash-1"]);
+    expect(enabled.totpEnabled).toBe(true);
+    expect(enabled.recoveryCodeHashes).toEqual(["hash-1"]);
+
+    const disabled = enabled.disableTotp();
+    expect(disabled.totpEnabled).toBe(false);
+    expect(disabled.totpSecret).toBeUndefined();
+    expect(disabled.recoveryCodeHashes).toEqual([]);
+  });
+
   it("merges an unverified account with Google", () => {
     const user = buildUser({ emailVerified: false });
     const merged = user.mergeUnverifiedWithGoogle({

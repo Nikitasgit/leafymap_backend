@@ -25,8 +25,12 @@ import type RegisterUseCase from "@src/application/usecases/auth/Register.usecas
 import type RequestPasswordResetUseCase from "@src/application/usecases/auth/RequestPasswordReset.usecase";
 import type ResendVerificationEmailUseCase from "@src/application/usecases/auth/ResendVerificationEmail.usecase";
 import type ResetPasswordUseCase from "@src/application/usecases/auth/ResetPassword.usecase";
+import type SetupTwoFactorUseCase from "@src/application/usecases/auth/SetupTwoFactor.usecase";
 import type SignInUseCase from "@src/application/usecases/auth/SignIn.usecase";
 import type VerifyEmailUseCase from "@src/application/usecases/auth/VerifyEmail.usecase";
+import type VerifyTwoFactorUseCase from "@src/application/usecases/auth/VerifyTwoFactor.usecase";
+import type ConfirmTwoFactorUseCase from "@src/application/usecases/auth/ConfirmTwoFactor.usecase";
+import type DisableTwoFactorUseCase from "@src/application/usecases/auth/DisableTwoFactor.usecase";
 import type AdminResourcesController from "@src/api/controllers/AdminResourcesController";
 import type AdminUsersController from "@src/api/controllers/AdminUsersController";
 import type AnnouncementsController from "@src/api/controllers/AnnouncementsController";
@@ -148,6 +152,7 @@ import type { INotificationCreator } from "@src/domain/interfaces/INotificationC
 import type { INotificationEmailSender } from "@src/domain/interfaces/INotificationEmailSender";
 import type { INotificationRepository } from "@src/domain/interfaces/INotificationRepository";
 import type { IOpaqueTokenFactory } from "@src/domain/interfaces/IOpaqueTokenFactory";
+import type { ITwoFactorService } from "@src/domain/interfaces/ITwoFactorService";
 import type { IPartnershipNotifier } from "@src/domain/interfaces/IPartnershipNotifier";
 import type { IPartnershipRepository } from "@src/domain/interfaces/IPartnershipRepository";
 import type { IPasswordHasher } from "@src/domain/interfaces/IPasswordHasher";
@@ -199,6 +204,7 @@ export interface Cradle {
   authEmailSender: IAuthEmailSender;
   googleIdentityVerifier: IGoogleIdentityVerifier;
   opaqueTokenFactory: IOpaqueTokenFactory;
+  twoFactorService: ITwoFactorService;
   placeOwnershipChecker: IPlaceOwnershipChecker;
   referenceChecker: ICommentReferenceChecker;
   ownershipChecker: IImageReferenceOwnershipChecker;
@@ -245,6 +251,10 @@ export interface Cradle {
   requestPasswordResetUseCase: RequestPasswordResetUseCase;
   resetPasswordUseCase: ResetPasswordUseCase;
   acceptCguUseCase: AcceptCguUseCase;
+  setupTwoFactorUseCase: SetupTwoFactorUseCase;
+  confirmTwoFactorUseCase: ConfirmTwoFactorUseCase;
+  disableTwoFactorUseCase: DisableTwoFactorUseCase;
+  verifyTwoFactorUseCase: VerifyTwoFactorUseCase;
   authController: AuthController;
 
   // Categories

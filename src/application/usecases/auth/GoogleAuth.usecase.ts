@@ -7,17 +7,21 @@ import {
 import { User } from "@src/domain/entities/User.entity";
 import { IGoogleIdentityVerifier } from "@src/domain/interfaces/IGoogleIdentityVerifier";
 import { IJwtTokenIssuer } from "@src/domain/interfaces/IJwtTokenIssuer";
+import { IOpaqueTokenFactory } from "@src/domain/interfaces/IOpaqueTokenFactory";
 import { IPasswordHasher } from "@src/domain/interfaces/IPasswordHasher";
 import { IUserRepository } from "@src/domain/interfaces/IUserRepository";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
 import { ERROR_CODES, NotFoundError } from "@src/shared/errors";
+
+const TWO_FACTOR_CHALLENGE_MINUTES = 5;
 
 class GoogleAuthUseCase {
   constructor(
     private readonly userRepository: IUserRepository,
     private readonly googleIdentityVerifier: IGoogleIdentityVerifier,
     private readonly passwordHasher: IPasswordHasher,
-    private readonly jwtTokenIssuer: IJwtTokenIssuer
+    private readonly jwtTokenIssuer: IJwtTokenIssuer,
+    private readonly opaqueTokenFactory: IOpaqueTokenFactory
   ) {}
 
   private toAuthUser(user: User): GoogleAuthUserOutput {
@@ -35,6 +39,7 @@ class GoogleAuthUseCase {
       bannedAt: user.bannedAt,
       banReason: user.banReason,
       banExpiresAt: user.banExpiresAt,
+      twoFactorEnabled: user.totpEnabled,
     };
   }
 
@@ -48,6 +53,22 @@ class GoogleAuthUseCase {
     }
 
     user.assertCanAuthenticate();
+
+    if (user.totpEnabled) {
+      const challenge = this.opaqueTokenFactory.generate(
+        TWO_FACTOR_CHALLENGE_MINUTES
+      );
+      await this.userRepository.update(
+        user.setTwoFactorChallenge(challenge.tokenHash, challenge.expiresAt)
+      );
+      return {
+        twoFactorRequired: true,
+        challengeToken: challenge.token,
+        ...(mergedUnverifiedAccount !== undefined && {
+          mergedUnverifiedAccount,
+        }),
+      };
+    }
 
     const loggedIn = user.recordLogin();
     await this.userRepository.update(loggedIn);

@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "./loadEnv";
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import { fakerFR as faker } from "@faker-js/faker";
@@ -30,7 +30,7 @@ import {
 import { assertAllowedTarget } from "./safety";
 import type { SeedContext } from "./types";
 
-function resolveMongoUri(target: "local" | "staging"): string {
+function resolveMongoUri(target: "local" | "staging" | "production"): string {
   if (target === "local") {
     const uri =
       process.env.E2E_MONGODB_URI ||
@@ -58,6 +58,7 @@ async function main(): Promise<void> {
   const mongoUri = resolveMongoUri(options.target);
   assertAllowedTarget(mongoUri, options.target, {
     confirmStaging: options.confirmStaging,
+    confirmProduction: options.confirmProduction,
   });
 
   const password =

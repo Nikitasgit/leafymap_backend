@@ -21,6 +21,19 @@ import { FilterQuery, PopulateOptions, Types } from "mongoose";
 
 type UserDocumentWithId = UserDocumentProps & { _id: Types.ObjectId };
 
+const assignNameField = (
+  set: Record<string, unknown>,
+  unset: Record<string, 1>,
+  field: "firstname" | "lastname",
+  value: string | undefined
+) => {
+  if (value) {
+    set[field] = value;
+    return;
+  }
+  unset[field] = 1;
+};
+
 interface UserDetailsQueryConfig {
   select: string;
   populate: PopulateOptions[];
@@ -60,7 +73,7 @@ export const USER_DETAILS_QUERY_CONFIGS: Record<
   },
   current: {
     select:
-      "_id email username firstname lastname userType role acceptedAt website phone description country address followers place image googlePictureUrl userCategory bannedAt banReason banDuration banExpiresAt lastLogin preferences",
+      "_id email username firstname lastname userType role acceptedAt website phone description country address followers place image googlePictureUrl userCategory bannedAt banReason banDuration banExpiresAt lastLogin preferences totpEnabled",
     populate: [
       {
         path: "place",
@@ -93,7 +106,9 @@ const USER_LIST_POPULATE = [
 
 class MongooseUserRepository implements IUserRepository {
   async create(user: User): Promise<UserId> {
-    const document = await UserModel.create(UserMapper.toCreatePersistence(user));
+    const document = await UserModel.create(
+      UserMapper.toCreatePersistence(user)
+    );
     return UserId.from(document._id.toString());
   }
 
@@ -103,8 +118,6 @@ class MongooseUserRepository implements IUserRepository {
     const persistence = UserMapper.toProfilePersistence(user);
     const auth = UserMapper.toAuthPersistence(user);
     const update: Record<string, unknown> = {
-      firstname: persistence.firstname,
-      lastname: persistence.lastname,
       username: persistence.username,
       website: persistence.website,
       phone: persistence.phone,
@@ -129,6 +142,8 @@ class MongooseUserRepository implements IUserRepository {
     }
 
     const unset: Record<string, 1> = { ...auth.unset };
+    assignNameField(update, unset, "firstname", persistence.firstname);
+    assignNameField(update, unset, "lastname", persistence.lastname);
     if (!user.placeId) {
       unset.place = 1;
     } else {
@@ -199,6 +214,16 @@ class MongooseUserRepository implements IUserRepository {
     return UserMapper.toDomain(document as UserDocumentWithId);
   }
 
+  async findByTwoFactorChallengeHash(tokenHash: string): Promise<User | null> {
+    const document = await UserModel.findOne({
+      twoFactorChallengeHash: tokenHash,
+    }).lean();
+    if (!document) {
+      return null;
+    }
+    return UserMapper.toDomain(document as UserDocumentWithId);
+  }
+
   async findDetailsById(
     id: UserId,
     options?: FindUserDetailsOptions
@@ -222,9 +247,7 @@ class MongooseUserRepository implements IUserRepository {
     return UserReadMapper.toDetail(document);
   }
 
-  async findList(
-    filters: UserListFilters
-  ): Promise<UserListItemReadModel[]> {
+  async findList(filters: UserListFilters): Promise<UserListItemReadModel[]> {
     const query: FilterQuery<UserDocumentProps> = { deleted: false };
 
     if (filters.username) {
@@ -287,10 +310,7 @@ class MongooseUserRepository implements IUserRepository {
   }
 
   async unlinkPlace(userId: UserId): Promise<void> {
-    await UserModel.updateOne(
-      { _id: userId },
-      { $unset: { place: 1 } }
-    ).exec();
+    await UserModel.updateOne({ _id: userId }, { $unset: { place: 1 } }).exec();
   }
 }
 

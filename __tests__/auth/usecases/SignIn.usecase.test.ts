@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 import SignInUseCase from "@src/application/usecases/auth/SignIn.usecase";
 import { User } from "@src/domain/entities/User.entity";
 import { IJwtTokenIssuer } from "@src/domain/interfaces/IJwtTokenIssuer";
+import { IOpaqueTokenFactory } from "@src/domain/interfaces/IOpaqueTokenFactory";
 import { IPasswordHasher } from "@src/domain/interfaces/IPasswordHasher";
 import { IUserRepository } from "@src/domain/interfaces/IUserRepository";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
@@ -35,6 +36,7 @@ describe("SignInUseCase", () => {
   let userRepository: jest.Mocked<IUserRepository>;
   let passwordHasher: jest.Mocked<IPasswordHasher>;
   let jwtTokenIssuer: jest.Mocked<IJwtTokenIssuer>;
+  let opaqueTokenFactory: jest.Mocked<IOpaqueTokenFactory>;
   let useCase: SignInUseCase;
 
   beforeEach(() => {
@@ -47,10 +49,20 @@ describe("SignInUseCase", () => {
       issue: jest.fn().mockReturnValue("jwt-token"),
       verify: jest.fn(),
     };
+    opaqueTokenFactory = {
+      generate: jest.fn().mockReturnValue({
+        token: "challenge-token",
+        tokenHash: "challenge-hash",
+        expiresAt: new Date(Date.now() + 5 * 60_000),
+      }),
+      hash: jest.fn(),
+      isExpired: jest.fn(),
+    };
     useCase = new SignInUseCase(
       userRepository,
       passwordHasher,
-      jwtTokenIssuer
+      jwtTokenIssuer,
+      opaqueTokenFactory
     );
   });
 
@@ -68,12 +80,27 @@ describe("SignInUseCase", () => {
     });
 
     expect(result.user.role).toBe("admin");
+    expect(result.user.acceptedAt).toBeUndefined();
     expect(result.token).toBe("jwt-token");
     expect(userRepository.update).toHaveBeenCalledWith(
       expect.objectContaining({
         lastLogin: expect.any(Date),
       })
     );
+  });
+
+  it("returns the CGU acceptance date saved at registration", async () => {
+    const acceptedAt = new Date("2026-01-01T00:00:00.000Z");
+    userRepository.findByEmailOrUsername.mockResolvedValue(
+      buildUser({ acceptedAt })
+    );
+
+    const result = await useCase.execute({
+      identifier: "user@example.com",
+      password: "password",
+    });
+
+    expect(result.user?.acceptedAt).toEqual(acceptedAt);
   });
 
   it("rejects invalid credentials when user is not found", async () => {
@@ -118,6 +145,32 @@ describe("SignInUseCase", () => {
     ).rejects.toMatchObject({
       code: ERROR_CODES.AUTH_EMAIL_NOT_VERIFIED,
     });
+  });
+
+  it("returns a challenge and no session token when two-factor is enabled", async () => {
+    userRepository.findByEmailOrUsername.mockResolvedValue(
+      buildUser({
+        totpEnabled: true,
+        totpSecret: "secret",
+      })
+    );
+
+    const result = await useCase.execute({
+      identifier: "user@test.com",
+      password: "password",
+    });
+
+    expect(result).toEqual({
+      twoFactorRequired: true,
+      challengeToken: "challenge-token",
+    });
+    expect(jwtTokenIssuer.issue).not.toHaveBeenCalled();
+    expect(userRepository.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        twoFactorChallengeHash: "challenge-hash",
+        lastLogin: undefined,
+      })
+    );
   });
 
   it("rejects sign in for an active ban", async () => {

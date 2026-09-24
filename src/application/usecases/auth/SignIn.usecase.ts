@@ -3,15 +3,19 @@ import {
   SignInOutput,
 } from "@src/application/dtos/auth/signIn.dto";
 import { IJwtTokenIssuer } from "@src/domain/interfaces/IJwtTokenIssuer";
+import { IOpaqueTokenFactory } from "@src/domain/interfaces/IOpaqueTokenFactory";
 import { IPasswordHasher } from "@src/domain/interfaces/IPasswordHasher";
 import { IUserRepository } from "@src/domain/interfaces/IUserRepository";
 import { ERROR_CODES, UnauthorizedError } from "@src/shared/errors";
+
+const TWO_FACTOR_CHALLENGE_MINUTES = 5;
 
 class SignInUseCase {
   constructor(
     private readonly userRepository: IUserRepository,
     private readonly passwordHasher: IPasswordHasher,
-    private readonly jwtTokenIssuer: IJwtTokenIssuer
+    private readonly jwtTokenIssuer: IJwtTokenIssuer,
+    private readonly opaqueTokenFactory: IOpaqueTokenFactory
   ) {}
 
   async execute(params: SignInInput): Promise<SignInOutput> {
@@ -38,6 +42,19 @@ class SignInUseCase {
 
     user.assertCanAuthenticate({ requireEmailVerified: true });
 
+    if (user.totpEnabled) {
+      const challenge = this.opaqueTokenFactory.generate(
+        TWO_FACTOR_CHALLENGE_MINUTES
+      );
+      await this.userRepository.update(
+        user.setTwoFactorChallenge(challenge.tokenHash, challenge.expiresAt)
+      );
+      return {
+        twoFactorRequired: true,
+        challengeToken: challenge.token,
+      };
+    }
+
     const loggedIn = user.recordLogin();
     await this.userRepository.update(loggedIn);
 
@@ -54,6 +71,8 @@ class SignInUseCase {
         username: user.username,
         userType: user.userType,
         role: user.role,
+        acceptedAt: user.acceptedAt,
+        twoFactorEnabled: user.totpEnabled,
       },
       token,
     };

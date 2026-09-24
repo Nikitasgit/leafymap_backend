@@ -28,20 +28,24 @@ export function isProductionMongoHost(host: string): boolean {
 export function assertAllowedTarget(
   mongoUri: string,
   target: SeedTarget,
-  options: { confirmStaging: boolean; nodeEnv?: string }
+  options: {
+    confirmStaging: boolean;
+    confirmProduction: boolean;
+    nodeEnv?: string;
+  }
 ): void {
   const nodeEnv = options.nodeEnv ?? process.env.NODE_ENV;
-  if (nodeEnv === "production") {
+  const host = extractMongoHost(mongoUri);
+
+  if (nodeEnv === "production" && target !== "production") {
     throw new Error(
-      "Refusing to seed while NODE_ENV=production. This script never targets prod."
+      "Refusing to seed while NODE_ENV=production. Use --target production --confirm production."
     );
   }
 
-  const host = extractMongoHost(mongoUri);
-
-  if (isProductionMongoHost(host)) {
+  if (target !== "production" && isProductionMongoHost(host)) {
     throw new Error(
-      `Refusing to seed production MongoDB host "${host}". This script never targets prod.`
+      `Refusing to seed production MongoDB host "${host}" with --target ${target}.`
     );
   }
 
@@ -54,19 +58,36 @@ export function assertAllowedTarget(
     return;
   }
 
-  if (!options.confirmStaging) {
-    throw new Error("Target staging requires `--confirm staging`.");
+  if (target === "staging") {
+    if (!options.confirmStaging) {
+      throw new Error("Target staging requires `--confirm staging`.");
+    }
+
+    if (isLocalMongoHost(host)) {
+      throw new Error(
+        `Target "staging" points at a local Mongo host "${host}". Use --target local instead.`
+      );
+    }
+
+    if (!isStagingMongoHost(host)) {
+      throw new Error(
+        `Target "staging" requires a Mongo host containing "staging". Got host "${host}".`
+      );
+    }
+    return;
   }
 
-  if (isLocalMongoHost(host)) {
-    throw new Error(
-      `Target "staging" points at a local Mongo host "${host}". Use --target local instead.`
-    );
+  if (!options.confirmProduction) {
+    throw new Error("Target production requires `--confirm production`.");
   }
 
-  if (!isStagingMongoHost(host)) {
+  if (
+    isLocalMongoHost(host) ||
+    isStagingMongoHost(host) ||
+    !isProductionMongoHost(host)
+  ) {
     throw new Error(
-      `Target "staging" requires a Mongo host containing "staging". Got host "${host}".`
+      `Target "production" requires a Mongo host containing "production" or "prod." (not a local or staging host). Got host "${host}".`
     );
   }
 }

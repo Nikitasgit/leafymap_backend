@@ -69,3 +69,21 @@ export const resendVerificationEmailSchema = z.object({
 export const acceptCguSchema = z.object({
   emailNotifications: z.boolean().optional(),
 });
+
+const twoFactorCodeSchema = z
+  .string()
+  .min(1, "Le code est requis")
+  .max(20, "Le code est trop long");
+
+export const confirmTwoFactorSchema = z.object({
+  code: twoFactorCodeSchema,
+});
+
+export const disableTwoFactorSchema = z.object({
+  code: twoFactorCodeSchema,
+});
+
+export const verifyTwoFactorSchema = z.object({
+  challengeToken: z.string().min(1, "Le jeton de défi est requis"),
+  code: twoFactorCodeSchema,
+});

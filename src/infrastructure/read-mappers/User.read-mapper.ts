@@ -16,7 +16,9 @@ export class UserReadMapper {
   }
 
   static toDetail(doc: unknown): UserDetailsReadModel {
-    const user = normalizeLeanDocument<UserDetailsReadModel>(doc);
+    const user = normalizeLeanDocument<
+      UserDetailsReadModel & { totpEnabled?: boolean }
+    >(doc);
     return {
       ...UserReadMapper.mapListFields(user),
       role: user.role,
@@ -31,6 +33,9 @@ export class UserReadMapper {
       lastLogin: user.lastLogin,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      ...(typeof user.totpEnabled === "boolean" && {
+        twoFactorEnabled: user.totpEnabled,
+      }),
     };
   }
 

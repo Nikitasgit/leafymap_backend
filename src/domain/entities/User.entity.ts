@@ -61,14 +61,19 @@ export interface ReconstituteUserParams {
   resetPasswordExpiresAt?: Date;
   googleId?: string;
   googlePictureUrl?: string;
+  totpSecret?: string;
+  totpEnabled?: boolean;
+  recoveryCodeHashes?: string[];
+  twoFactorChallengeHash?: string;
+  twoFactorChallengeExpiresAt?: Date;
   preferences: UserPreferences;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface UpdateUserProfileParams {
-  firstname?: string;
-  lastname?: string;
+  firstname?: string | null;
+  lastname?: string | null;
   username?: string;
   userCategoryId?: UserCategoryId;
   website?: string;
@@ -120,6 +125,11 @@ type UserProps = {
   resetPasswordExpiresAt: Date | undefined;
   googleId: string | undefined;
   googlePictureUrl: string | undefined;
+  totpSecret: string | undefined;
+  totpEnabled: boolean;
+  recoveryCodeHashes: string[];
+  twoFactorChallengeHash: string | undefined;
+  twoFactorChallengeExpiresAt: Date | undefined;
   preferences: UserPreferences;
   createdAt: Date;
   updatedAt: Date;
@@ -159,6 +169,11 @@ export class User {
     public readonly resetPasswordExpiresAt: Date | undefined,
     public readonly googleId: string | undefined,
     public readonly googlePictureUrl: string | undefined,
+    public readonly totpSecret: string | undefined,
+    public readonly totpEnabled: boolean,
+    public readonly recoveryCodeHashes: string[],
+    public readonly twoFactorChallengeHash: string | undefined,
+    public readonly twoFactorChallengeExpiresAt: Date | undefined,
     public readonly preferences: UserPreferences,
     public readonly createdAt: Date,
     public readonly updatedAt: Date
@@ -198,6 +213,11 @@ export class User {
       props.resetPasswordExpiresAt,
       props.googleId,
       props.googlePictureUrl,
+      props.totpSecret,
+      props.totpEnabled,
+      props.recoveryCodeHashes,
+      props.twoFactorChallengeHash,
+      props.twoFactorChallengeExpiresAt,
       props.preferences,
       props.createdAt,
       props.updatedAt
@@ -238,6 +258,11 @@ export class User {
       resetPasswordExpiresAt: this.resetPasswordExpiresAt,
       googleId: this.googleId,
       googlePictureUrl: this.googlePictureUrl,
+      totpSecret: this.totpSecret,
+      totpEnabled: this.totpEnabled,
+      recoveryCodeHashes: this.recoveryCodeHashes,
+      twoFactorChallengeHash: this.twoFactorChallengeHash,
+      twoFactorChallengeExpiresAt: this.twoFactorChallengeExpiresAt,
       preferences: this.preferences,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
@@ -280,6 +305,11 @@ export class User {
       resetPasswordExpiresAt: undefined,
       googleId: undefined,
       googlePictureUrl: undefined,
+      totpSecret: undefined,
+      totpEnabled: false,
+      recoveryCodeHashes: [],
+      twoFactorChallengeHash: undefined,
+      twoFactorChallengeExpiresAt: undefined,
       preferences: UserPreferences.from({
         emailNotifications: params.emailNotifications === true,
       }),
@@ -323,6 +353,11 @@ export class User {
       resetPasswordExpiresAt: undefined,
       googleId: params.googleId,
       googlePictureUrl: params.googlePictureUrl,
+      totpSecret: undefined,
+      totpEnabled: false,
+      recoveryCodeHashes: [],
+      twoFactorChallengeHash: undefined,
+      twoFactorChallengeExpiresAt: undefined,
       preferences: UserPreferences.from({ emailNotifications: false }),
       createdAt: now,
       updatedAt: now,
@@ -363,6 +398,11 @@ export class User {
       resetPasswordExpiresAt: params.resetPasswordExpiresAt,
       googleId: params.googleId,
       googlePictureUrl: params.googlePictureUrl,
+      totpSecret: params.totpSecret,
+      totpEnabled: params.totpEnabled === true,
+      recoveryCodeHashes: params.recoveryCodeHashes ?? [],
+      twoFactorChallengeHash: params.twoFactorChallengeHash,
+      twoFactorChallengeExpiresAt: params.twoFactorChallengeExpiresAt,
       preferences: params.preferences,
       createdAt: params.createdAt,
       updatedAt: params.updatedAt,
@@ -372,8 +412,13 @@ export class User {
   updateProfile(params: UpdateUserProfileParams): User {
     return this.clone({
       firstname:
-        params.firstname !== undefined ? params.firstname : this.firstname,
-      lastname: params.lastname !== undefined ? params.lastname : this.lastname,
+        params.firstname === undefined
+          ? this.firstname
+          : params.firstname ?? undefined,
+      lastname:
+        params.lastname === undefined
+          ? this.lastname
+          : params.lastname ?? undefined,
       username: params.username !== undefined ? params.username : this.username,
       userCategoryId:
         params.userCategoryId !== undefined
@@ -544,6 +589,63 @@ export class User {
   withEmailNotificationPreference(emailNotifications: boolean): User {
     return this.clone({
       preferences: UserPreferences.from({ emailNotifications }),
+      updatedAt: new Date(),
+    });
+  }
+
+  startTotpSetup(secret: string): User {
+    return this.clone({
+      totpSecret: secret,
+      totpEnabled: false,
+      recoveryCodeHashes: [],
+      twoFactorChallengeHash: undefined,
+      twoFactorChallengeExpiresAt: undefined,
+      updatedAt: new Date(),
+    });
+  }
+
+  confirmTotp(recoveryCodeHashes: string[]): User {
+    return this.clone({
+      totpEnabled: true,
+      recoveryCodeHashes,
+      twoFactorChallengeHash: undefined,
+      twoFactorChallengeExpiresAt: undefined,
+      updatedAt: new Date(),
+    });
+  }
+
+  disableTotp(): User {
+    return this.clone({
+      totpSecret: undefined,
+      totpEnabled: false,
+      recoveryCodeHashes: [],
+      twoFactorChallengeHash: undefined,
+      twoFactorChallengeExpiresAt: undefined,
+      updatedAt: new Date(),
+    });
+  }
+
+  setTwoFactorChallenge(tokenHash: string, expiresAt: Date): User {
+    return this.clone({
+      twoFactorChallengeHash: tokenHash,
+      twoFactorChallengeExpiresAt: expiresAt,
+      updatedAt: new Date(),
+    });
+  }
+
+  clearTwoFactorChallenge(): User {
+    return this.clone({
+      twoFactorChallengeHash: undefined,
+      twoFactorChallengeExpiresAt: undefined,
+      updatedAt: new Date(),
+    });
+  }
+
+  consumeRecoveryCode(codeHash: string): User {
+    return this.clone({
+      recoveryCodeHashes: this.recoveryCodeHashes.filter(
+        (hash) => hash !== codeHash
+      ),
       updatedAt: new Date(),
     });
   }

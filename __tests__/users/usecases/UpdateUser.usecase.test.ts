@@ -78,6 +78,44 @@ describe("UpdateUserUseCase", () => {
     expect(updatedUser.preferences.emailNotifications).toBe(true);
   });
 
+  it("clears a blank legal name without touching the other one", async () => {
+    const userId = mockObjectId();
+    userRepository.findById.mockResolvedValue(
+      buildUser(userId).updateProfile({
+        firstname: "alice",
+        lastname: "martin",
+      }),
+    );
+
+    await useCase.execute({
+      userId,
+      updateData: { firstname: "   " },
+    });
+
+    const updatedUser = userRepository.update.mock.calls[0][0];
+    expect(updatedUser.firstname).toBeUndefined();
+    expect(updatedUser.lastname).toBe("martin");
+  });
+
+  it("keeps existing names when the update omits them", async () => {
+    const userId = mockObjectId();
+    userRepository.findById.mockResolvedValue(
+      buildUser(userId).updateProfile({
+        firstname: "alice",
+        lastname: "martin",
+      }),
+    );
+
+    await useCase.execute({
+      userId,
+      updateData: { description: "hello" },
+    });
+
+    const updatedUser = userRepository.update.mock.calls[0][0];
+    expect(updatedUser.firstname).toBe("alice");
+    expect(updatedUser.lastname).toBe("martin");
+  });
+
   it("returns a token when userType changes", async () => {
     const userId = mockObjectId();
     const user = buildUser(userId);
