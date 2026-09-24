@@ -3,8 +3,8 @@ import { UserType } from "@src/domain/entities/User.entity";
 export interface UpdateUserInput {
   userId: string;
   updateData: {
-    firstname?: string;
-    lastname?: string;
+    firstname?: string | null;
+    lastname?: string | null;
     username?: string;
     userCategory?: string;
     website?: string;

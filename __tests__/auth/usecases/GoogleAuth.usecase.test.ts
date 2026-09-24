@@ -3,6 +3,7 @@ import GoogleAuthUseCase from "@src/application/usecases/auth/GoogleAuth.usecase
 import { User } from "@src/domain/entities/User.entity";
 import { IGoogleIdentityVerifier } from "@src/domain/interfaces/IGoogleIdentityVerifier";
 import { IJwtTokenIssuer } from "@src/domain/interfaces/IJwtTokenIssuer";
+import { IOpaqueTokenFactory } from "@src/domain/interfaces/IOpaqueTokenFactory";
 import { IPasswordHasher } from "@src/domain/interfaces/IPasswordHasher";
 import { IUserRepository } from "@src/domain/interfaces/IUserRepository";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
@@ -38,6 +39,7 @@ const createRepository = (): jest.Mocked<IUserRepository> => ({
   findByGoogleId: jest.fn(),
   findByEmailVerificationTokenHash: jest.fn(),
   findByResetPasswordTokenHash: jest.fn(),
+  findByTwoFactorChallengeHash: jest.fn(),
   findDetailsById: jest.fn(),
   findList: jest.fn(),
   findAdminByEmail: jest.fn(),
@@ -52,6 +54,7 @@ describe("GoogleAuthUseCase", () => {
   let verifier: jest.Mocked<IGoogleIdentityVerifier>;
   let hasher: jest.Mocked<IPasswordHasher>;
   let tokenIssuer: jest.Mocked<IJwtTokenIssuer>;
+  let opaqueTokenFactory: jest.Mocked<IOpaqueTokenFactory>;
   let useCase: GoogleAuthUseCase;
 
   beforeEach(() => {
@@ -59,11 +62,21 @@ describe("GoogleAuthUseCase", () => {
     verifier = { verifyIdToken: jest.fn() };
     hasher = { hash: jest.fn(), compare: jest.fn() };
     tokenIssuer = { issue: jest.fn(), verify: jest.fn() };
+    opaqueTokenFactory = {
+      generate: jest.fn().mockReturnValue({
+        token: "challenge-token",
+        tokenHash: "challenge-hash",
+        expiresAt: new Date(Date.now() + 5 * 60_000),
+      }),
+      hash: jest.fn(),
+      isExpired: jest.fn(),
+    };
     useCase = new GoogleAuthUseCase(
       repository,
       verifier,
       hasher,
-      tokenIssuer
+      tokenIssuer,
+      opaqueTokenFactory
     );
     verifier.verifyIdToken.mockResolvedValue({
       email: "alice@example.com",

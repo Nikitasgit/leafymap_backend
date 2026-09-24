@@ -5,19 +5,21 @@ import {
 import type { SeedCliOptions, SeedTarget } from "./types";
 
 const USAGE = `Usage:
-  npm run seed:ecosystem -- --target local|staging [options]
+  npm run seed:ecosystem -- --target local|staging|production [options]
 
 Options:
-  --target local|staging   Required. local = localhost/docker Mongo, staging = Atlas staging
-  --confirm staging        Required with --target staging
-  --reset                  Delete previous @leafymap.seed data (and S3 images/seed/) first
-  --skip-images            Skip S3 uploads (no profile/event photos)
-  --users <n>              User count (default ${DEFAULT_USER_COUNT})
-  --events <n>             Event count (default ${DEFAULT_EVENT_COUNT})
+  --target local|staging|production   Required. local = localhost/docker Mongo, staging = Atlas staging, production = Atlas prod
+  --confirm staging                   Required with --target staging
+  --confirm production                Required with --target production
+  --reset                             Delete previous @leafymap.seed data (and S3 images/seed/) first
+  --skip-images                       Skip S3 uploads (no profile/event photos)
+  --users <n>                         User count (default ${DEFAULT_USER_COUNT})
+  --events <n>                        Event count (default ${DEFAULT_EVENT_COUNT})
 
 Examples:
   npm run seed:ecosystem -- --target local --reset
   npm run seed:ecosystem -- --target staging --confirm staging --reset
+  npm run seed:ecosystem -- --target production --confirm production --reset
   npm run seed:ecosystem -- --target local --skip-images --users 50 --events 200
 `;
 
@@ -49,7 +51,11 @@ export function parseArgs(argv: string[]): SeedCliOptions {
   }
 
   const targetRaw = readFlagValue(args, "--target");
-  if (targetRaw !== "local" && targetRaw !== "staging") {
+  if (
+    targetRaw !== "local" &&
+    targetRaw !== "staging" &&
+    targetRaw !== "production"
+  ) {
     throw new Error(`--target is required.\n\n${USAGE}`);
   }
   const target: SeedTarget = targetRaw;
@@ -57,6 +63,8 @@ export function parseArgs(argv: string[]): SeedCliOptions {
   const confirmValue = readFlagValue(args, "--confirm");
   const confirmStaging =
     args.includes("--confirm") && confirmValue === "staging";
+  const confirmProduction =
+    args.includes("--confirm") && confirmValue === "production";
 
   if (target === "staging" && !confirmStaging) {
     throw new Error(
@@ -65,9 +73,17 @@ export function parseArgs(argv: string[]): SeedCliOptions {
     );
   }
 
+  if (target === "production" && !confirmProduction) {
+    throw new Error(
+      "Production seed requires `--confirm production` so it cannot run by accident.\n\n" +
+        USAGE
+    );
+  }
+
   return {
     target,
     confirmStaging,
+    confirmProduction,
     reset: args.includes("--reset"),
     skipImages: args.includes("--skip-images"),
     userCount: parsePositiveInt(

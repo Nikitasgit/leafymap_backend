@@ -75,17 +75,21 @@ npm run seed:ecosystem -- --target local --reset
 # Seed Atlas staging (confirmation obligatoire)
 npm run seed:ecosystem -- --target staging --confirm staging --reset
 
+# Seed Atlas production (charge .env.prod, confirmation obligatoire)
+npm run seed:ecosystem -- --target production --confirm production --reset
+
 # Itération rapide sans upload S3
 npm run seed:ecosystem -- --target local --skip-images --users 50 --events 200
 ```
 
-### Seed écosystème (local / staging)
+### Seed écosystème (local / staging / production)
 
-Script `scripts/seed-ecosystem/` : ~1500 utilisateurs, lieux, ~15000 événements, invitations, réservations, follows, favoris et partenariats, répartis entre grandes villes et petites agglomérations (Beaune, Uzès, Arles, Colmar, Annecy, …). **Jamais la production.**
+Script `scripts/seed-ecosystem/` : ~1500 utilisateurs, lieux, ~15000 événements, invitations, réservations, follows, favoris et partenariats, répartis entre grandes villes et petites agglomérations (Beaune, Uzès, Arles, Colmar, Annecy, …).
 
 - Prérequis : `npm run seed:categories`
 - Cible `local` : utilise `E2E_MONGODB_URI` si défini, sinon `MONGODB_URI` (localhost / `mongo`)
 - Cible `staging` : `MONGODB_URI` Atlas dont l’hôte contient `staging`, plus `--confirm staging`
+- Cible `production` : le script charge `.env.prod` et écrase `MONGODB_URI` déjà présent dans l’environnement. L’hôte doit contenir `production` ou `prod.`, et `--confirm production` est obligatoire. Refusée si l’hôte est local ou staging.
 - `--reset` : supprime uniquement les comptes `@leafymap.seed` et les objets S3 `images/seed/`
 - Mot de passe commun : `SEED_USER_PASSWORD` ou défaut `SeedUser!2026`
 - Comptes démo : `boulangerie.martin@leafymap.seed`, `le.bar.perche@leafymap.seed`, `atelier.luma@leafymap.seed`

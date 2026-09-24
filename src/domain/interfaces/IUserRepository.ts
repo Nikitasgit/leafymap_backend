@@ -28,6 +28,7 @@ export interface IUserRepository {
   findByGoogleId(googleId: string): Promise<User | null>;
   findByEmailVerificationTokenHash(tokenHash: string): Promise<User | null>;
   findByResetPasswordTokenHash(tokenHash: string): Promise<User | null>;
+  findByTwoFactorChallengeHash(tokenHash: string): Promise<User | null>;
   findDetailsById(
     id: UserId,
     options?: FindUserDetailsOptions

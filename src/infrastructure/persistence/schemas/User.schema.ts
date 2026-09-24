@@ -46,6 +46,11 @@ export interface UserDocumentProps {
   resetPasswordExpiresAt?: Date;
   googleId?: string;
   googlePictureUrl?: string;
+  totpSecret?: string;
+  totpEnabled?: boolean;
+  recoveryCodeHashes?: string[];
+  twoFactorChallengeHash?: string;
+  twoFactorChallengeExpiresAt?: Date;
   preferences?: UserPreferencesDocument;
   createdAt?: Date;
   updatedAt?: Date;
@@ -108,6 +113,11 @@ const userSchema = new Schema<UserDocumentProps>(
     resetPasswordExpiresAt: { type: Date },
     googleId: { type: String, sparse: true },
     googlePictureUrl: { type: String },
+    totpSecret: { type: String },
+    totpEnabled: { type: Boolean, default: false },
+    recoveryCodeHashes: { type: [String], default: [] },
+    twoFactorChallengeHash: { type: String },
+    twoFactorChallengeExpiresAt: { type: Date },
     preferences: { type: userPreferencesSchema, default: () => ({}) },
   },
   { timestamps: true }

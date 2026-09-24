@@ -14,6 +14,16 @@ import {
   ValidationError,
 } from "@src/shared/errors";
 
+const normalizeOptionalName = (
+  value: string | null | undefined,
+): string | null | undefined => {
+  if (value == null) {
+    return value;
+  }
+  const normalized = value.trim().toLowerCase();
+  return normalized.length > 0 ? normalized : null;
+};
+
 const toUserPreferences = (value: unknown): UserPreferences | undefined => {
   if (value === undefined) {
     return undefined;
@@ -53,14 +63,8 @@ class UpdateUserUseCase {
 
     const { updateData } = params;
 
-    let firstname = updateData.firstname;
-    let lastname = updateData.lastname;
-    if (firstname) {
-      firstname = firstname.toLowerCase().trim();
-    }
-    if (lastname) {
-      lastname = lastname.toLowerCase().trim();
-    }
+    const firstname = normalizeOptionalName(updateData.firstname);
+    const lastname = normalizeOptionalName(updateData.lastname);
 
     const updated = existing.updateProfile({
       firstname,

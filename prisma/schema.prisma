@@ -45,7 +45,7 @@ model AnnouncementTranslation {
   id             String             @id @default(cuid())
   announcementId String             @map("announcement_id")
   announcement   Announcement       @relation(fields: [announcementId], references: [id], onDelete: Cascade)
-  locale         AnnouncementLocale
+  locale         AnnouncementLocale     
   title          String
   body           String
   ctaLabel       String?            @map("cta_label")

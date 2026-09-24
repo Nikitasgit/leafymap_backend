@@ -75,4 +75,5 @@ export interface UserDetailsReadModel extends UserListItemReadModel {
   lastLogin?: string | Date;
   createdAt?: string | Date;
   updatedAt?: string | Date;
+  twoFactorEnabled?: boolean;
 }

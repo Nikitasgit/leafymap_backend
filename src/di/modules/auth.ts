@@ -1,17 +1,22 @@
 import { asClass, AwilixContainer } from "awilix";
 import AuthController from "@src/api/controllers/AuthController";
 import AcceptCguUseCase from "@src/application/usecases/auth/AcceptCgu.usecase";
+import ConfirmTwoFactorUseCase from "@src/application/usecases/auth/ConfirmTwoFactor.usecase";
+import DisableTwoFactorUseCase from "@src/application/usecases/auth/DisableTwoFactor.usecase";
 import GoogleAuthUseCase from "@src/application/usecases/auth/GoogleAuth.usecase";
 import RegisterUseCase from "@src/application/usecases/auth/Register.usecase";
 import RequestPasswordResetUseCase from "@src/application/usecases/auth/RequestPasswordReset.usecase";
 import ResendVerificationEmailUseCase from "@src/application/usecases/auth/ResendVerificationEmail.usecase";
 import ResetPasswordUseCase from "@src/application/usecases/auth/ResetPassword.usecase";
+import SetupTwoFactorUseCase from "@src/application/usecases/auth/SetupTwoFactor.usecase";
 import SignInUseCase from "@src/application/usecases/auth/SignIn.usecase";
 import VerifyEmailUseCase from "@src/application/usecases/auth/VerifyEmail.usecase";
+import VerifyTwoFactorUseCase from "@src/application/usecases/auth/VerifyTwoFactor.usecase";
 import AuthEmailSenderAdapter from "@src/infrastructure/adapters/AuthEmailSender.adapter";
 import BcryptPasswordHasherAdapter from "@src/infrastructure/adapters/BcryptPasswordHasher.adapter";
 import GoogleIdentityVerifierAdapter from "@src/infrastructure/adapters/GoogleIdentityVerifier.adapter";
 import OpaqueTokenFactoryAdapter from "@src/infrastructure/adapters/OpaqueTokenFactory.adapter";
+import TwoFactorServiceAdapter from "@src/infrastructure/adapters/TwoFactorService.adapter";
 import type { Cradle } from "@src/di/cradle";
 
 export const registerAuthModule = (
@@ -22,6 +27,7 @@ export const registerAuthModule = (
     authEmailSender: asClass(AuthEmailSenderAdapter).singleton(),
     googleIdentityVerifier: asClass(GoogleIdentityVerifierAdapter).singleton(),
     opaqueTokenFactory: asClass(OpaqueTokenFactoryAdapter).singleton(),
+    twoFactorService: asClass(TwoFactorServiceAdapter).singleton(),
 
     registerUseCase: asClass(RegisterUseCase).singleton(),
     signInUseCase: asClass(SignInUseCase).singleton(),
@@ -35,6 +41,10 @@ export const registerAuthModule = (
     ).singleton(),
     resetPasswordUseCase: asClass(ResetPasswordUseCase).singleton(),
     acceptCguUseCase: asClass(AcceptCguUseCase).singleton(),
+    setupTwoFactorUseCase: asClass(SetupTwoFactorUseCase).singleton(),
+    confirmTwoFactorUseCase: asClass(ConfirmTwoFactorUseCase).singleton(),
+    disableTwoFactorUseCase: asClass(DisableTwoFactorUseCase).singleton(),
+    verifyTwoFactorUseCase: asClass(VerifyTwoFactorUseCase).singleton(),
 
     authController: asClass(AuthController).singleton(),
   });

@@ -54,6 +54,11 @@ export class UserMapper {
       resetPasswordExpiresAt: doc.resetPasswordExpiresAt,
       googleId: doc.googleId,
       googlePictureUrl: doc.googlePictureUrl,
+      totpSecret: doc.totpSecret,
+      totpEnabled: doc.totpEnabled === true,
+      recoveryCodeHashes: doc.recoveryCodeHashes ?? [],
+      twoFactorChallengeHash: doc.twoFactorChallengeHash,
+      twoFactorChallengeExpiresAt: doc.twoFactorChallengeExpiresAt,
       preferences: UserPreferences.from(doc.preferences ?? {}),
       createdAt: doc.createdAt ?? new Date(),
       updatedAt: doc.updatedAt ?? new Date(),
@@ -208,6 +213,25 @@ export class UserMapper {
       set.resetPasswordExpiresAt = user.resetPasswordExpiresAt;
     } else {
       unset.resetPasswordExpiresAt = 1;
+    }
+
+    set.totpEnabled = user.totpEnabled;
+    set.recoveryCodeHashes = user.recoveryCodeHashes;
+
+    if (user.totpSecret !== undefined) {
+      set.totpSecret = user.totpSecret;
+    } else {
+      unset.totpSecret = 1;
+    }
+    if (user.twoFactorChallengeHash !== undefined) {
+      set.twoFactorChallengeHash = user.twoFactorChallengeHash;
+    } else {
+      unset.twoFactorChallengeHash = 1;
+    }
+    if (user.twoFactorChallengeExpiresAt !== undefined) {
+      set.twoFactorChallengeExpiresAt = user.twoFactorChallengeExpiresAt;
+    } else {
+      unset.twoFactorChallengeExpiresAt = 1;
     }
 
     return { set, unset };

@@ -52,8 +52,7 @@ export const EVENT_LIST_POPULATE: PopulateOptions[] = [
   },
 ];
 
-const EVENT_DETAIL_SELECT =
-  `${EVENT_LIST_SELECT} rating createdAt updatedAt deleted`;
+const EVENT_DETAIL_SELECT = `${EVENT_LIST_SELECT} rating createdAt updatedAt deleted`;
 const EVENT_DETAIL_POPULATE: PopulateOptions[] = [
   ...EVENT_LIST_POPULATE,
   {
@@ -89,9 +88,7 @@ class MongooseEventRepository implements IEventRepository {
     ).exec();
   }
 
-  async findDetailsById(
-    id: EventId
-  ): Promise<EventDetailsReadModel | null> {
+  async findDetailsById(id: EventId): Promise<EventDetailsReadModel | null> {
     const event = await EventModel.findById(id)
       .select(EVENT_DETAIL_SELECT)
       .populate(EVENT_DETAIL_POPULATE)
@@ -99,9 +96,7 @@ class MongooseEventRepository implements IEventRepository {
     return event ? EventReadMapper.toDetail(event) : null;
   }
 
-  async findList(
-    filters: EventListFilters
-  ): Promise<EventListItemReadModel[]> {
+  async findList(filters: EventListFilters): Promise<EventListItemReadModel[]> {
     const query: FilterQuery<EventDocumentProps> = { deleted: false };
 
     if (filters.placeId) {
@@ -307,10 +302,7 @@ class MongooseEventRepository implements IEventRepository {
     await EventModel.updateOne({ _id: id }, { $set: { rating } }).exec();
   }
 
-  async softDelete(
-    id: EventId,
-    params: SoftDeleteEventParams
-  ): Promise<void> {
+  async softDelete(id: EventId, params: SoftDeleteEventParams): Promise<void> {
     await EventModel.updateOne(
       { _id: id },
       buildSoftDeleteUpdate({
@@ -372,7 +364,7 @@ class MongooseEventRepository implements IEventRepository {
     limit = 50
   ): Promise<AdminEventSummaryReadModel[]> {
     const events = await EventModel.find({ user: userId })
-      .select("_id name status lifecycleStatus deleted createdAt")
+      .select("_id name status lifecycleStatus deleted savdAt")
       .sort({ createdAt: -1 })
       .limit(limit)
       .lean();

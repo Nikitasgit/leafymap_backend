@@ -34,6 +34,29 @@ const createAuthRoutes = ({
     rateLimiterMiddleware.auth(),
     authController.resetPassword()
   );
+  router.post(
+    "/two-factor/setup",
+    rateLimiterMiddleware.auth(),
+    authMiddleware.verify(),
+    authController.setupTwoFactor()
+  );
+  router.post(
+    "/two-factor/confirm",
+    rateLimiterMiddleware.auth(),
+    authMiddleware.verify(),
+    authController.confirmTwoFactor()
+  );
+  router.post(
+    "/two-factor/disable",
+    rateLimiterMiddleware.auth(),
+    authMiddleware.verify(),
+    authController.disableTwoFactor()
+  );
+  router.post(
+    "/two-factor/verify",
+    rateLimiterMiddleware.auth(),
+    authController.verifyTwoFactor()
+  );
 
   return router;
 };

@@ -16,10 +16,13 @@ export interface GoogleAuthUserOutput {
   bannedAt?: Date;
   banReason?: string;
   banExpiresAt?: Date;
+  twoFactorEnabled?: boolean;
 }
 
 export interface GoogleAuthOutput {
-  user: GoogleAuthUserOutput;
-  token: string;
+  user?: GoogleAuthUserOutput;
+  token?: string;
+  twoFactorRequired?: boolean;
+  challengeToken?: string;
   mergedUnverifiedAccount?: boolean;
 }
