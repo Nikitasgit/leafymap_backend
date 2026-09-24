@@ -2,50 +2,51 @@
 CREATE SCHEMA IF NOT EXISTS "public";
 
 -- CreateEnum
-CREATE TYPE "announcement_status" AS ENUM ('draft', 'published', 'archived');
+CREATE TYPE "AnnouncementStatus" AS ENUM ('draft', 'published', 'archived');
 
 -- CreateEnum
-CREATE TYPE "announcement_locale" AS ENUM ('fr', 'en');
+CREATE TYPE "AnnouncementLocale" AS ENUM ('fr', 'en');
 
 -- CreateTable
-CREATE TABLE "announcement" (
+CREATE TABLE "Announcement" (
     "id" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
-    "status" "announcement_status" NOT NULL DEFAULT 'draft',
+    "status" "AnnouncementStatus" NOT NULL DEFAULT 'draft',
     "priority" INTEGER NOT NULL DEFAULT 0,
-    "starts_at" TIMESTAMP(3),
-    "ends_at" TIMESTAMP(3),
-    "deleted_at" TIMESTAMP(3),
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "startsAt" TIMESTAMP(3),
+    "endsAt" TIMESTAMP(3),
+    "deletedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "announcement_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Announcement_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "announcement_translation" (
+CREATE TABLE "AnnouncementTranslation" (
     "id" TEXT NOT NULL,
-    "announcement_id" TEXT NOT NULL,
-    "locale" "announcement_locale" NOT NULL,
+    "announcementId" TEXT NOT NULL,
+    "locale" "AnnouncementLocale" NOT NULL,
     "title" TEXT NOT NULL,
     "body" TEXT NOT NULL,
-    "cta_label" TEXT,
-    "cta_href" TEXT,
+    "ctaLabel" TEXT,
+    "ctaHref" TEXT,
 
-    CONSTRAINT "announcement_translation_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "AnnouncementTranslation_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "announcement_slug_key" ON "announcement"("slug");
+CREATE UNIQUE INDEX "Announcement_slug_key" ON "Announcement"("slug");
 
 -- CreateIndex
-CREATE INDEX "announcement_status_starts_at_ends_at_idx" ON "announcement"("status", "starts_at", "ends_at");
+CREATE INDEX "Announcement_status_startsAt_endsAt_idx" ON "Announcement"("status", "startsAt", "endsAt");
 
 -- CreateIndex
-CREATE INDEX "announcement_deleted_at_idx" ON "announcement"("deleted_at");
+CREATE INDEX "Announcement_deletedAt_idx" ON "Announcement"("deletedAt");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "announcement_translation_announcement_id_locale_key" ON "announcement_translation"("announcement_id", "locale");
+CREATE UNIQUE INDEX "AnnouncementTranslation_announcementId_locale_key" ON "AnnouncementTranslation"("announcementId", "locale");
 
 -- AddForeignKey
-ALTER TABLE "announcement_translation" ADD CONSTRAINT "announcement_translation_announcement_id_fkey" FOREIGN KEY ("announcement_id") REFERENCES "announcement"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "AnnouncementTranslation" ADD CONSTRAINT "AnnouncementTranslation_announcementId_fkey" FOREIGN KEY ("announcementId") REFERENCES "Announcement"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
