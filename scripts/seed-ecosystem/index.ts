@@ -30,23 +30,10 @@ import {
 import { assertAllowedTarget } from "./safety";
 import type { SeedContext } from "./types";
 
-function resolveMongoUri(target: "local" | "staging" | "production"): string {
-  if (target === "local") {
-    const uri =
-      process.env.E2E_MONGODB_URI ||
-      process.env.MONGODB_URI ||
-      process.env.MONGO_URI;
-    if (!uri) {
-      throw new Error(
-        "Local seed needs E2E_MONGODB_URI or MONGODB_URI (e.g. mongodb://localhost:27017/leafymap)."
-      );
-    }
-    return uri;
-  }
-
-  const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
+function resolveMongoUri(): string {
+  const uri = process.env.MONGO_URI;
   if (!uri) {
-    throw new Error("MONGODB_URI (or MONGO_URI) is not defined.");
+    throw new Error("MONGO_URI is not defined.");
   }
   return uri;
 }
@@ -55,7 +42,7 @@ async function main(): Promise<void> {
   const options = parseArgs(process.argv);
   faker.seed(FAKER_SEED);
 
-  const mongoUri = resolveMongoUri(options.target);
+  const mongoUri = resolveMongoUri();
   assertAllowedTarget(mongoUri, options.target, {
     confirmStaging: options.confirmStaging,
     confirmProduction: options.confirmProduction,

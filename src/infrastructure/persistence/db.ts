@@ -4,7 +4,7 @@ import logger from "@src/shared/logger";
 
 const connectDB = async (): Promise<void> => {
   try {
-    const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+    const mongoUri = process.env.MONGO_URI;
     if (!mongoUri) {
       throw new Error("MongoDB URI is not defined in environment variables");
     }
