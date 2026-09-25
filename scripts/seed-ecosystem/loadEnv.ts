@@ -15,22 +15,17 @@ const envPath = path.resolve(__dirname, "../..", envFile);
 
 const result = dotenv.config({
   path: envPath,
-  override: target === "production",
+  override: true,
 });
 
-if (target === "production" && result.error) {
-  throw new Error(
-    `Production seed requires ${envPath} (${result.error.message}).`
-  );
+if (result.error) {
+  throw new Error(`Seed requires ${envFile} (${result.error.message}).`);
 }
 
-if (target === "production") {
-  const parsed = result.parsed ?? {};
-  if (!parsed.MONGODB_URI && parsed.MONGO_URI) {
-    process.env.MONGODB_URI = parsed.MONGO_URI;
-  }
+const mongoUri = result.parsed?.MONGO_URI;
+if (!mongoUri) {
+  throw new Error(`${envFile} must define MONGO_URI.`);
 }
 
-if (target === "production") {
-  console.log(`Loaded ${envFile}`);
-}
+process.env.MONGO_URI = mongoUri;
+console.log(`Loaded ${envFile}`);

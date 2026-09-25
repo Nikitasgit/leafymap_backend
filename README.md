@@ -24,7 +24,9 @@ Plateforme de **découverte d'événements locaux** : carte interactive, lieux, 
 6. [ Dépendances principales](#-dépendances-principales)
 7. [ Notes importantes](#-notes-importantes)
 8. [Déploiement](#-déploiement)
-   - [Service web Render](#service-web-render)
+   - [CI et livraison](#ci-et-livraison)
+   - [Service web Render (runtime Node)](#service-web-render-runtime-node)
+   - [Image Docker (alternative)](#image-docker-alternative)
    - [Mise à jour](#mise-à-jour)
    - [Checklist avant déploiement](#checklist-avant-déploiement)
 
@@ -87,9 +89,8 @@ npm run seed:ecosystem -- --target local --skip-images --users 50 --events 200
 Script `scripts/seed-ecosystem/` : ~1500 utilisateurs, lieux, ~15000 événements, invitations, réservations, follows, favoris et partenariats, répartis entre grandes villes et petites agglomérations (Beaune, Uzès, Arles, Colmar, Annecy, …).
 
 - Prérequis : `npm run seed:categories`
-- Cible `local` : utilise `E2E_MONGODB_URI` si défini, sinon `MONGODB_URI` (localhost / `mongo`)
-- Cible `staging` : `MONGODB_URI` Atlas dont l’hôte contient `staging`, plus `--confirm staging`
-- Cible `production` : le script charge `.env.prod` et écrase `MONGODB_URI` déjà présent dans l’environnement. L’hôte doit contenir `production` ou `prod.`, et `--confirm production` est obligatoire. Refusée si l’hôte est local ou staging.
+- Cible `local` et `staging` : uniquement `MONGO_URI` dans `.env`. Local : hôte `localhost`, `127.0.0.1` ou `mongo`. Staging : hôte contenant `staging`, plus `--confirm staging`.
+- Cible `production` : uniquement `MONGO_URI` dans `.env.prod`. L’hôte doit contenir `production` ou `prod.`, et `--confirm production` est obligatoire. Refusée si l’hôte est local ou staging.
 - `--reset` : supprime uniquement les comptes `@leafymap.seed` et les objets S3 `images/seed/`
 - Mot de passe commun : `SEED_USER_PASSWORD` ou défaut `SeedUser!2026`
 - Comptes démo : `boulangerie.martin@leafymap.seed`, `le.bar.perche@leafymap.seed`, `atelier.luma@leafymap.seed`
@@ -97,8 +98,9 @@ Script `scripts/seed-ecosystem/` : ~1500 utilisateurs, lieux, ~15000 événement
 - Pool d’images : ~60 photos thématiques réutilisées, préfixe S3 `images/seed/` (le bucket est partagé avec la prod)
 - Ne pas lancer depuis docker-compose / Dockerfile (trop lourd + effets S3)
 
-La CI exécute, dans l'ordre : `lint:ci`, `knip`, `build`, tests unitaires, puis
-tests d'intégration et couverture. Elle s'exécute pour `develop` et `main`.
+La CI (`.github/workflows/ci.yml`) ne se lance que sur les **pull requests vers `main`**.
+Elle n’est pas déclenchée par un push sur `develop`, ni par un push direct sur `main`.
+Ordre : `lint:ci`, `knip`, `build`, tests unitaires, tests d’intégration, couverture.
 `lint:ci` impose zéro warning. Les seuils globaux de couverture sont volontairement
 conservateurs (32 % statements, 27 % branches, 33 % lignes) : ils protègent la
 baseline actuelle sans constituer un objectif de couverture production.
@@ -418,19 +420,34 @@ toute URL S3 imbriquée. `AwsImageStorageAdapter.signUrls` / `signUrl` délègue
 
 ### Variables d'environnement requises
 
+Aligné sur `env.example`. Le process lit `process.env.PORT` (repli `3000` si absent). En local l’exemple est `5001` (le port 5000 est pris par AirPlay sur macOS). Docker Compose force `5002`.
+
 ```env
-PORT=3000
-NODE_ENV=development|production
-MONGODB_URI=mongodb://...
+NODE_ENV=development
+PORT=5001
+MONGO_URI=mongodb://localhost:27017/leafymap
 DATABASE_URL=postgresql://leafymap:leafymap@localhost:5432/leafymap?schema=public
 REDIS_URL=redis://localhost:6379
-MAPBOX_ACCESS_TOKEN=your_mapbox_access_token_here
+MAPBOX_ACCESS_TOKEN=pk.your_mapbox_token
 JWT_SECRET=your_secret_key
 AWS_ACCESS_KEY_ID=...
 AWS_SECRET_ACCESS_KEY=...
 AWS_REGION=...
 AWS_BUCKET_NAME=...
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=587
+SMTP_USER=...
+SMTP_PASS=...
+MAIL_FROM=noreply@example.com
+GOOGLE_CLIENT_ID=....apps.googleusercontent.com
 ```
+
+Variables présentes dans d’anciens `.env` mais **non lues** par le code :
+
+- `FRONTEND_URL` — les liens e-mail utilisent `https://leafymap.com` si `NODE_ENV=production`, sinon `http://localhost:3001` (`src/shared/constants/common.ts`).
+- `ALLOWED_ORIGINS` — CORS et Socket.IO utilisent la même liste codée en dur : en production `https://leafymap.com` et `https://www.leafymap.com`.
+- `JWT_EXPIRE` — l’expiration du JWT est fixée à `1d` dans `src/infrastructure/auth/jwt.ts`.
+- `GOOGLE_CLIENT_SECRET` — la connexion Google vérifie l’`id_token` avec le Client ID seul.
 
 ### MongoDB
 
@@ -445,15 +462,16 @@ AWS_BUCKET_NAME=...
 - **Docker local** :
 
 ```bash
-# Depuis leafymap_backend/ (Docker Desktop doit être démarré)
-docker compose up -d
+# Postgres seul, si Docker est déjà lancé et que DATABASE_URL pointe sur localhost:5432
 npx prisma migrate deploy
-# ou en dev :
+# ou en dev, pour créer une migration :
 npx prisma migrate dev
 ```
 
-Le compose démarre Postgres 16 sur le port `5432` (`leafymap` / `leafymap` / db `leafymap`).
-Voir aussi `env.example`.
+Le `docker-compose.yml` qui démarre Postgres 16, Mongo 7, Redis 7, l’API et le frontend **n’est pas dans ce dépôt**. Il vit dans le dossier parent qui contient les deux clones (`leafymap/docker-compose.yml`) et n’est pas versionné sur GitHub. Depuis ce dossier parent : `docker compose up -d`. L’API y est publiée sur le port **5002** (`MONGO_URI`, `DATABASE_URL` et `REDIS_URL` sont réécrits vers les noms de services). Au démarrage du conteneur API : `prisma migrate deploy`, `seed:categories`, puis `npm run dev:docker`.
+
+Sans ce compose, lancer Postgres, Mongo et Redis soi-même et garder les URLs de `env.example`.
+Identifiants Postgres du compose : `leafymap` / `leafymap` / db `leafymap`, port `5432`.
 
 ### Redis (cache)
 
@@ -483,7 +501,7 @@ Le frontend utilise encore `NEXT_PUBLIC_MAPBOX_TOKEN` pour les **tuiles**. Le g�
 MAPBOX_ACCESS_TOKEN=pk.your_mapbox_token
 ```
 
-Si le token est absent ou Mapbox injoignable, l'API renvoie une liste vide / `null` (fail-open). À définir aussi sur Render, côté web service.
+Si le token est absent ou Mapbox injoignable, l'API renvoie une liste vide / `null` (fail-open). À définir aussi sur Render (`MAPBOX_ACCESS_TOKEN`). Le token public des tuiles (`NEXT_PUBLIC_MAPBOX_TOKEN`) reste une variable **Vercel**, pas Render.
 
 ### AWS S3
 
@@ -515,12 +533,25 @@ Si le token est absent ou Mapbox injoignable, l'API renvoie une liste vide / `nu
 
 ## Déploiement
 
-L'API est hébergée sur **Render** (web service Node.js). Le frontend reste sur **Vercel**. Les images restent sur **AWS S3** ; MongoDB Atlas et PostgreSQL sont des services managés distincts. Il n'y a plus d'instance EC2, ni Nginx, ni PM2.
+L'API de production est un **Web Service Render en runtime Node**. Le frontend est sur **Vercel** (voir le README frontend). MongoDB Atlas, PostgreSQL, Redis et S3 sont des services séparés. Il n'y a plus d'instance EC2, ni Nginx, ni PM2.
 
-### Service web Render
+Le chemin de prod **n'est pas** le `Dockerfile`. Ce fichier est une image alternative, décrite plus bas. `Dockerfile.dev` sert au Compose local.
 
-1. Créer un **Web Service** sur Render, connecté au dépôt GitHub `leafymap_backend`.
-2. Runtime **Node**.
+Branche déployée : **`main`**. Un push sur `develop` ne déploie rien et ne lance pas la CI.
+
+### CI et livraison
+
+| | CI (GitHub Actions) | Déploiement |
+| --- | --- | --- |
+| Déclencheur | pull request **vers** `main` | push sur `main` (auto-deploy Render), ou Manual Deploy |
+| Rôle | prouver lint, Knip, build, tests | publier l'API |
+
+La CI ne tourne pas après le merge (pas de job sur `push` `main`). Elle doit être verte **avant** la fusion. Render, lui, ne regarde pas le statut GitHub : un push sur `main` lance un build même si la CI n'a pas tourné.
+
+### Service web Render (runtime Node)
+
+1. Web Service connecté au dépôt `leafymap_backend`.
+2. Runtime **Node 22** (`engines` : `>=22`). Environnement **Node**, pas Docker — sinon Render ignore les commandes ci-dessous et suit le `Dockerfile`.
 3. Commandes :
 
 ```bash
@@ -531,25 +562,84 @@ npm run render:build
 npm start
 ```
 
-`render:build` installe les dépendances (y compris `devDependencies` nécessaires à TypeScript / Prisma), compile, puis exécute `prisma migrate deploy`.
+`render:build` = `npm install --include=dev && npm run build && prisma migrate deploy`.
 
-4. Renseigner les variables d'environnement dans le dashboard Render (mêmes clés que le `.env` local : `MONGODB_URI`, `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `FRONTEND_URL`, clés S3, SMTP, `MAPBOX_ACCESS_TOKEN`, etc.). Ne jamais committer les secrets.
-5. HTTPS et le reverse proxy sont fournis par Render. Un domaine personnalisé peut être branché dans le dashboard (DNS chez le registrar).
-6. Activer le **auto-deploy** sur `main` : un push qui passe (idéalement après CI GitHub Actions) déclenche un nouveau build Render.
+- `npm install --include=dev` : TypeScript, Prisma CLI et `tsc-alias` sont en `devDependencies`. Un `npm ci --omit=dev` ne compilerait pas.
+- `npm run build` : `prisma generate`, `tsc`, `tsc-alias`.
+- `prisma migrate deploy` : applique les migrations **déjà commitées** dans `prisma/migrations`. Ça tourne pendant le **build**, pas au `npm start`. Une migration cassée fait échouer le deploy avant que le process écoute. Ne pas lancer `prisma migrate dev` sur Render.
 
-Logs, redémarrages et historique des deploys : dashboard Render du service.
+`npm start` = `node -r tsconfig-paths/register dist/main/server.js`.
+
+4. **Port.** Render injecte `PORT`. Le serveur écoute cette valeur (`src/main/server.ts`). Ne pas fixer `PORT=3000` ou `5002` dans le dashboard : le proxy Render n'atteindrait pas le process. Le `3000` du code n'est qu'un repli si `PORT` est absent. Le `5002` est le port du Compose local et l'`EXPOSE` du Dockerfile.
+
+5. **`NODE_ENV=production`.** Render le définit. C'est ce qui active le cookie `Secure` + `SameSite=None` (le front Vercel et l'API ne sont pas le même site) et la liste CORS de production. Sans ça, le login depuis `https://www.leafymap.com` ne pose pas la session.
+
+6. Variables dans le dashboard Render, jamais dans Git :
+
+```env
+MONGO_URI=mongodb+srv://...
+DATABASE_URL=postgresql://...
+JWT_SECRET=...
+AWS_REGION=...
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+AWS_BUCKET_NAME=...
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=587
+SMTP_USER=...
+SMTP_PASS=...
+MAIL_FROM=...
+GOOGLE_CLIENT_ID=....apps.googleusercontent.com
+MAPBOX_ACCESS_TOKEN=pk....
+REDIS_URL=rediss://default:PASSWORD@HOST:6379
+```
+
+`REDIS_URL` est optionnelle (fail-open vers Mongo). Upstash / Redis managé avec TLS : schéma **`rediss://`**, pas l'URL REST. `MAPBOX_ACCESS_TOKEN` est le token **serveur** (géocodage). Le token des tuiles reste sur Vercel.
+
+Inutile de poser `FRONTEND_URL`, `ALLOWED_ORIGINS`, `JWT_EXPIRE` ou `GOOGLE_CLIENT_SECRET` : le runtime ne les lit pas. CORS et liens e-mail sont codés en dur :
+
+- origines autorisées en production : `https://leafymap.com`, `https://www.leafymap.com` ;
+- liens de vérification / reset : `https://leafymap.com` (apex, pas `www`).
+
+7. HTTPS et le reverse proxy sont ceux de Render. Un domaine custom se branche dans le dashboard.
+8. Auto-deploy sur `main`.
+
+Logs, redémarrages, historique : dashboard du service. Contrôle utile dans les logs de **build** : la ligne `prisma migrate deploy`. Puis le log de start (`Server running in production mode` et `WebSocket server initialized`).
+
+### Image Docker (alternative)
+
+`Dockerfile` (racine du dépôt) :
+
+- base `node:22-bookworm-slim` ;
+- `npm ci` puis `npm run build` ;
+- au **démarrage** du conteneur : `npx prisma migrate deploy && npm run seed:categories && npm start` ;
+- `EXPOSE 5002` (indicatif ; le process écoute quand même `PORT`).
+
+Différences avec le web service Node :
+
+| | Render Node (`render:build`) | `Dockerfile` |
+| --- | --- | --- |
+| Migrations | pendant le build | au démarrage |
+| `seed:categories` | non | oui, à chaque start |
+| Commandes du dashboard | utilisées | ignorées si le runtime est Docker |
+
+Le déploiement documenté ici est le runtime **Node**.
 
 ### Mise à jour
 
-Avec l'auto-deploy : `git push` sur `main` suffit. Sinon : **Manual Deploy** dans Render.
-
-Vérifier ensuite les logs du deploy (build, migrate, start) puis un appel à l'API en production.
+1. PR vers `main`, CI verte.
+2. Merge. Avec l'auto-deploy, Render build tout seul. Sinon : **Manual Deploy**.
+3. Lire le log : `prisma migrate deploy` OK, puis le process à l'écoute.
+4. Smoke test depuis le site de prod (`https://www.leafymap.com`) : login (cookie cross-site) et une lecture publique, par exemple `GET /api/categories`.
 
 ### Checklist avant déploiement
 
-- [ ] Variables d'environnement à jour dans Render (rien de secret dans Git)
+- [ ] Runtime Render = **Node**, Node 22, build `npm run render:build`, start `npm start`
+- [ ] `NODE_ENV=production` (automatique sur Render) — ne pas le forcer à `development`
+- [ ] `PORT` laissé à Render (ne pas le surcharger)
+- [ ] Secrets uniquement dans le dashboard : Mongo, `DATABASE_URL`, `JWT_SECRET`, S3, SMTP, `GOOGLE_CLIENT_ID`, `MAPBOX_ACCESS_TOKEN`, `REDIS_URL` en `rediss://` si TLS
+- [ ] `GOOGLE_CLIENT_ID` identique à `NEXT_PUBLIC_GOOGLE_CLIENT_ID` sur Vercel
 - [ ] Build local réussi (`npm run build`)
-- [ ] CI GitHub Actions verte sur la PR
-- [ ] Push sur `main` (ou deploy manuel Render)
-- [ ] Logs Render : migrate + start OK
-- [ ] Test de l'API en production (`FRONTEND_URL` / CORS cohérents avec `https://leafymap.com`)
+- [ ] CI GitHub Actions verte sur la PR vers `main`
+- [ ] Logs Render : migrate pendant le build, start OK
+- [ ] Login depuis `https://www.leafymap.com` et `GET /api/categories` en production

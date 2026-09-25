@@ -1,5 +1,0 @@
-CREATE TABLE user (
- id_user BIGINT PRIMARY KEY
- id_user BIGINT FOREIGN KEY
-
-)

@@ -7,20 +7,20 @@ const isLocalMongoUri = (uri: string): boolean =>
   /localhost|127\.0\.0\.1|\/\/mongo[:/]/.test(uri);
 
 async function seedE2eUser() {
-  const mongoUri = process.env.E2E_MONGODB_URI;
+  const mongoUri = process.env.MONGO_URI;
   const email = process.env.E2E_USER_EMAIL;
   const password = process.env.E2E_USER_PASSWORD;
   const username = process.env.E2E_USER_USERNAME;
 
   if (!mongoUri || !email || !password || !username) {
     throw new Error(
-      "E2E_MONGODB_URI, E2E_USER_EMAIL, E2E_USER_PASSWORD, and E2E_USER_USERNAME must be set"
+      "MONGO_URI, E2E_USER_EMAIL, E2E_USER_PASSWORD, and E2E_USER_USERNAME must be set"
     );
   }
 
   if (!isLocalMongoUri(mongoUri)) {
     throw new Error(
-      "seed:e2e-user only targets local MongoDB (docker-compose). Set E2E_MONGODB_URI=mongodb://localhost:27017/leafymap"
+      "seed:e2e-user only targets local MongoDB (docker-compose). Set MONGO_URI=mongodb://localhost:27017/leafymap"
     );
   }
 

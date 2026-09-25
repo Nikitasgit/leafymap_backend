@@ -116,6 +116,11 @@ export async function uploadImagePool(s3: S3Client): Promise<ImagePool> {
     const photoIds = UNSPLASH_CATALOG[theme];
     for (let i = 0; i < photoIds.length; i += 1) {
       const downloaded = await downloadImage(unsplashUrl(photoIds[i]));
+      if (!downloaded) {
+        console.warn(
+          `  Unsplash 404 or timeout for ${photoIds[i]} (${theme}); using labeled placeholder`
+        );
+      }
       const source = downloaded ?? (await placeholderJpeg(theme, i));
       const sizes = await processSizes(source);
       const stem = `${theme}-${i + 1}`;
