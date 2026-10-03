@@ -1,8 +1,12 @@
 import { Types } from "mongoose";
 import CreatePartnershipUseCase from "@src/application/usecases/partnerships/CreatePartnership.usecase";
 import { Partnership } from "@src/domain/entities/Partnership.entity";
+import { User } from "@src/domain/entities/User.entity";
 import { IPartnershipNotifier } from "@src/domain/interfaces/IPartnershipNotifier";
 import { IPartnershipRepository } from "@src/domain/interfaces/IPartnershipRepository";
+import { IUserRepository } from "@src/domain/interfaces/IUserRepository";
+import { UserPreferences } from "@src/domain/value-objects/UserPreferences.vo";
+import { createMockUserRepository } from "../../helpers/mockUserRepository";
 import {
   PartnershipId,
   UserId,
@@ -11,9 +15,25 @@ import { ERROR_CODES } from "@src/shared/errors";
 
 const mockObjectId = (): string => new Types.ObjectId().toString();
 
+const buildUser = (id: string, userType: "creator" | "guest") =>
+  User.reconstitute({
+    id: UserId.from(id),
+    email: "user@example.com",
+    username: userType,
+    userType,
+    role: "user",
+    deleted: false,
+    followers: 0,
+    interestIds: [],
+    preferences: UserPreferences.from({}),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
 describe("CreatePartnershipUseCase", () => {
   let partnershipRepository: jest.Mocked<IPartnershipRepository>;
   let partnershipNotifier: jest.Mocked<IPartnershipNotifier>;
+  let userRepository: jest.Mocked<IUserRepository>;
   let useCase: CreatePartnershipUseCase;
 
   beforeEach(() => {
@@ -28,9 +48,14 @@ describe("CreatePartnershipUseCase", () => {
     partnershipNotifier = {
       notifyInvitationCreated: jest.fn(),
     };
+    userRepository = createMockUserRepository();
+    userRepository.findById.mockImplementation(async (id) =>
+      buildUser(id.toString(), "creator")
+    );
     useCase = new CreatePartnershipUseCase(
       partnershipRepository,
-      partnershipNotifier
+      partnershipNotifier,
+      userRepository
     );
   });
 
@@ -64,6 +89,23 @@ describe("CreatePartnershipUseCase", () => {
       receiverId: UserId.from(collaboratorId),
       partnershipId,
     });
+  });
+
+  it("rejects a collaboration sent to a guest", async () => {
+    const initiatorId = mockObjectId();
+    const collaboratorId = mockObjectId();
+    userRepository.findById.mockResolvedValue(
+      buildUser(collaboratorId, "guest")
+    );
+
+    await expect(
+      useCase.execute({ collaboratorId, initiatorId })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.PARTNERSHIP_COLLABORATOR_MUST_BE_CREATOR,
+    });
+
+    expect(partnershipRepository.save).not.toHaveBeenCalled();
+    expect(partnershipNotifier.notifyInvitationCreated).not.toHaveBeenCalled();
   });
 
   it("rejects when an accepted partnership already exists", async () => {
