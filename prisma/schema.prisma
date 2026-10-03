@@ -22,13 +22,12 @@ enum AnnouncementLocale {
   @@map("announcement_locale")
 }
 
-/// Colonnes SQL en snake_case. Le code TypeScript reste en camelCase.
-/// La clé primaire reste `id` : on ne la renomme pas en id_announcement.
 model Announcement {
   id           String                    @id @default(cuid())
   slug         String                    @unique
   status       AnnouncementStatus        @default(draft)
   priority     Int                       @default(0)
+  isAnnouncementPinned    Boolean        @default(false) @map("is_announcement_pinned")
   startsAt     DateTime?                 @map("starts_at")
   endsAt       DateTime?                 @map("ends_at")
   deletedAt    DateTime?                 @map("deleted_at")

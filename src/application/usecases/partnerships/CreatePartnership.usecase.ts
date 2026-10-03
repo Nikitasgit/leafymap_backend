@@ -1,11 +1,13 @@
 import { Partnership } from "@src/domain/entities/Partnership.entity";
 import { IPartnershipNotifier } from "@src/domain/interfaces/IPartnershipNotifier";
 import { IPartnershipRepository } from "@src/domain/interfaces/IPartnershipRepository";
+import { IUserRepository } from "@src/domain/interfaces/IUserRepository";
 import { UserId } from "@src/domain/value-objects/ObjectId.vo";
 import {
   AppError,
   ConflictError,
   ERROR_CODES,
+  NotFoundError,
   ValidationError,
 } from "@src/shared/errors";
 import { CreatePartnershipInput } from "@src/application/dtos/partnerships/createPartnership.dto";
@@ -13,7 +15,8 @@ import { CreatePartnershipInput } from "@src/application/dtos/partnerships/creat
 class CreatePartnershipUseCase {
   constructor(
     private readonly partnershipRepository: IPartnershipRepository,
-    private readonly partnershipNotifier: IPartnershipNotifier
+    private readonly partnershipNotifier: IPartnershipNotifier,
+    private readonly userRepository: IUserRepository
   ) {}
 
   async execute(params: CreatePartnershipInput): Promise<Partnership> {
@@ -27,6 +30,21 @@ class CreatePartnershipUseCase {
 
     const initiatorId = UserId.from(params.initiatorId);
     const collaboratorId = UserId.from(params.collaboratorId);
+
+    const collaborator = await this.userRepository.findById(collaboratorId);
+    if (!collaborator || collaborator.deleted) {
+      throw new NotFoundError(
+        ERROR_CODES.USER_NOT_FOUND,
+        "Collaborator not found"
+      );
+    }
+    if (collaborator.userType !== "creator") {
+      throw new ValidationError(
+        { collaborator: "Only creators can be invited" },
+        ERROR_CODES.PARTNERSHIP_COLLABORATOR_MUST_BE_CREATOR,
+        "Only creators can receive a collaboration invitation"
+      );
+    }
 
     const existing = await this.partnershipRepository.findExistingBetweenUsers(
       initiatorId,

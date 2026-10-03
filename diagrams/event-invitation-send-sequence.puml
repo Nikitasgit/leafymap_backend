@@ -40,9 +40,6 @@ else Authentifie
   alt Non proprietaire (event.belongsTo)
     action --> ctrl : 403 Forbidden
     ctrl --> fe : 403
-    deactivate action
-    deactivate ctrl
-    deactivate fe
   else Proprietaire
     loop Pour chaque collaborateur
       action -> invitationRepo : findByEventAndCollaborator
@@ -54,8 +51,10 @@ else Authentifie
         action -> action : Ignorer ce collaborateur
       else Nouvelle invitation
         invitationRepo --> action : null
+        deactivate invitationRepo
 
         action -> invitationRepo : save(status=pending)
+        activate invitationRepo
         invitationRepo --> action : OK
         deactivate invitationRepo
 
@@ -69,9 +68,9 @@ else Authentifie
     action --> ctrl : OK
     deactivate action
     ctrl --> fe : 201 Created
-    deactivate ctrl
-    deactivate fe
   end
+  deactivate ctrl
+  deactivate fe
 end
 
 @enduml
